@@ -32,7 +32,6 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.10" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.1.10" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="3.1.10" />
-    <PackageReference Include="MvvmLightLibsStd10" Version="5.4.1.1" />
     <PackageReference Include="Syncfusion.Licensing" Version="18.4.0.42" />
     <PackageReference Include="Syncfusion.SfGrid.WPF" Version="18.4.0.42" />
     <PackageReference Include="Syncfusion.SfInput.WPF" Version="18.4.0.42" />
