@@ -19,7 +19,7 @@
         </Style>
     </Window.Resources>
 
-    <StackPanel x:Name="MainStackPanel">
+    <StackPanel>
 
         <DockPanel x:Name="dockpanel" HorizontalAlignment="Stretch">
             <DockPanel.Background>
