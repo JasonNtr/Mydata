@@ -58,7 +58,7 @@
                 <syncfusion:GridTextColumn MappingName="LastestStatus"  HeaderText="Τελευταία κατάσταση" AllowFiltering="True" />
                 <syncfusion:GridTextColumn MappingName="invoiceMark"  HeaderText="Mark" AllowFiltering="True" Width="150" />
 
-                <syncfusion:GridTemplateColumn MappingName="View" syncfusion:FocusManagerHelper.WantsKeyInput="True" ColumnMemberType="Button" Width="70"  VerticalAlignment="Stretch">
+                <syncfusion:GridTemplateColumn syncfusion:FocusManagerHelper.WantsKeyInput="True" ColumnMemberType="Button" Width="70"  VerticalAlignment="Stretch">
                     <syncfusion:GridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <Button  Content="View" syncfusion:FocusManagerHelper.FocusedElement="True" Height="45" Click="ViewClicked" VerticalAlignment="Stretch" Background="#3366ff" />
