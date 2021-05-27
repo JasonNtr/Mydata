@@ -71,7 +71,7 @@
         <syncfusion:CheckListBox x:Name="NewFileList" Grid.Row="2" Grid.Column="0" ItemsSource="{Binding newFiles}" SelectionChanged="CheckBox1_ItemChecked" IsSelectAllEnabled="False" Margin="0,0,0,20" />
         <syncfusion:CheckListBox x:Name="OldFileList" Grid.Row="2" Grid.Column="1" ItemsSource="{Binding oldFiles}" SelectionChanged="CheckBox2_ItemChecked" IsSelectAllEnabled="False"  Margin="0,0,0,20" />
 
-        <materialDesign:PopupBox x:Name="Popupnew"  Visibility="Hidden" StaysOpen="False" Grid.Row="0" Grid.Column="1" PlacementMode="BottomAndAlignCentres" Closed="Popupnew_Closed">
+        <materialDesign:PopupBox x:Name="Popupnew"  Visibility="Hidden" StaysOpen="False" Grid.Row="0" Grid.Column="1" PlacementMode="BottomAndAlignCentres" Closed="PopupNewClosed">
             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Width="850" Height="460">
                 <Grid  Margin="10">
                     <Grid.RowDefinitions>

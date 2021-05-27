@@ -164,35 +164,35 @@ namespace Business.Services
             }
         }
 
-        public async Task<MyDataInvoiceDTO> Insert(MyDataInvoiceDTO mydatainvoicedto)
+        public async Task<MyDataInvoiceDTO> Insert(MyDataInvoiceDTO myDataInvoiceDTO)
         {
-            var newmydatainvoice = new MyDataInvoice();
-            mapper.Map(mydatainvoicedto, newmydatainvoice);
-            await ctx.MyDataInvoices.AddAsync(newmydatainvoice);
+            var newMyDataInvoice = new MyDataInvoice();
+            mapper.Map(myDataInvoiceDTO, newMyDataInvoice);
+            await ctx.MyDataInvoices.AddAsync(newMyDataInvoice);
             var result = await ctx.SaveChangesAsync();
-            var mydatainvoicedtorefreshed = await GetByUid(newmydatainvoice.Uid);
-            return mydatainvoicedtorefreshed;
+            var myDataInvoiceDTORefreshed = await GetByUid(newMyDataInvoice.Uid);
+            return myDataInvoiceDTORefreshed;
         }
 
-        public async Task<MyDataInvoiceDTO> Update(MyDataInvoiceDTO mydatainvoicedto)
+        public async Task<MyDataInvoiceDTO> Update(MyDataInvoiceDTO myDataInvoiceDTO)
         {
-            var newmydatainvoice = await ctx.MyDataInvoices
-                .FirstOrDefaultAsync(x => x.Uid == mydatainvoicedto.Uid);
-            mapper.Map(mydatainvoicedto, newmydatainvoice);
-            ctx.Update(newmydatainvoice);
+            var newMyDataInvoice = await ctx.MyDataInvoices
+                .FirstOrDefaultAsync(x => x.Uid == myDataInvoiceDTO.Uid);
+            mapper.Map(myDataInvoiceDTO, newMyDataInvoice);
+            ctx.Update(newMyDataInvoice);
             var result = await ctx.SaveChangesAsync();
-            var mydatainvoicedtorefreshed = await GetByUid(newmydatainvoice.Uid);
-            return mydatainvoicedtorefreshed;
+            var myDataInvoiceDTORefreshed = await GetByUid(newMyDataInvoice.Uid);
+            return myDataInvoiceDTORefreshed;
         }
 
-        public async Task<List<MyDataInvoiceDTO>> GetList(DateTime fromDate, DateTime ToDate)
+        public async Task<List<MyDataInvoiceDTO>> GetList(DateTime fromDate, DateTime toDate)
         {
            
             try
             {
                 var list =
                     await ctx.MyDataInvoices
-                        .Where(x => x.Modified.Date >= fromDate.Date && x.Modified.Date <= ToDate.Date)
+                        .Where(x => x.Modified.Date >= fromDate.Date && x.Modified.Date <= toDate.Date)
                         .Include(p => p.MyDataResponses).ThenInclude(p => p.Errors)
                         .Include(p => p.MyDataCancelationResponses).ThenInclude(p => p.Errors)
                         .Include(p => p.InvoiceType)

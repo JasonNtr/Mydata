@@ -1,23 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Text;
-using System.Text.RegularExpressions;
-using Domain.Model;
+﻿using Domain.Model;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Options;
 
 namespace Infrastructure.Database
 {
-    public class ApplicationDbContext : DbContext
+    public sealed class ApplicationDbContext : DbContext
     {
         public DbSet<MyDataInvoice> MyDataInvoices { get; set; }
         public DbSet<MyDataResponse> MyDataResponses { get; set; }
         public DbSet<MyDataError> MyDataErrors { get; set; }
         public DbSet<MyDataInvoiceType> MyDataInvoiceTypes { get; set; }
-        public DbSet<MyDataCancelationError> MyDataCancelationErrors { get; set; }
-        public DbSet<MyDataCancelationResponse> MyDataCancelationResponses { get; set; }
+        public DbSet<MyDataCancelationError> MyDataCancellationErrors { get; set; }
+        public DbSet<MyDataCancelationResponse> MyDataCancellationResponses { get; set; }
         public DbSet<MyDataCancelInvoice> MyDataCancelInvoices { get; set; }
 
 

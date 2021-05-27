@@ -10,16 +10,93 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20210208120721_fix1")]
-    partial class fix1
+    [Migration("20210527111432_Initial")]
+    partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "3.1.11")
+                .HasAnnotation("ProductVersion", "3.1.10")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+            modelBuilder.Entity("Domain.Model.MyDataCancelInvoice", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasDefaultValueSql("NEWID()");
+
+                    b.Property<long?>("Uid")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("invoiceMark")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("invoiceProcessed")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("MyDataCancelInvoices");
+                });
+
+            modelBuilder.Entity("Domain.Model.MyDataCancelationError", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Code")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Message")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("Modified")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("MyDataCancelationResponseId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MyDataCancelationResponseId");
+
+                    b.ToTable("MyDataCancellationErrors");
+                });
+
+            modelBuilder.Entity("Domain.Model.MyDataCancelationResponse", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("Modified")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("MyDataInvoiceId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<long?>("cancellationMark")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("statusCode")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MyDataInvoiceId");
+
+                    b.ToTable("MyDataCancellationResponses");
+                });
 
             modelBuilder.Entity("Domain.Model.MyDataError", b =>
                 {
@@ -55,6 +132,9 @@ namespace Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<long?>("CancellationMark")
+                        .HasColumnType("bigint");
+
                     b.Property<DateTime>("Created")
                         .HasColumnType("datetime2");
 
@@ -84,8 +164,7 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("InvoiceTypeCode")
-                        .IsUnique();
+                    b.HasIndex("InvoiceTypeCode");
 
                     b.ToTable("MyDataInvoices");
                 });
@@ -234,6 +313,24 @@ namespace Infrastructure.Migrations
                     b.ToTable("MyDataResponses");
                 });
 
+            modelBuilder.Entity("Domain.Model.MyDataCancelationError", b =>
+                {
+                    b.HasOne("Domain.Model.MyDataCancelationResponse", "MyDataCancelationResponse")
+                        .WithMany("Errors")
+                        .HasForeignKey("MyDataCancelationResponseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Domain.Model.MyDataCancelationResponse", b =>
+                {
+                    b.HasOne("Domain.Model.MyDataInvoice", "MyDataInvoice")
+                        .WithMany("MyDataCancelationResponses")
+                        .HasForeignKey("MyDataInvoiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Domain.Model.MyDataError", b =>
                 {
                     b.HasOne("Domain.Model.MyDataResponse", "MyDataResponse")
@@ -246,8 +343,8 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Domain.Model.MyDataInvoice", b =>
                 {
                     b.HasOne("Domain.Model.MyDataInvoiceType", "InvoiceType")
-                        .WithOne()
-                        .HasForeignKey("Domain.Model.MyDataInvoice", "InvoiceTypeCode")
+                        .WithMany()
+                        .HasForeignKey("InvoiceTypeCode")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

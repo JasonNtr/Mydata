@@ -3,10 +3,24 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Infrastructure.Migrations
 {
-    public partial class Initials : Migration
+    public partial class Initial : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateTable(
+                name: "MyDataCancelInvoices",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(nullable: false, defaultValueSql: "NEWID()"),
+                    Uid = table.Column<long>(nullable: true),
+                    invoiceMark = table.Column<long>(nullable: true),
+                    invoiceProcessed = table.Column<bool>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MyDataCancelInvoices", x => x.Id);
+                });
+
             migrationBuilder.CreateTable(
                 name: "MyDataInvoiceTypes",
                 columns: table => new
@@ -36,7 +50,8 @@ namespace Infrastructure.Migrations
                     VAT = table.Column<string>(nullable: true),
                     InvoiceTypeCode = table.Column<int>(nullable: false),
                     FileName = table.Column<string>(nullable: true),
-                    StoredXml = table.Column<string>(nullable: true)
+                    StoredXml = table.Column<string>(nullable: true),
+                    CancellationMark = table.Column<long>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -46,6 +61,28 @@ namespace Infrastructure.Migrations
                         column: x => x.InvoiceTypeCode,
                         principalTable: "MyDataInvoiceTypes",
                         principalColumn: "Code",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "MyDataCancellationResponses",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(nullable: false),
+                    Created = table.Column<DateTime>(nullable: false),
+                    Modified = table.Column<DateTime>(nullable: false),
+                    MyDataInvoiceId = table.Column<Guid>(nullable: false),
+                    cancellationMark = table.Column<long>(nullable: true),
+                    statusCode = table.Column<string>(nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MyDataCancellationResponses", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_MyDataCancellationResponses_MyDataInvoices_MyDataInvoiceId",
+                        column: x => x.MyDataInvoiceId,
+                        principalTable: "MyDataInvoices",
+                        principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -70,6 +107,28 @@ namespace Infrastructure.Migrations
                         name: "FK_MyDataResponses_MyDataInvoices_MyDataInvoiceId",
                         column: x => x.MyDataInvoiceId,
                         principalTable: "MyDataInvoices",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "MyDataCancellationErrors",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(nullable: false),
+                    Created = table.Column<DateTime>(nullable: false),
+                    Modified = table.Column<DateTime>(nullable: false),
+                    MyDataCancelationResponseId = table.Column<Guid>(nullable: false),
+                    Message = table.Column<string>(nullable: true),
+                    Code = table.Column<int>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MyDataCancellationErrors", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_MyDataCancellationErrors_MyDataCancellationResponses_MyDataCancelationResponseId",
+                        column: x => x.MyDataCancelationResponseId,
+                        principalTable: "MyDataCancellationResponses",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -114,6 +173,16 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_MyDataCancellationErrors_MyDataCancelationResponseId",
+                table: "MyDataCancellationErrors",
+                column: "MyDataCancelationResponseId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MyDataCancellationResponses_MyDataInvoiceId",
+                table: "MyDataCancellationResponses",
+                column: "MyDataInvoiceId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_MyDataErrors_MyDataResponseId",
                 table: "MyDataErrors",
                 column: "MyDataResponseId");
@@ -121,8 +190,7 @@ namespace Infrastructure.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_MyDataInvoices_InvoiceTypeCode",
                 table: "MyDataInvoices",
-                column: "InvoiceTypeCode",
-                unique: true);
+                column: "InvoiceTypeCode");
 
             migrationBuilder.CreateIndex(
                 name: "IX_MyDataResponses_MyDataInvoiceId",
@@ -133,7 +201,16 @@ namespace Infrastructure.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "MyDataCancelInvoices");
+
+            migrationBuilder.DropTable(
+                name: "MyDataCancellationErrors");
+
+            migrationBuilder.DropTable(
                 name: "MyDataErrors");
+
+            migrationBuilder.DropTable(
+                name: "MyDataCancellationResponses");
 
             migrationBuilder.DropTable(
                 name: "MyDataResponses");

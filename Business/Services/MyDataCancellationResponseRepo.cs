@@ -25,7 +25,7 @@ namespace Business.Services
         {
             var mydatacancellationresponse = new MyDataCancelationResponse();
             mapper.Map(mydatacancellationresponsedto, mydatacancellationresponse);
-            await ctx.MyDataCancelationResponses.AddAsync(mydatacancellationresponse);
+            await ctx.MyDataCancellationResponses.AddAsync(mydatacancellationresponse);
             var result = await ctx.SaveChangesAsync();
             return result;
         }

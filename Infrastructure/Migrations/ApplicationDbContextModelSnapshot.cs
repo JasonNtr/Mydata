@@ -65,7 +65,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("MyDataCancelationResponseId");
 
-                    b.ToTable("MyDataCancelationErrors");
+                    b.ToTable("MyDataCancellationErrors");
                 });
 
             modelBuilder.Entity("Domain.Model.MyDataCancelationResponse", b =>
@@ -93,7 +93,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("MyDataInvoiceId");
 
-                    b.ToTable("MyDataCancelationResponses");
+                    b.ToTable("MyDataCancellationResponses");
                 });
 
             modelBuilder.Entity("Domain.Model.MyDataError", b =>
