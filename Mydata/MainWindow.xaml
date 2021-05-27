@@ -7,6 +7,7 @@
           xmlns:syncfusion="http://schemas.syncfusion.com/wpf"
           xmlns:syncfusion1="clr-namespace:Syncfusion.UI.Xaml.Grid;assembly=Syncfusion.SfGrid.WPF"
           xmlns:syncfusion2="clr-namespace:Syncfusion.Windows.Controls.Input;assembly=Syncfusion.SfInput.Wpf"
+          xmlns:mydata="clr-namespace:Mydata"
           mc:Ignorable="d" MouseLeftButtonDown="Window_MouseLeftButtonDown" WindowStyle="None"
         Title="MainWindow" Height = "870" Width = "1900" AllowsTransparency="True"  ShowInTaskbar="False" ResizeMode="NoResize" Topmost="False"
         FontFamily="{DynamicResource MaterialDesignFont}" Background="#b5c7da">
@@ -59,9 +60,11 @@
                 </LinearGradientBrush>
             </syncfusion:TabControlExt.TabPanelBackground>
 
-            <syncfusion:TabItemExt Header="tabItem1" CloseButtonState="Collapsed"   Width="250" Height="30" 
+            <syncfusion:TabItemExt x:Name="InvoiceTab" Header="tabItem1" CloseButtonState="Collapsed"   Width="250" Height="30" 
                            CanClose="False" >
-                <Grid Margin="10" x:Name="MainGrid">
+            </syncfusion:TabItemExt>
+            <syncfusion:TabItemExt Header="TabItem2"  Width="250" Height="30">
+                <!--<Grid Margin="10" x:Name="MainGrid_tab2">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="80" />
                         <RowDefinition Height="500" />
@@ -74,8 +77,8 @@
                     <StackPanel HorizontalAlignment="Left" Margin="0,0,20,0">
                         <Label Content="ΑΠΟ" FontWeight="Black" HorizontalAlignment="Center"></Label>
                         <syncfusion2:SfDatePicker
-                    Value="{Binding DateFrom, Mode=TwoWay}"
-                    AllowNull="False" HorizontalAlignment="Center" x:Name="SfDatePicker1"
+                            Value="{Binding DateFrom, Mode=TwoWay}"
+                     AllowNull="False" HorizontalAlignment="Center" x:Name="SfDatePicker1_tab2"
                     ShowDropDownButton="True" Width="200" Grid.ColumnSpan="2"
                     Height="40" FormatString="d/M/yyyy" SelectorFormatString="d/M/yyyy" />
                     </StackPanel>
@@ -84,12 +87,12 @@
                         <syncfusion2:SfDatePicker
                                            Value="{Binding DateTo, Mode=TwoWay}"
                                            AllowNull="False" HorizontalAlignment="Center"
-                                           x:Name="SfDatePicker2" ShowDropDownButton="True" Width="200"
+                                           x:Name="SfDatePicker2_tab2" ShowDropDownButton="True" Width="200"
                                            Grid.ColumnSpan="2" Height="40"
                                            FormatString="d/M/yyyy" SelectorFormatString="d/M/yyyy" />
                     </StackPanel>
 
-                    <syncfusion1:SfDataGrid x:Name="sfGrid" ItemsSource="{Binding Path=mydataInvoiceDTOs}" Grid.Row="1" Grid.ColumnSpan="2" HeaderStyle="{StaticResource headerStyle}" RowHeight="45" Margin="0,0,0,20"
+                    <syncfusion1:SfDataGrid x:Name="sfGrid_tab2" ItemsSource="{Binding Path=mydataInvoiceDTOs}" Grid.Row="1" Grid.ColumnSpan="2" HeaderStyle="{StaticResource headerStyle}" RowHeight="45" Margin="0,0,0,20"
                                   AutoGenerateColumns="False"  HorizontalContentAlignment="Center" ColumnSizer="Star">
                         <syncfusion:SfDataGrid.Columns>
                             <syncfusion:GridTextColumn MappingName="ModifiedToString" HeaderText="Τελευταία τροποποίηση" />
@@ -112,10 +115,10 @@
                         </syncfusion:SfDataGrid.Columns>
                     </syncfusion1:SfDataGrid>
 
-                    <syncfusion:CheckListBox x:Name="NewFileList" Grid.Row="2" Grid.Column="0" ItemsSource="{Binding newFiles}" SelectionChanged="CheckBox1_ItemChecked" IsSelectAllEnabled="False" Margin="0,0,0,20" />
-                    <syncfusion:CheckListBox x:Name="OldFileList" Grid.Row="2" Grid.Column="1" ItemsSource="{Binding oldFiles}" SelectionChanged="CheckBox2_ItemChecked" IsSelectAllEnabled="False"  Margin="0,0,0,20" />
+                    <syncfusion:CheckListBox x:Name="NewFileList_tab2" Grid.Row="2" Grid.Column="0" ItemsSource="{Binding newFiles}" SelectionChanged="CheckBox1_ItemChecked" IsSelectAllEnabled="False" Margin="0,0,0,20" />
+                    <syncfusion:CheckListBox x:Name="OldFileList_tab2" Grid.Row="2" Grid.Column="1" ItemsSource="{Binding oldFiles}" SelectionChanged="CheckBox2_ItemChecked" IsSelectAllEnabled="False"  Margin="0,0,0,20" />
 
-                    <materialDesign:PopupBox x:Name="Popupnew"  Visibility="Hidden" StaysOpen="False" Grid.Row="0" Grid.Column="1" PlacementMode="BottomAndAlignCentres" Closed="Popupnew_Closed">
+                    <materialDesign:PopupBox x:Name="Popupnew_tab2"  Visibility="Hidden" StaysOpen="False" Grid.Row="0" Grid.Column="1" PlacementMode="BottomAndAlignCentres" Closed="Popupnew_Closed">
                         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Width="850" Height="460">
                             <Grid  Margin="10">
                                 <Grid.RowDefinitions>
@@ -127,7 +130,7 @@
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
 
-                                <syncfusion1:SfDataGrid x:Name="errorGrid"
+                                <syncfusion1:SfDataGrid x:Name="errorGrid_tab2"
                                                 ItemsSource="{Binding Path=mydataErrorDTOs}" Grid.ColumnSpan="2"
                                                 HeaderStyle="{StaticResource headerStyle}" Margin="0,0,0,20"
                                                 AutoGenerateColumns="False"
@@ -146,9 +149,8 @@
                             </Grid>
                         </StackPanel>
                     </materialDesign:PopupBox>
-                </Grid>
+                </Grid>-->
             </syncfusion:TabItemExt>
-            <syncfusion:TabItemExt Header="TabItem2"  Width="250" Height="30"/>
             <syncfusion:TabItemExt Header="TabItem3"  Width="250" Height="30"/>
         </syncfusion:TabControlExt>
       

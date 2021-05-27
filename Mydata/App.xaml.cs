@@ -69,11 +69,10 @@ namespace Mydata
             services.AddScoped<IMyDataResponseRepo, MyDataResponseRepo>();
             services.AddScoped<IMyDataCancellationResponseRepo, MyDataCancellationResponseRepo>();
             services.AddScoped<IMyDataCancelInvoiceRepo, MyDataCancelInvoiceRepo>();
- 
+            services.AddScoped<MainWindow>();
             services.AddScoped<IParticleInform, ParticleInform>();
             services.AddAutoMapper(typeof(MappingProfiles));
-            services.AddTransient(typeof(MainWindow));
-            services.AddTransient(typeof(MainWindowVM));
+
         }
 
         private void OnStartup(object sender, StartupEventArgs e)
