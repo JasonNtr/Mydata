@@ -87,7 +87,7 @@ namespace Business.ApiServices
                 if (mydataresponse.statusCode.Equals("Success"))
                     await _particleInform.UpdateParticle(myDataInvoiceDTO);
             }
-
+            Debug.WriteLine("Post Invoice Completed");
             return 0;
         }
 

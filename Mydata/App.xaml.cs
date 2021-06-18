@@ -66,6 +66,13 @@ namespace Mydata
             services.AddScoped<IInvoiceRepo, InvoiceRepo>();
             services.AddScoped<IInvoiceService, InvoiceService>();
 
+            services.AddScoped<IExpenseRepo, ExpenseRepo>();
+            services.AddScoped<IExpenseService, ExpenseService>();
+
+            services.AddScoped<IIncomeRepo, IncomeRepo>();
+            services.AddScoped<IMyDataIncomeResponseRepo, MyDataIncomeResponseRepo>();
+            services.AddScoped<IIncomeService, IncomeService>();
+
             services.AddScoped<IMyDataResponseRepo, MyDataResponseRepo>();
             services.AddScoped<IMyDataCancellationResponseRepo, MyDataCancellationResponseRepo>();
             services.AddScoped<IMyDataCancelInvoiceRepo, MyDataCancelInvoiceRepo>();

@@ -100,10 +100,6 @@ namespace Mydata
 
         }
 
-
-
-
-
         private void ViewClicked(object sender, RoutedEventArgs e)
         {
             var rowDataContent = sfGrid.SelectedItem as MyDataInvoiceDTO;
@@ -141,10 +137,13 @@ namespace Mydata
             if (_appSettings.Value.Auto)
                 NewFileList.SelectedItems.Clear();
             
-
             var files = this.NewFileList.SelectedItems;
             if (files.Count < 1)
+            {
+                var x = NewFileList.SelectedItems;
                 return;
+            }
+                
 
             var selectedString = files[0].ToString();
             var list = _invoicesVm.oldFiles;
@@ -185,7 +184,5 @@ namespace Mydata
                 }
             }
         }
-
-
     }
 }

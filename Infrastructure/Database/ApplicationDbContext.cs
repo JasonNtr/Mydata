@@ -13,10 +13,14 @@ namespace Infrastructure.Database
         public DbSet<MyDataCancelationResponse> MyDataCancellationResponses { get; set; }
         public DbSet<MyDataCancelInvoice> MyDataCancelInvoices { get; set; }
 
+        public DbSet<MyDataIncome> MyDataIncomes { get; set; }
+        public DbSet<MyDataIncomeResponse> MyDataIncomeResponses { get; set; }
+        public DbSet<MyDataIncomeError> MyDataIncomeErrors { get; set; }
+
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
-            Database.EnsureCreated();
+            //Database.EnsureCreated();
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -57,6 +61,18 @@ namespace Infrastructure.Database
                 .HasForeignKey(p => p.MyDataCancelationResponseId)
                 .OnDelete(DeleteBehavior.Cascade);
             builder.Entity<MyDataCancelInvoice>().Property(x => x.Id).HasDefaultValueSql("NEWID()");
+
+
+            builder.Entity<MyDataIncome>()
+                .HasMany(p => p.MyDataIncomeResponses)
+                .WithOne(p => p.MyDataIncome)
+                .HasForeignKey(p => p.MyDataIncomeId)
+                .OnDelete(DeleteBehavior.Cascade); 
+            builder.Entity<MyDataIncomeResponse>()
+                .HasMany(p => p.Errors)
+                .WithOne(p => p.MyIncomeDataResponse)
+                .HasForeignKey(p => p.MyDataIncomeResponseId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
 
         private void SeedData(ModelBuilder builder)

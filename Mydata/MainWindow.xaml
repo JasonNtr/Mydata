@@ -60,98 +60,10 @@
                 </LinearGradientBrush>
             </syncfusion:TabControlExt.TabPanelBackground>
 
-            <syncfusion:TabItemExt x:Name="InvoiceTab" Header="tabItem1" CloseButtonState="Collapsed"   Width="250" Height="30" 
-                           CanClose="False" >
-            </syncfusion:TabItemExt>
-            <syncfusion:TabItemExt Header="TabItem2"  Width="250" Height="30">
-                <!--<Grid Margin="10" x:Name="MainGrid_tab2">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="80" />
-                        <RowDefinition Height="500" />
-                        <RowDefinition Height="200" />
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <StackPanel HorizontalAlignment="Left" Margin="0,0,20,0">
-                        <Label Content="ΑΠΟ" FontWeight="Black" HorizontalAlignment="Center"></Label>
-                        <syncfusion2:SfDatePicker
-                            Value="{Binding DateFrom, Mode=TwoWay}"
-                     AllowNull="False" HorizontalAlignment="Center" x:Name="SfDatePicker1_tab2"
-                    ShowDropDownButton="True" Width="200" Grid.ColumnSpan="2"
-                    Height="40" FormatString="d/M/yyyy" SelectorFormatString="d/M/yyyy" />
-                    </StackPanel>
-                    <StackPanel HorizontalAlignment="Left" Margin="250,0,0,0">
-                        <Label Content="ΕΩΣ" FontWeight="Black" HorizontalAlignment="Center"></Label>
-                        <syncfusion2:SfDatePicker
-                                           Value="{Binding DateTo, Mode=TwoWay}"
-                                           AllowNull="False" HorizontalAlignment="Center"
-                                           x:Name="SfDatePicker2_tab2" ShowDropDownButton="True" Width="200"
-                                           Grid.ColumnSpan="2" Height="40"
-                                           FormatString="d/M/yyyy" SelectorFormatString="d/M/yyyy" />
-                    </StackPanel>
-
-                    <syncfusion1:SfDataGrid x:Name="sfGrid_tab2" ItemsSource="{Binding Path=mydataInvoiceDTOs}" Grid.Row="1" Grid.ColumnSpan="2" HeaderStyle="{StaticResource headerStyle}" RowHeight="45" Margin="0,0,0,20"
-                                  AutoGenerateColumns="False"  HorizontalContentAlignment="Center" ColumnSizer="Star">
-                        <syncfusion:SfDataGrid.Columns>
-                            <syncfusion:GridTextColumn MappingName="ModifiedToString" HeaderText="Τελευταία τροποποίηση" />
-                            <syncfusion:GridTextColumn MappingName="Uid" Width="100" HeaderText="UID" />
-                            <syncfusion:GridTextColumn MappingName="InvoiceNumber" AllowFiltering="True" HeaderText="ΑΡ. ΠΑΡ." Width="150" />
-                            <syncfusion:GridTextColumn MappingName="InvoiceDateToString" HeaderText="ΗΜ. ΠΑΡ." Width="150" />
-                            <syncfusion:GridTextColumn MappingName="InvoiceType.Title" HeaderText="ΠΑΡΑΣΤΑΤΙΚΟ" AllowFiltering="True" />
-                            <syncfusion:GridTextColumn MappingName="VAT"  HeaderText="ΑΦΜ ΠΕΛΑΤΗ" AllowFiltering="True" />
-                            <syncfusion:GridTextColumn MappingName="FileName"  HeaderText="Όνομα αρχείου" AllowFiltering="True" TextWrapping="Wrap" />
-                            <syncfusion:GridTextColumn MappingName="LastestStatus"  HeaderText="Τελευταία κατάσταση" AllowFiltering="True" />
-                            <syncfusion:GridTextColumn MappingName="invoiceMark"  HeaderText="Mark" AllowFiltering="True" Width="150" />
-
-                            <syncfusion:GridTemplateColumn MappingName="View" syncfusion:FocusManagerHelper.WantsKeyInput="True" ColumnMemberType="Button" Width="70"  VerticalAlignment="Stretch">
-                                <syncfusion:GridTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <Button  Content="View" syncfusion:FocusManagerHelper.FocusedElement="True" Height="45" Click="ViewClicked" VerticalAlignment="Stretch" Background="#3366ff" />
-                                    </DataTemplate>
-                                </syncfusion:GridTemplateColumn.CellTemplate>
-                            </syncfusion:GridTemplateColumn>
-                        </syncfusion:SfDataGrid.Columns>
-                    </syncfusion1:SfDataGrid>
-
-                    <syncfusion:CheckListBox x:Name="NewFileList_tab2" Grid.Row="2" Grid.Column="0" ItemsSource="{Binding newFiles}" SelectionChanged="CheckBox1_ItemChecked" IsSelectAllEnabled="False" Margin="0,0,0,20" />
-                    <syncfusion:CheckListBox x:Name="OldFileList_tab2" Grid.Row="2" Grid.Column="1" ItemsSource="{Binding oldFiles}" SelectionChanged="CheckBox2_ItemChecked" IsSelectAllEnabled="False"  Margin="0,0,0,20" />
-
-                    <materialDesign:PopupBox x:Name="Popupnew_tab2"  Visibility="Hidden" StaysOpen="False" Grid.Row="0" Grid.Column="1" PlacementMode="BottomAndAlignCentres" Closed="PopupNewClosed">
-                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Width="850" Height="460">
-                            <Grid  Margin="10">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="400" />
-                                    <RowDefinition Height="40" />
-                                </Grid.RowDefinitions>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-
-                                <syncfusion1:SfDataGrid x:Name="errorGrid_tab2"
-                                                ItemsSource="{Binding Path=mydataErrorDTOs}" Grid.ColumnSpan="2"
-                                                HeaderStyle="{StaticResource headerStyle}" Margin="0,0,0,20"
-                                                AutoGenerateColumns="False"
-                                                HorizontalContentAlignment="Center" ColumnSizer="Star">
-                                    <syncfusion:SfDataGrid.Columns>
-                                        <syncfusion:GridTextColumn MappingName="Modified" HeaderText="Τελευταία τροποποίηση" />
-                                        <syncfusion:GridTextColumn MappingName="Code" HeaderText="Κωδικός λάθους" Padding="5" />
-                                        <syncfusion:GridTextColumn MappingName="Message" HeaderText="Μήνυμα" TextWrapping="Wrap" Padding="5" />
-                                    </syncfusion:SfDataGrid.Columns>
-                                </syncfusion1:SfDataGrid>
-                                <Button Grid.Row="1" Grid.Column="1" HorizontalAlignment="Right">
-                                    <Button.Content>
-                                        <Label Content="Exit " FontWeight="DemiBold" />
-                                    </Button.Content>
-                                </Button>
-                            </Grid>
-                        </StackPanel>
-                    </materialDesign:PopupBox>
-                </Grid>-->
-            </syncfusion:TabItemExt>
-            <syncfusion:TabItemExt Header="TabItem3"  Width="250" Height="30"/>
+            <syncfusion:TabItemExt x:Name="InvoiceTab" Header="Invoices" CloseButtonState="Collapsed"   Width="250" Height="30" 
+                           CanClose="False"/>
+            <syncfusion:TabItemExt x:Name="IncomesTab" Header="Incomes"  Width="250" Height="30"/>
+            <syncfusion:TabItemExt x:Name="ExpensesTab" Header="Expenses"  Width="250" Height="30"/>
         </syncfusion:TabControlExt>
       
         

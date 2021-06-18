@@ -10,22 +10,22 @@ using Infrastructure.Interfaces.Services;
 
 namespace Business.Services
 {
-    public class MyDataResponseRepo : IMyDataResponseRepo
+    public class MyDataIncomeResponseRepo : IMyDataIncomeResponseRepo
     {
         private readonly ApplicationDbContext ctx;
         private readonly IMapper mapper;
 
-        public MyDataResponseRepo(ApplicationDbContext ctx, IMapper mapper)
+        public MyDataIncomeResponseRepo(ApplicationDbContext ctx, IMapper mapper)
         {
             this.ctx = ctx;
             this.mapper = mapper;
         }
 
-        public async Task<int> Insert(MyDataResponseDTO mydataresponsedto)
+        public async Task<int> Insert(MyDataIncomeResponseDTO myDataIncomeResponseDTO)
         {
-            var mydataresponse = new MyDataResponse();
-            mapper.Map(mydataresponsedto, mydataresponse);
-            await ctx.MyDataResponses.AddAsync(mydataresponse);
+            var myDataResponse = new MyDataIncomeResponse();
+            mapper.Map(myDataIncomeResponseDTO, myDataResponse);
+            await ctx.MyDataIncomeResponses.AddAsync(myDataResponse);
             var result = await ctx.SaveChangesAsync();
             return result;
         }

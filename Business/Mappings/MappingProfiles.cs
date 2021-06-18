@@ -18,6 +18,7 @@ namespace Business.Mappings
                 .ForMember(d => d.MyDataResponse, opt => opt.Ignore());
             CreateMap<MyDataCancelationError, MyDataCancelationErrorDTO>().ReverseMap()
                 .ForMember(d => d.MyDataCancelationResponse, opt => opt.Ignore());
+            
             CreateMap<MyDataInvoice, MyDataInvoiceDTO>().ReverseMap();
             CreateMap<MyDataCancelInvoice, MyDataCancelInvoiceDTO>().ReverseMap();
             //.ForMember(d => d.MyDataResponses, opt => opt.Ignore());
@@ -28,7 +29,16 @@ namespace Business.Mappings
             CreateMap<MyDataCancelationResponse, MyDataCancelationResponseDTO>().ReverseMap()
                 .ForMember(d => d.MyDataInvoice, opt => opt.Ignore());
             //.ForMember(d => d.Errors, opt => opt.Ignore()); ;
+
+
+            CreateMap<MyDataIncome,MyDataIncomeDTO>().ReverseMap();
+            CreateMap<MyDataIncomeResponse, MyDataIncomeResponseDTO>().ReverseMap();
+            CreateMap<MyDataIncomeError, MyDataIncomeErrorDTO>().ReverseMap();
+
+
+
             CreateMap<MyDataErrorDTO, MyGenericErrorsDTO>().ReverseMap();
+            CreateMap<MyDataIncomeErrorDTO, MyGenericErrorsDTO>().ReverseMap();
             CreateMap<MyDataCancelationErrorDTO, MyGenericErrorsDTO>().ReverseMap();
         }
 

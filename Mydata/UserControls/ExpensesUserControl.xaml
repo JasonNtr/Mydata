@@ -4,9 +4,102 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Mydata"
+             xmlns:Syncfusion="http://schemas.syncfusion.com/wpf"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
-            
+    <UserControl.Resources>
+        <Style TargetType="Syncfusion:GridHeaderCellControl" x:Key="headerStyle">
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Foreground" Value="Black" />
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Margin="10" x:Name="MainGrid">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="80" />
+            <RowDefinition Height="500" />
+            <RowDefinition Height="200" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <StackPanel HorizontalAlignment="Left" Margin="0,0,20,0">
+            <Label Content="ΑΠΟ" FontWeight="Black" HorizontalAlignment="Center"></Label>
+            <Syncfusion:SfDatePicker
+                    Value="{Binding DateFrom, Mode=TwoWay}"
+                    AllowNull="False" HorizontalAlignment="Center" x:Name="SfDatePicker1"
+                    ShowDropDownButton="True" Width="200" Grid.ColumnSpan="2"
+                    Height="40" FormatString="d/M/yyyy" SelectorFormatString="d/M/yyyy" />
+        </StackPanel>
+        <StackPanel HorizontalAlignment="Left" Margin="250,0,0,0">
+            <Label Content="ΕΩΣ" FontWeight="Black" HorizontalAlignment="Center"></Label>
+            <Syncfusion:SfDatePicker
+                                           Value="{Binding DateTo, Mode=TwoWay}"
+                                           AllowNull="False" HorizontalAlignment="Center"
+                                           x:Name="SfDatePicker2" ShowDropDownButton="True" Width="200"
+                                           Grid.ColumnSpan="2" Height="40"
+                                           FormatString="d/M/yyyy" SelectorFormatString="d/M/yyyy" />
+        </StackPanel>
+
+        <Syncfusion:SfDataGrid x:Name="sfGrid" ItemsSource="{Binding Path=mydataInvoiceDTOs}" Grid.Row="1" Grid.ColumnSpan="2" HeaderStyle="{StaticResource headerStyle}" RowHeight="45" Margin="0,0,0,20"
+                                  AutoGenerateColumns="False"  HorizontalContentAlignment="Center" ColumnSizer="Star">
+            <Syncfusion:SfDataGrid.Columns>
+                <Syncfusion:GridTextColumn MappingName="ModifiedToString" HeaderText="Τελευταία τροποποίηση" />
+                <Syncfusion:GridTextColumn MappingName="Uid" Width="100" HeaderText="UID" />
+                <Syncfusion:GridTextColumn MappingName="InvoiceNumber" AllowFiltering="True" HeaderText="ΑΡ. ΠΑΡ." Width="150" />
+                <Syncfusion:GridTextColumn MappingName="InvoiceDateToString" HeaderText="ΗΜ. ΠΑΡ." Width="150" />
+                <Syncfusion:GridTextColumn MappingName="InvoiceType.Title" HeaderText="ΠΑΡΑΣΤΑΤΙΚΟ" AllowFiltering="True" />
+                <Syncfusion:GridTextColumn MappingName="VAT"  HeaderText="ΑΦΜ ΠΕΛΑΤΗ" AllowFiltering="True" />
+                <Syncfusion:GridTextColumn MappingName="FileName"  HeaderText="Όνομα αρχείου" AllowFiltering="True" TextWrapping="Wrap" />
+                <Syncfusion:GridTextColumn MappingName="LastestStatus"  HeaderText="Τελευταία κατάσταση" AllowFiltering="True" />
+                <Syncfusion:GridTextColumn MappingName="invoiceMark"  HeaderText="Mark" AllowFiltering="True" Width="150" />
+
+                <Syncfusion:GridTemplateColumn Syncfusion:FocusManagerHelper.WantsKeyInput="True" ColumnMemberType="Button" Width="70"  VerticalAlignment="Stretch">
+                    <Syncfusion:GridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Button  Content="View" Syncfusion:FocusManagerHelper.FocusedElement="True" Height="45" Click="ViewClicked" VerticalAlignment="Stretch" Background="#3366ff" />
+                        </DataTemplate>
+                    </Syncfusion:GridTemplateColumn.CellTemplate>
+                </Syncfusion:GridTemplateColumn>
+            </Syncfusion:SfDataGrid.Columns>
+        </Syncfusion:SfDataGrid>
+
+        <Syncfusion:CheckListBox x:Name="NewFileList" Grid.Row="2" Grid.Column="0" ItemsSource="{Binding newFiles}" SelectionChanged="CheckBox1_ItemChecked" ItemChecked="NewFileList_ItemChecked" IsSelectAllEnabled="False" Margin="0,0,0,20" />
+        <Syncfusion:CheckListBox x:Name="OldFileList" Grid.Row="2" Grid.Column="1" ItemsSource="{Binding oldFiles}" SelectionChanged="CheckBox2_ItemChecked" IsSelectAllEnabled="False"  Margin="0,0,0,20" />
+
+        <materialDesign:PopupBox x:Name="Popupnew"  Visibility="Hidden" StaysOpen="False" Grid.Row="0" Grid.Column="1" PlacementMode="BottomAndAlignCentres" Closed="PopupNewClosed">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Width="850" Height="460">
+                <Grid  Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="400" />
+                        <RowDefinition Height="40" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Syncfusion:SfDataGrid x:Name="errorGrid"
+                                                ItemsSource="{Binding Path=mydataErrorDTOs}" Grid.ColumnSpan="2"
+                                                HeaderStyle="{StaticResource headerStyle}" Margin="0,0,0,20"
+                                                AutoGenerateColumns="False"
+                                                HorizontalContentAlignment="Center" ColumnSizer="Star">
+                        <Syncfusion:SfDataGrid.Columns>
+                            <Syncfusion:GridTextColumn MappingName="Modified" HeaderText="Τελευταία τροποποίηση" />
+                            <Syncfusion:GridTextColumn MappingName="Code" HeaderText="Κωδικός λάθους" Padding="5" />
+                            <Syncfusion:GridTextColumn MappingName="Message" HeaderText="Μήνυμα" TextWrapping="Wrap" Padding="5" />
+                        </Syncfusion:SfDataGrid.Columns>
+                    </Syncfusion:SfDataGrid>
+                    <Button Grid.Row="1" Grid.Column="1" HorizontalAlignment="Right">
+                        <Button.Content>
+                            <Label Content="Exit " FontWeight="DemiBold" />
+                        </Button.Content>
+                    </Button>
+                </Grid>
+            </StackPanel>
+        </materialDesign:PopupBox>
     </Grid>
 </UserControl>
