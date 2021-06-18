@@ -1,5 +1,4 @@
-﻿
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.IO;
 using Infrastructure.Database;
 using Infrastructure.Interfaces;
@@ -18,6 +17,7 @@ using Microsoft.EntityFrameworkCore;
 using Mydata.ViewModels;
 using Application = System.Windows.Application;
 using System;
+using Hardcodet.Wpf.TaskbarNotification;
 
 namespace Mydata
 {
@@ -28,10 +28,9 @@ namespace Mydata
     {
         private ServiceProvider ServiceProvider { get; set; }
         public IConfiguration Configuration { get; private set; }
-        private NotifyIcon notifyIcon;
-        private bool _isExit;
+        
 
-
+        private TaskbarIcon notifyIcon;
         public App()
         {
             Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense("Mzg1MjUyQDMxMzgyZTM0MmUzMFNHSUlDTlNGMW4vUTRtZ1hGUDVuWGUrSWVzdHBTa2JZcnFEMUhhK2RnQWs9");
@@ -48,11 +47,8 @@ namespace Mydata
             ConfigureServices(serviceCollection);
             ServiceProvider = serviceCollection.BuildServiceProvider();
 
-            notifyIcon = new System.Windows.Forms.NotifyIcon();
-            notifyIcon.DoubleClick += (s, args) => ShowMainWindow();
-            notifyIcon.Icon = Mydata.Properties.Resources.TrayIcon;
-            notifyIcon.Visible = true;
-            CreateContextMenu();
+           
+         
         }
 
         public void ConfigureServices(IServiceCollection services)
@@ -82,51 +78,25 @@ namespace Mydata
 
         }
 
-        private void OnStartup(object sender, StartupEventArgs e)
+        protected override void OnStartup(StartupEventArgs e)
         {
-            var mainWindow = ServiceProvider.GetService<MainWindow>();
-            mainWindow.Closing += MainWindow_Closing;
-            mainWindow.Show();
-        }
-        private void CreateContextMenu()
-        {
-            notifyIcon.ContextMenuStrip =
-                new System.Windows.Forms.ContextMenuStrip();
-            notifyIcon.ContextMenuStrip.Items.Add("Exit",
-                    notifyIcon.Icon.ToBitmap()).Click +=
-                (s, e) => ExitApplication();
-        }
-        private void ExitApplication()
-        {
-            _isExit = true;
-            MainWindow.Close();
-            notifyIcon.Dispose();
-            notifyIcon = null;
+            base.OnStartup(e);
 
+            //create the notifyicon (it's a resource declared in NotifyIconResources.xaml
+            notifyIcon = (TaskbarIcon)FindResource("NotifyIcon");
+
+            MainWindow = ServiceProvider.GetService<MainWindow>();
+            Application.Current.MainWindow.Show();
         }
-        private void ShowMainWindow()
+
+        protected override void OnExit(ExitEventArgs e)
         {
-            if (MainWindow.IsVisible)
-            {
-                if (MainWindow.WindowState == WindowState.Minimized)
-                {
-                    MainWindow.WindowState = WindowState.Normal;
-                }
-                MainWindow.Activate();
-            }
-            else
-            {
-                MainWindow.Show();
-            }
+            notifyIcon.Dispose(); //the icon would clean up automatically, but this is cleaner
+            base.OnExit(e);
         }
-        private void MainWindow_Closing(object sender, CancelEventArgs e)
-        {
-            if (!_isExit)
-            {
-                e.Cancel = true;
-                MainWindow.Hide(); // A hidden window can be shown again, a closed one not
-            }
-        }
+
+         
+         
 
         private void AppDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
         {    
