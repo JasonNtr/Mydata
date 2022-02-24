@@ -4,6 +4,7 @@ using System.Text;
 using AutoMapper;
 using Domain.DTO;
 using Domain.Model;
+using Infrastructure.Database.RequestDocModels;
 
 namespace Business.Mappings
 {
@@ -40,6 +41,17 @@ namespace Business.Mappings
             CreateMap<MyDataErrorDTO, MyGenericErrorsDTO>().ReverseMap();
             CreateMap<MyDataIncomeErrorDTO, MyGenericErrorsDTO>().ReverseMap();
             CreateMap<MyDataCancelationErrorDTO, MyGenericErrorsDTO>().ReverseMap();
+
+            CreateMap<MyDataTransmittedDocInvoiceDTO, MyDataTransmittedDocInvoice>().ReverseMap();
+            CreateMap<MyDataPartyTypeDTO, MyDataPartyType>().ReverseMap();
+            CreateMap<MyDataInvoiceRowTypeDTO, MyDataInvoiceRowType>().ReverseMap();
+            CreateMap<MyDataAddressTypeDTO, MyDataAddressType>().ReverseMap();
+            CreateMap<MyDataInvoiceHeaderTypeDTO, MyDataInvoiceHeaderType>().ReverseMap();
+            CreateMap<MyDataPaymentMethodDetailDTO, MyDataPaymentMethodDetail>().ReverseMap();
+            CreateMap<MyDataTaxesDTO, MyDataTaxes>().ReverseMap();
+            CreateMap<MyDataInvoiceSummaryDTO, MyDataInvoiceSummary>().ReverseMap();
+            CreateMap<MyDataIncomeClassificationDTO, MyDataIncomeClassification>().ReverseMap();
+            
         }
 
        

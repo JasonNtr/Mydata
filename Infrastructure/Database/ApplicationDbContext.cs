@@ -18,6 +18,22 @@ namespace Infrastructure.Database
         public DbSet<MyDataIncomeError> MyDataIncomeErrors { get; set; }
 
 
+
+        public DbSet<MyDataTransmittedDocInvoice> MyDataTransmittedDocInvoices { get; set; }
+        public DbSet<MyDataInvoiceHeaderType> MyDataInvoiceHeaderTypes { get; set; }
+        public DbSet<MyDataPartyType> MyDataPartyTypes { get; set; }
+        public DbSet<MyDataPaymentMethodDetail> MyDataPaymentMethodDetails { get; set; }
+        public DbSet<MyDataInvoiceDetails> MyDataInvoiceDetails { get; set; }
+        public DbSet<MyDataInvoiceSummary> MyDataInvoiceSummary { get; set; }
+        public DbSet<MyDataAddressType> MyDataAddressType { get; set; }
+        public DbSet<MyDataInvoiceRowType> MyDataInvoiceRowType { get; set; }
+        public DbSet<MyDataTaxes> MyDataTaxes { get; set; }
+        public DbSet<MyDataIncomeClassification> MyDataIncomeClassifications { get; set; }
+        public DbSet<MyDataExpensesClassification> MyDataExpensesClassifications { get; set; }
+        public DbSet<MyDataInvoiceExpensesClassificationType> MyDataInvoiceExpensesClassificationTypes { get; set; }
+        public DbSet<MyDataCancelledInvoicesDoc> MyDataCancelledInvoicesDocs { get; set; }
+
+
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
             //Database.EnsureCreated();
@@ -72,6 +88,75 @@ namespace Infrastructure.Database
                 .HasMany(p => p.Errors)
                 .WithOne(p => p.MyIncomeDataResponse)
                 .HasForeignKey(p => p.MyDataIncomeResponseId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+
+            //builder.Entity<MyDataTransmittedDocInvoice>()
+            //    .HasMany(p => p.issuer)
+            //    .WithOne(p => p.MyDataDocIssuerInvoice)
+            //    .HasForeignKey(p => p.MyDataDocIssuerInvoiceId)
+            //    .OnDelete(DeleteBehavior.Cascade);
+
+            //builder.Entity<MyDataTransmittedDocInvoice>()
+            //   .HasMany(p => p.counterpart)
+            //   .WithOne(p => p.MyDataDocEncounterInvoice)
+            //   .HasForeignKey(p => p.MyDataDocEncounterInvoiceId)
+            //   .OnDelete(DeleteBehavior.Cascade);
+
+
+            builder.Entity<MyDataPartyType>()
+                .HasOne(p => p.MyDataDocIssuerInvoice)
+                .WithMany(p => p.issuer)
+                .HasForeignKey(p => p.MyDataDocIssuerInvoiceId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            builder.Entity<MyDataPartyType>()
+               .HasOne(p => p.MyDataDocEncounterInvoice)
+                .WithMany(p => p.counterpart)
+                .HasForeignKey(p => p.MyDataDocEncounterInvoiceId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            builder.Entity<MyDataTransmittedDocInvoice>()
+                .HasOne(p => p.invoiceHeaderType)
+                .WithOne(p => p.MyDataDocInvoice)
+                .HasForeignKey<MyDataInvoiceHeaderType>(p => p.MyDataDocInvoiceId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+
+            builder.Entity<MyDataTransmittedDocInvoice>()
+                .HasMany(p => p.paymentMethodDetailType)
+                .WithOne(p => p.MyDataDocInvoice)
+                .HasForeignKey(p => p.MyDataDocInvoiceId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<MyDataTransmittedDocInvoice>()
+                .HasMany(p => p.invoiceDetails)
+                .WithOne(p => p.MyDataDocInvoice)
+                .HasForeignKey(p => p.MyDataDocInvoiceId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<MyDataTransmittedDocInvoice>()
+                .HasMany(p => p.taxesTotals)
+                .WithOne(p => p.MyDataDocInvoice)
+                .HasForeignKey(p => p.MyDataDocInvoiceId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<MyDataTransmittedDocInvoice>()
+                .HasOne(p => p.invoiceSummary)
+                .WithOne(p => p.MyDataDocInvoice)
+                .HasForeignKey<MyDataInvoiceSummary>(p => p.MyDataDocInvoiceId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<MyDataPartyType>()
+                .HasOne(p => p.address)
+                .WithOne(p => p.MyDataPartyType)
+                .HasForeignKey<MyDataAddressType>(p => p.MyDataPartyTypeId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<MyDataInvoiceRowType>()
+                .HasOne(p => p.incomeClassification)
+                .WithOne(p => p.MyDataInvoiceDocRowType)
+                .HasForeignKey<MyDataIncomeClassification>(p => p.MyDataInvoiceDetailsId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
 

@@ -1,5 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Newtonsoft.Json;
+using System.IO;
 using System.Text;
 
 namespace Domain.DTO
@@ -11,5 +11,13 @@ namespace Domain.DTO
         public string Ocp_Apim_Subscription_Key { get; set; }
         public string folderPath { get; set; }
         public bool Auto { get; set; }
+
+        public static AppSettings Create(string filePath)
+        {
+            var json = File.ReadAllText(filePath, Encoding.GetEncoding("windows-1253"));
+            var appSettings = JsonConvert.DeserializeObject<AppSettings>(json);
+            return appSettings;
+        }
+
     }
 }

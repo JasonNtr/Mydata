@@ -19,6 +19,41 @@ namespace Infrastructure.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
+            modelBuilder.Entity("Domain.Model.MyDataAddressType", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("Modified")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("MyDataPartyTypeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("city")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("number")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("postalCode")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("street")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MyDataPartyTypeId")
+                        .IsUnique();
+
+                    b.ToTable("MyDataAddressType");
+                });
+
             modelBuilder.Entity("Domain.Model.MyDataCancelInvoice", b =>
                 {
                     b.Property<Guid>("Id")
@@ -96,6 +131,32 @@ namespace Infrastructure.Migrations
                     b.ToTable("MyDataCancellationResponses");
                 });
 
+            modelBuilder.Entity("Domain.Model.MyDataCancelledInvoicesDoc", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("Modified")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("cancellationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("cancellationMark")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("invoiceMark")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("MyDataCancelledInvoicesDocs");
+                });
+
             modelBuilder.Entity("Domain.Model.MyDataError", b =>
                 {
                     b.Property<Guid>("Id")
@@ -122,6 +183,40 @@ namespace Infrastructure.Migrations
                     b.HasIndex("MyDataResponseId");
 
                     b.ToTable("MyDataErrors");
+                });
+
+            modelBuilder.Entity("Domain.Model.MyDataExpensesClassification", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("Modified")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("MyDataDocInvoiceId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<double?>("amount")
+                        .HasColumnType("float");
+
+                    b.Property<string>("classificationCategory")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("classificationType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("optionalId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MyDataDocInvoiceId");
+
+                    b.ToTable("MyDataExpensesClassifications");
                 });
 
             modelBuilder.Entity("Domain.Model.MyDataIncome", b =>
@@ -165,6 +260,42 @@ namespace Infrastructure.Migrations
                     b.ToTable("MyDataIncomes");
                 });
 
+            modelBuilder.Entity("Domain.Model.MyDataIncomeClassification", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("Modified")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("MyDataInvoiceDetailsId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<double?>("amount")
+                        .HasColumnType("float");
+
+                    b.Property<string>("classificationCategory")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("classificationType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("optionalId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MyDataInvoiceDetailsId")
+                        .IsUnique()
+                        .HasFilter("[MyDataInvoiceDetailsId] IS NOT NULL");
+
+                    b.ToTable("MyDataIncomeClassifications");
+                });
+
             modelBuilder.Entity("Domain.Model.MyDataIncomeError", b =>
                 {
                     b.Property<Guid>("Id")
@@ -199,8 +330,20 @@ namespace Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("AuthenticationCode")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime>("Created")
                         .HasColumnType("datetime2");
+
+                    b.Property<long?>("IncomeMark")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("IncomeUid")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("Index")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("Modified")
                         .HasColumnType("datetime2");
@@ -208,19 +351,7 @@ namespace Infrastructure.Migrations
                     b.Property<Guid>("MyDataIncomeId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("authenticationCode")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<long?>("incomeMark")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("incomeUid")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("index")
-                        .HasColumnType("int");
-
-                    b.Property<string>("statusCode")
+                    b.Property<string>("StatusCode")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -271,6 +402,262 @@ namespace Infrastructure.Migrations
                     b.HasIndex("InvoiceTypeCode");
 
                     b.ToTable("MyDataInvoices");
+                });
+
+            modelBuilder.Entity("Domain.Model.MyDataInvoiceDetails", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("Modified")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("MyDataDocInvoiceId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("lineNumber")
+                        .HasColumnType("int");
+
+                    b.Property<double>("netValue")
+                        .HasColumnType("float");
+
+                    b.Property<double>("vatAmount")
+                        .HasColumnType("float");
+
+                    b.Property<string>("vatCategory")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MyDataDocInvoiceId");
+
+                    b.ToTable("MyDataInvoiceDetails");
+                });
+
+            modelBuilder.Entity("Domain.Model.MyDataInvoiceExpensesClassificationType", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("Modified")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("classificationMark")
+                        .HasColumnType("bigint");
+
+                    b.Property<Guid?>("expensesClassificationDetailDataId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<long>("invoiceMark")
+                        .HasColumnType("bigint");
+
+                    b.Property<int?>("lineNumber")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("transactionMode")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("expensesClassificationDetailDataId");
+
+                    b.ToTable("MyDataInvoiceExpensesClassificationTypes");
+                });
+
+            modelBuilder.Entity("Domain.Model.MyDataInvoiceHeaderType", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("Modified")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("MyDataDocInvoiceId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("aa")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long?>("correlatedInvoices")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("currency")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("dispatchDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("dispatchTime")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<double?>("exchangeRate")
+                        .HasColumnType("float");
+
+                    b.Property<string>("invoiceType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("issueDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("movePurpose")
+                        .HasColumnType("int");
+
+                    b.Property<bool?>("selfPricing")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("series")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool?>("vatPaymentSuspension")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("vehicleNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MyDataDocInvoiceId")
+                        .IsUnique();
+
+                    b.ToTable("MyDataInvoiceHeaderTypes");
+                });
+
+            modelBuilder.Entity("Domain.Model.MyDataInvoiceRowType", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("Modified")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("MyDataDocInvoiceId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<double?>("deductionsAmount")
+                        .HasColumnType("float");
+
+                    b.Property<bool?>("discountOption")
+                        .HasColumnType("bit");
+
+                    b.Property<double?>("feesAmount")
+                        .HasColumnType("float");
+
+                    b.Property<int?>("feesPercentCategory")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("invoiceDetailType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("lineComments")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("lineNumber")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("measurementUnit")
+                        .HasColumnType("int");
+
+                    b.Property<double>("netValue")
+                        .HasColumnType("float");
+
+                    b.Property<double?>("otherTaxesAmount")
+                        .HasColumnType("float");
+
+                    b.Property<int?>("otherTaxesPercentCategory")
+                        .HasColumnType("int");
+
+                    b.Property<double?>("quantity")
+                        .HasColumnType("float");
+
+                    b.Property<double?>("stampDutyAmount")
+                        .HasColumnType("float");
+
+                    b.Property<int?>("stampDutyPercentCategory")
+                        .HasColumnType("int");
+
+                    b.Property<double>("vatAmount")
+                        .HasColumnType("float");
+
+                    b.Property<string>("vatCategory")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("vatExemptionCategory")
+                        .HasColumnType("int");
+
+                    b.Property<double?>("withheldAmount")
+                        .HasColumnType("float");
+
+                    b.Property<int?>("withheldPercentCategory")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MyDataDocInvoiceId");
+
+                    b.ToTable("MyDataInvoiceRowType");
+                });
+
+            modelBuilder.Entity("Domain.Model.MyDataInvoiceSummary", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("Modified")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("MyDataDocInvoiceId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<double>("totalDeductionsAmount")
+                        .HasColumnType("float");
+
+                    b.Property<double>("totalFeesAmount")
+                        .HasColumnType("float");
+
+                    b.Property<double>("totalGrossValue")
+                        .HasColumnType("float");
+
+                    b.Property<double>("totalNetValue")
+                        .HasColumnType("float");
+
+                    b.Property<double>("totalOtherTaxesAmount")
+                        .HasColumnType("float");
+
+                    b.Property<double>("totalStumpDutyAmount")
+                        .HasColumnType("float");
+
+                    b.Property<double>("totalVatAmount")
+                        .HasColumnType("float");
+
+                    b.Property<double>("totalWithheldAmounr")
+                        .HasColumnType("float");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MyDataDocInvoiceId")
+                        .IsUnique();
+
+                    b.ToTable("MyDataInvoiceSummary");
                 });
 
             modelBuilder.Entity("Domain.Model.MyDataInvoiceType", b =>
@@ -380,6 +767,76 @@ namespace Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Domain.Model.MyDataPartyType", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("Modified")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("MyDataDocEncounterInvoiceId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("MyDataDocIssuerInvoiceId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("branch")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("country")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("vatNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MyDataDocEncounterInvoiceId");
+
+                    b.HasIndex("MyDataDocIssuerInvoiceId");
+
+                    b.ToTable("MyDataPartyTypes");
+                });
+
+            modelBuilder.Entity("Domain.Model.MyDataPaymentMethodDetail", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("Modified")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("MyDataDocInvoiceId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<double>("amount")
+                        .HasColumnType("float");
+
+                    b.Property<string>("paymentMethodInfo")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("type")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MyDataDocInvoiceId");
+
+                    b.ToTable("MyDataPaymentMethodDetails");
+                });
+
             modelBuilder.Entity("Domain.Model.MyDataResponse", b =>
                 {
                     b.Property<Guid>("Id")
@@ -417,6 +874,75 @@ namespace Infrastructure.Migrations
                     b.ToTable("MyDataResponses");
                 });
 
+            modelBuilder.Entity("Domain.Model.MyDataTaxes", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("Modified")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("MyDataDocInvoiceId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<double?>("taxAmount")
+                        .HasColumnType("float");
+
+                    b.Property<int?>("taxCategory")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("taxType")
+                        .HasColumnType("int");
+
+                    b.Property<double?>("taxunderlyingValueType")
+                        .HasColumnType("float");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MyDataDocInvoiceId");
+
+                    b.ToTable("MyDataTaxes");
+                });
+
+            modelBuilder.Entity("Domain.Model.MyDataTransmittedDocInvoice", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("Modified")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Uid")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("authenticationCode")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long?>("mark")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("MyDataTransmittedDocInvoices");
+                });
+
+            modelBuilder.Entity("Domain.Model.MyDataAddressType", b =>
+                {
+                    b.HasOne("Domain.Model.MyDataPartyType", "MyDataPartyType")
+                        .WithOne("address")
+                        .HasForeignKey("Domain.Model.MyDataAddressType", "MyDataPartyTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Domain.Model.MyDataCancelationError", b =>
                 {
                     b.HasOne("Domain.Model.MyDataCancelationResponse", "MyDataCancelationResponse")
@@ -444,6 +970,21 @@ namespace Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Domain.Model.MyDataExpensesClassification", b =>
+                {
+                    b.HasOne("Domain.Model.MyDataTransmittedDocInvoice", "MyDataDocInvoice")
+                        .WithMany()
+                        .HasForeignKey("MyDataDocInvoiceId");
+                });
+
+            modelBuilder.Entity("Domain.Model.MyDataIncomeClassification", b =>
+                {
+                    b.HasOne("Domain.Model.MyDataInvoiceRowType", "MyDataInvoiceDocRowType")
+                        .WithOne("incomeClassification")
+                        .HasForeignKey("Domain.Model.MyDataIncomeClassification", "MyDataInvoiceDetailsId")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
             modelBuilder.Entity("Domain.Model.MyDataIncomeError", b =>
                 {
                     b.HasOne("Domain.Model.MyDataIncomeResponse", "MyIncomeDataResponse")
@@ -456,7 +997,7 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Domain.Model.MyDataIncomeResponse", b =>
                 {
                     b.HasOne("Domain.Model.MyDataIncome", "MyDataIncome")
-                        .WithMany("MyDataResponses")
+                        .WithMany("MyDataIncomeResponses")
                         .HasForeignKey("MyDataIncomeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -471,6 +1012,70 @@ namespace Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Domain.Model.MyDataInvoiceDetails", b =>
+                {
+                    b.HasOne("Domain.Model.MyDataTransmittedDocInvoice", "MyDataDocInvoice")
+                        .WithMany()
+                        .HasForeignKey("MyDataDocInvoiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Domain.Model.MyDataInvoiceExpensesClassificationType", b =>
+                {
+                    b.HasOne("Domain.Model.MyDataExpensesClassification", "expensesClassificationDetailData")
+                        .WithMany()
+                        .HasForeignKey("expensesClassificationDetailDataId");
+                });
+
+            modelBuilder.Entity("Domain.Model.MyDataInvoiceHeaderType", b =>
+                {
+                    b.HasOne("Domain.Model.MyDataTransmittedDocInvoice", "MyDataDocInvoice")
+                        .WithOne("invoiceHeaderType")
+                        .HasForeignKey("Domain.Model.MyDataInvoiceHeaderType", "MyDataDocInvoiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Domain.Model.MyDataInvoiceRowType", b =>
+                {
+                    b.HasOne("Domain.Model.MyDataTransmittedDocInvoice", "MyDataDocInvoice")
+                        .WithMany("invoiceDetails")
+                        .HasForeignKey("MyDataDocInvoiceId")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("Domain.Model.MyDataInvoiceSummary", b =>
+                {
+                    b.HasOne("Domain.Model.MyDataTransmittedDocInvoice", "MyDataDocInvoice")
+                        .WithOne("invoiceSummary")
+                        .HasForeignKey("Domain.Model.MyDataInvoiceSummary", "MyDataDocInvoiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Domain.Model.MyDataPartyType", b =>
+                {
+                    b.HasOne("Domain.Model.MyDataTransmittedDocInvoice", "MyDataDocEncounterInvoice")
+                        .WithMany("counterpart")
+                        .HasForeignKey("MyDataDocEncounterInvoiceId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Domain.Model.MyDataTransmittedDocInvoice", "MyDataDocIssuerInvoice")
+                        .WithMany("issuer")
+                        .HasForeignKey("MyDataDocIssuerInvoiceId")
+                        .OnDelete(DeleteBehavior.NoAction);
+                });
+
+            modelBuilder.Entity("Domain.Model.MyDataPaymentMethodDetail", b =>
+                {
+                    b.HasOne("Domain.Model.MyDataTransmittedDocInvoice", "MyDataDocInvoice")
+                        .WithMany("paymentMethodDetailType")
+                        .HasForeignKey("MyDataDocInvoiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Domain.Model.MyDataResponse", b =>
                 {
                     b.HasOne("Domain.Model.MyDataInvoice", "MyDataInvoice")
@@ -478,6 +1083,14 @@ namespace Infrastructure.Migrations
                         .HasForeignKey("MyDataInvoiceId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Domain.Model.MyDataTaxes", b =>
+                {
+                    b.HasOne("Domain.Model.MyDataTransmittedDocInvoice", "MyDataDocInvoice")
+                        .WithMany("taxesTotals")
+                        .HasForeignKey("MyDataDocInvoiceId")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 #pragma warning restore 612, 618
         }

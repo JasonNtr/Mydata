@@ -65,7 +65,6 @@
             <syncfusion:TabItemExt x:Name="IncomesTab" Header="Incomes"  Width="250" Height="30"/>
             <syncfusion:TabItemExt x:Name="ExpensesTab" Header="Expenses"  Width="250" Height="30"/>
         </syncfusion:TabControlExt>
-      
-        
+
     </StackPanel>
 </Window>

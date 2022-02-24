@@ -11,61 +11,52 @@
 			<branch>01</branch>
 		</issuer>
 		<counterpart>
-			<vatNumber>099096934</vatNumber>
+			<vatNumber>800212404</vatNumber>
 			<country>GR</country>
 			<branch>0</branch>
 			<address>
 				<postalCode>00000</postalCode>
-				<city>ΑΘΗΝΑ</city>
+				<city>ΚΟΡΙΝΘΟΣ</city>
 			</address>
 		</counterpart>
 		<invoiceHeader>
 			<series>0</series>
-			<aa>97463</aa>
-			<issueDate>2021-05-28</issueDate>
+			<aa>105356</aa>
+			<issueDate>2022-01-17</issueDate>
 			<invoiceType>1.1</invoiceType>
 			<currency>EUR</currency>
 		</invoiceHeader>
 		<paymentMethods>
 			<paymentMethodDetails>
 				<type>5</type>
-				<amount>109.88</amount>
+				<amount>654.72</amount>
 				<paymentMethodInfo>Επί Πιστώσει</paymentMethodInfo>
 			</paymentMethodDetails>
 		</paymentMethods>
 		<invoiceDetails>
 			<lineNumber>1</lineNumber>
-			<netValue>87</netValue>
+			<netValue>528</netValue>
 			<vatCategory>1</vatCategory>
-			<vatAmount>20.88</vatAmount>
-			<discountOption>true</discountOption>
+			<vatAmount>126.72</vatAmount>
 			<incomeClassification>
 				<icls:classificationType>E3_561_001</icls:classificationType>
 				<icls:classificationCategory>category1_2</icls:classificationCategory>
-				<icls:amount>87</icls:amount>
+				<icls:amount>528</icls:amount>
 			</incomeClassification>
 		</invoiceDetails>
-		<taxesTotals>
-			<taxes>
-				<taxType>1</taxType>
-				<taxCategory>1</taxCategory>
-				<underlyingValue>87</underlyingValue>
-				<taxAmount>20.88</taxAmount>
-			</taxes>
-		</taxesTotals>
 		<invoiceSummary>
-			<totalNetValue>87</totalNetValue>
-			<totalVatAmount>200.88</totalVatAmount>
-			<totalWithheldAmount>20.88</totalWithheldAmount>
+			<totalNetValue>528</totalNetValue>
+			<totalVatAmount>126.72</totalVatAmount>
+			<totalWithheldAmount>0</totalWithheldAmount>
 			<totalFeesAmount>0</totalFeesAmount>
 			<totalStampDutyAmount>0</totalStampDutyAmount>
 			<totalOtherTaxesAmount>0</totalOtherTaxesAmount>
 			<totalDeductionsAmount>0</totalDeductionsAmount>
-			<totalGrossValue>87</totalGrossValue>
+			<totalGrossValue>654.72</totalGrossValue>
 			<incomeClassification>
 				<icls:classificationType>E3_561_001</icls:classificationType>
 				<icls:classificationCategory>category1_2</icls:classificationCategory>
-				<icls:amount>87</icls:amount>
+				<icls:amount>528</icls:amount>
 			</incomeClassification>
 		</invoiceSummary>
 	</invoice>

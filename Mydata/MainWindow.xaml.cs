@@ -36,6 +36,8 @@ namespace Mydata
             var incomeRepo = serviceProvider.GetService<IIncomeRepo>();
             var incomeService = serviceProvider.GetService<IIncomeService>();
 
+            var requestTransmittedDocsService = serviceProvider.GetService<IRequestTransmittedDocsService>();
+
             var appSettings = serviceProvider.GetService<IOptions<AppSettings>>();
             var mapper = serviceProvider.GetService<IMapper>();
 
@@ -47,7 +49,8 @@ namespace Mydata
 
             
 
-            var invoiceTab = new InvoicesUserControl(invoiceRepo, mapper, appSettings, invoiceService);
+            var invoiceTab = new InvoicesUserControl(invoiceRepo, mapper, appSettings, invoiceService, requestTransmittedDocsService);
+            //var invoiceTab = new InvoicesUserControl(invoiceRepo, mapper, appSettings, invoiceService);
             //var expenseTab = new ExpensesUserControl(expenseRepo, mapper, appSettings, invoiceService);
             var incomeTab = new IncomesUserControl(incomeRepo,incomeService,mapper,appSettings);
             this.InvoiceTab.Content = invoiceTab;

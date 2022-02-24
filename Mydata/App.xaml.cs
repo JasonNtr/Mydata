@@ -64,6 +64,7 @@ namespace Mydata
 
             services.AddScoped<IExpenseRepo, ExpenseRepo>();
             services.AddScoped<IExpenseService, ExpenseService>();
+            services.AddScoped<IRequestTransmittedDocsService, RequestTransmittedDocsService>();
 
             services.AddScoped<IIncomeRepo, IncomeRepo>();
             services.AddScoped<IMyDataIncomeResponseRepo, MyDataIncomeResponseRepo>();
@@ -74,6 +75,9 @@ namespace Mydata
             services.AddScoped<IMyDataCancelInvoiceRepo, MyDataCancelInvoiceRepo>();
             services.AddScoped<MainWindow>();
             services.AddScoped<IParticleInform, ParticleInform>();
+
+            services.AddScoped<IMyDataTransmittedDocInvoicesRepo, MyDataTransmittedDocInvoicesRepo>();
+
             services.AddAutoMapper(typeof(MappingProfiles));
 
         }

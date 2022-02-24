@@ -33,6 +33,8 @@ namespace Mydata
         private readonly IOptions<AppSettings> _appSettings;
         private List<string> _currentFiles;
 
+        private readonly IRequestTransmittedDocsService _requestTransmittedDataService;
+
         public InvoicesUserControl(IInvoiceRepo invoiceRepo, IMapper mapper, IOptions<AppSettings> appSettings, IInvoiceService invoiceService)
         {
             InitializeComponent();
@@ -47,6 +49,31 @@ namespace Mydata
             _currentFiles = new List<string>();
             SfDatePicker1.ValueChanged += SfDatePicker_OnValueChanged;
             SfDatePicker2.ValueChanged += SfDatePicker_OnValueChanged;
+
+            var timer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(1000)
+            };
+            timer.Tick += timer_Tick;
+            timer.Start();
+        }
+
+        public InvoicesUserControl(IInvoiceRepo invoiceRepo, IMapper mapper, IOptions<AppSettings> appSettings, IInvoiceService invoiceService, IRequestTransmittedDocsService requestTransmittedDocsService)
+        {
+            InitializeComponent();
+            _invoicesVm = new InvoicesVM(invoiceRepo);
+            this.DataContext = _invoicesVm;
+            _mapper = mapper;
+            this.errorGrid.QueryRowHeight += dataGrid_QueryRowHeight;
+            _invoiceRepo = invoiceRepo;
+            _appSettings = appSettings;
+            _invoiceService = invoiceService;
+            _gridRowResizingOptions = new GridRowSizingOptions();
+            _currentFiles = new List<string>();
+            SfDatePicker1.ValueChanged += SfDatePicker_OnValueChanged;
+            SfDatePicker2.ValueChanged += SfDatePicker_OnValueChanged;
+
+            _requestTransmittedDataService = requestTransmittedDocsService;
 
             var timer = new DispatcherTimer
             {
@@ -183,6 +210,18 @@ namespace Mydata
                     e.Handled = true;
                 }
             }
+        }
+
+        private async void Button_Click(object sender, RoutedEventArgs e)
+        {
+            //await _invoiceService.RequestDocs("4000011868690575");
+            await _requestTransmittedDataService.RequestDocs("4000011868690575");
+            //var successfullInvoices = await _invoiceRepo.GetInvoicesWithSuccessStatusCode();
+            //foreach (var invoice in successfullInvoices)
+            //{
+            //    await _invoiceService.CancelInvoice(invoice);
+            //}
+            //successfullInvoices[0].invoiceMark;
         }
     }
 }

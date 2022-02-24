@@ -80,6 +80,19 @@ namespace Business.Services
             return mydatainvoicedto;
         }
 
+        public async Task<List<MyDataInvoiceDTO>> GetInvoicesWithSuccessStatusCode()
+        {
+            var mydatainvoice =
+                await ctx.MyDataInvoices
+                    .Where(x => x.MyDataResponses.Any(y => y.statusCode.Equals("Success") && x.InvoiceNumber == 97462))                    
+                    .ToListAsync();
+            //.Include(p => p.MyDataResponses).ThenInclude(p => p.Errors)
+            //.Include(p => p.InvoiceType)
+
+            var mydatainvoicedto = mapper.Map<List<MyDataInvoiceDTO>>(mydatainvoice);
+            return mydatainvoicedto;
+        }
+
         public async Task<bool> ExistedUid(long? Uid)
         {
             if (Uid == null) return false;
