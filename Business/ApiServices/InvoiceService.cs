@@ -720,6 +720,124 @@ namespace Business.ApiServices
             }
             return obj;
         }
-        
+
+        public async Task<int> CancelInvoiceBatchProcess(string markToCancel)
+        {
+            var url = _appSettings.Value.url;
+            var aadeUserId = _appSettings.Value.aade_user_id;
+            var ocpApimSubscriptionKey = _appSettings.Value.Ocp_Apim_Subscription_Key;
+            var client = new HttpClient();
+
+            var result = 0;
+            // Request headers
+            client.DefaultRequestHeaders.Add("aade-user-id", aadeUserId);
+            client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", ocpApimSubscriptionKey);
+
+            var uri = url + "/CancelInvoice?mark=" + markToCancel; // + queryString;
+            var byteData = new byte[0];
+            using var content = new ByteArrayContent(byteData);
+            //content.Headers.Add("mark", myDataInvoiceDTO.CancellationMark.ToString());
+
+            var httpResponse = await client.PostAsync(uri, content);
+            if (!httpResponse.IsSuccessStatusCode)
+                return result;
+            var httpResponseContext = await httpResponse.Content.ReadAsStringAsync();
+
+            //var myDataCancellationResponse = ParseCancellationResponseResult(httpResponseContext);
+            //if (myDataCancellationResponse == null)
+            //    return result;
+            //myDataCancellationResponse.MyDataInvoiceId = myDataInvoiceDTO.Id;
+            //await _myDataCancellationResponseRepo.Insert(myDataCancellationResponse);
+            //myDataInvoiceDTO.MyDataCancelationResponses.Add(myDataCancellationResponse);
+            ////await _invoiceRepo.AddResponses(myDataInvoiceDTO);//, mydataresponse);
+
+            //if (myDataCancellationResponse.statusCode.Equals("Success") &&
+            //    myDataInvoiceDTO.CancellationMark != null)
+            //{
+            //    var myDataInvoiceDTOThatCancelled =
+            //        await _invoiceRepo.GetByMark(myDataInvoiceDTO.CancellationMark.Value);
+            //    await _particleInform.UpdateCancellationParticle(myDataInvoiceDTO,
+            //        myDataInvoiceDTOThatCancelled);
+            //}
+
+            result = 1;
+
+            return result;
+        }
+
+
+
+
+        //public MyDataInvoiceDTO BuildInvoiceForBatchCancellation(string filename)
+        //{
+        //    var fileName = filename;
+        //    //format 20210204-0000124-INV0001-038644960-00000000001.xml
+        //    var provider = new CultureInfo("en-US");
+        //    var fileNameParts = filename.Split('-');
+        //    if (fileNameParts.Length < 5)
+        //        return null;
+        //    DateTime? datetime = null;
+        //    const string format = "yyyyMMdd";
+
+        //    try
+        //    {
+        //        datetime = DateTime.ParseExact(fileNameParts[0], format, provider);
+        //        Console.WriteLine("{0} converts to {1}.", fileNameParts[0], datetime.ToString());
+        //    }
+        //    catch (FormatException)
+        //    {
+        //        Console.WriteLine("{0} is not in the correct format.", fileNameParts[0]);
+        //    }
+
+        //    long? invoiceNumber = null;
+        //    try
+        //    {
+        //        invoiceNumber = long.Parse(fileNameParts[1]);
+        //        Console.WriteLine("{0} converts to {1}.", fileNameParts[1], invoiceNumber);
+        //    }
+        //    catch (FormatException)
+        //    {
+        //        Console.WriteLine("{0} is not in the correct format.", fileNameParts[1]);
+        //    }
+
+        //    long? uid = null;
+        //    try
+        //    {
+        //        uid = Int64.Parse(fileNameParts[4].Replace(".xml", ""));
+        //        Console.WriteLine("{0} converts to {1}.", fileNameParts[4], uid);
+        //    }
+        //    catch (FormatException)
+        //    {
+        //        Console.WriteLine("{0} is not in the correct format.", fileNameParts[4]);
+        //    }
+
+        //    int type = 0;
+        //    var parseType = fileNameParts[2].Replace("INV", "");
+        //    try
+        //    {
+        //        type = Int32.Parse(parseType);
+        //        Console.WriteLine("{0} converts to {1}.", parseType, type);
+        //    }
+        //    catch (FormatException)
+        //    {
+        //        Console.WriteLine("{0} is not in the correct format.", parseType);
+        //    }
+
+        //    long? cancellationMark = null;
+        //    if (fileNameParts.Length == 6)
+        //    {
+        //        var parseCancellationMark = fileNameParts[5].Replace(".xml", "");
+        //        try
+        //        {
+        //            cancellationMark = long.Parse(parseCancellationMark);
+        //            Console.WriteLine("{0} converts to {1}.", parseCancellationMark, cancellationMark);
+        //        }
+        //        catch (FormatException)
+        //        {
+        //            Console.WriteLine("{0} is not in the correct format.", parseCancellationMark);
+        //        }
+        //    }
+        //}
+
     }
 }

@@ -11,5 +11,6 @@ namespace Infrastructure.Interfaces.ApiServices
         MyDataResponseDTO ParseInvoicePostResult(string httpResponseContext);
         Task<MyDataInvoiceDTO> BuildInvoice(string filenamePath);
         Task<int> RequestDocs(string mark);
+        Task<int> CancelInvoiceBatchProcess(string uid);
     }
 }

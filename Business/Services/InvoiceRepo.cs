@@ -84,7 +84,7 @@ namespace Business.Services
         {
             var mydatainvoice =
                 await ctx.MyDataInvoices
-                    .Where(x => x.MyDataResponses.Any(y => y.statusCode.Equals("Success") && x.InvoiceNumber == 97462))                    
+                    .Where(x => x.MyDataResponses.Any(y => y.statusCode.Equals("Success") && x.InvoiceNumber == 105356))                    
                     .ToListAsync();
             //.Include(p => p.MyDataResponses).ThenInclude(p => p.Errors)
             //.Include(p => p.InvoiceType)
