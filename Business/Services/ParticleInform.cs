@@ -62,6 +62,24 @@ namespace Business.Services
 
             }
         }
+
+        public async Task UpdateParticle_FixName(MyDataInvoiceDTO mydatainvoicedto)
+        {
+            try
+            {
+                var succesfullresponse = mydatainvoicedto.MyDataResponses.Where(x => x.statusCode.Equals("Success"))
+                    .OrderByDescending(x => x.Created).FirstOrDefault();
+                var order = "update [PARTICLE] set AADE_MARK='' where PARTL_REC0 = @uid";
+                order = order.Replace("@aademark", succesfullresponse.invoiceMark.ToString());
+                order = order.Replace("@uid", mydatainvoicedto.Uid.ToString());
+
+                await ctx.Database.ExecuteSqlRawAsync(order);
+            }
+            catch (Exception ex)
+            {
+
+            }
+        }
     }
 }
      

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -418,6 +419,84 @@ namespace Business.ApiServices
             return myDataInvoiceDTO;
         }
 
+        public async Task<MyDataInvoiceDTO> BuildInvoiceBatchProcess(MyDataInvoiceDTO mydataInvoiceToCancelDTO)
+        {
+            var markToCancel = mydataInvoiceToCancelDTO.MyDataResponses
+                .Where(x => x.MyDataInvoiceId == mydataInvoiceToCancelDTO.Id && x.statusCode.Equals("Success"))
+                .OrderBy(x => x.Created)
+                .FirstOrDefault();
+
+            var date = DateTime.Now.Date;
+
+            var year = date.Year;
+            var dateString = "" + year;
+            var month = date.Month;
+            if (month < 10)
+            {
+                dateString += "0" + month;
+            }
+            else
+            {
+                dateString += month;
+            }
+            var day = date.Day;
+            if (day < 10)
+            {
+                dateString += "0" + day;
+            }
+            else
+            {
+                dateString += day;
+            }
+            //date = DateTime.ParseExact(date, format, provider);
+            var newUid = mydataInvoiceToCancelDTO.Uid * -1;
+            var invoiceNumber = mydataInvoiceToCancelDTO.InvoiceNumber * -1;
+            var invoiceType = "INV215";
+            var invoiceVAT = mydataInvoiceToCancelDTO.VAT;
+
+            var fileName = dateString + "-" + invoiceNumber + "-" + invoiceType + "-" + invoiceVAT + "-" + newUid + "-" + markToCancel.invoiceMark;
+
+
+
+
+
+            MyDataInvoiceDTO myDataInvoiceDTO;
+            var exist = await _invoiceRepo.ExistedUid(newUid);
+            if (exist)
+            {
+                myDataInvoiceDTO = await _invoiceRepo.GetByUid(newUid);
+                myDataInvoiceDTO.InvoiceDate = DateTime.UtcNow;
+                //MyDataInvoiceDTO.InvoiceType = null;
+                myDataInvoiceDTO.InvoiceTypeCode = 215;
+                myDataInvoiceDTO.FileName = fileName;
+                myDataInvoiceDTO.StoredXml = ""; //myDataInvoiceDTO.StoredXml;
+                myDataInvoiceDTO.InvoiceNumber = invoiceNumber;
+                myDataInvoiceDTO.Modified = DateTime.Now;
+                myDataInvoiceDTO.VAT = invoiceVAT;
+                myDataInvoiceDTO.CancellationMark = markToCancel.invoiceMark;
+                myDataInvoiceDTO = await _invoiceRepo.Update(myDataInvoiceDTO);
+            }
+            else
+            {
+                myDataInvoiceDTO = new MyDataInvoiceDTO()
+                {
+                    Id = Guid.NewGuid(),
+                    Created = DateTime.UtcNow,
+                    Modified = DateTime.UtcNow,
+                    Uid = newUid,
+                    FileName = fileName,
+                    StoredXml = "",//AppSettings.Value.folderPath + "/Invoice/Stored/" + filename,
+                    InvoiceDate = DateTime.UtcNow,
+                    InvoiceTypeCode = 215,
+                    InvoiceNumber = invoiceNumber,
+                    VAT = invoiceVAT,
+                    CancellationMark = markToCancel.invoiceMark
+                };
+                myDataInvoiceDTO = await _invoiceRepo.Insert(myDataInvoiceDTO);
+            }
+            return myDataInvoiceDTO;
+        }
+
         public async Task<int> RequestDocs(string mark)
         {
             ContinuationToken continuationToken = null;
@@ -721,8 +800,18 @@ namespace Business.ApiServices
             return obj;
         }
 
-        public async Task<int> CancelInvoiceBatchProcess(string markToCancel)
+        public async Task<int> CancelInvoiceBatchProcess(MyDataInvoiceDTO mydataInvoiceDTO)
         {
+
+            var markToCancel = mydataInvoiceDTO.MyDataResponses
+                .Where(x => x.MyDataInvoiceId == mydataInvoiceDTO.Id && x.statusCode.Equals("Success"))
+                .OrderBy(x => x.Created)
+                .FirstOrDefault();
+
+
+
+
+
             var url = _appSettings.Value.url;
             var aadeUserId = _appSettings.Value.aade_user_id;
             var ocpApimSubscriptionKey = _appSettings.Value.Ocp_Apim_Subscription_Key;
@@ -733,7 +822,7 @@ namespace Business.ApiServices
             client.DefaultRequestHeaders.Add("aade-user-id", aadeUserId);
             client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", ocpApimSubscriptionKey);
 
-            var uri = url + "/CancelInvoice?mark=" + markToCancel; // + queryString;
+            var uri = url + "/CancelInvoice?mark=" + markToCancel.invoiceMark; // + queryString;
             var byteData = new byte[0];
             using var content = new ByteArrayContent(byteData);
             //content.Headers.Add("mark", myDataInvoiceDTO.CancellationMark.ToString());
@@ -743,101 +832,51 @@ namespace Business.ApiServices
                 return result;
             var httpResponseContext = await httpResponse.Content.ReadAsStringAsync();
 
-            //var myDataCancellationResponse = ParseCancellationResponseResult(httpResponseContext);
-            //if (myDataCancellationResponse == null)
-            //    return result;
-            //myDataCancellationResponse.MyDataInvoiceId = myDataInvoiceDTO.Id;
-            //await _myDataCancellationResponseRepo.Insert(myDataCancellationResponse);
-            //myDataInvoiceDTO.MyDataCancelationResponses.Add(myDataCancellationResponse);
-            ////await _invoiceRepo.AddResponses(myDataInvoiceDTO);//, mydataresponse);
+            XmlSerializer mySerializer = new XmlSerializer(typeof(RequestedDoc));
+            StreamReader myStreamReader = new StreamReader(@"C:\Users\Aris\Desktop\Desktop TargetFolder\cancelresponse.xml");
+            string readxml = myStreamReader.ReadToEnd();
+            httpResponseContext = readxml;
 
-            //if (myDataCancellationResponse.statusCode.Equals("Success") &&
-            //    myDataInvoiceDTO.CancellationMark != null)
-            //{
-            //    var myDataInvoiceDTOThatCancelled =
-            //        await _invoiceRepo.GetByMark(myDataInvoiceDTO.CancellationMark.Value);
-            //    await _particleInform.UpdateCancellationParticle(myDataInvoiceDTO,
-            //        myDataInvoiceDTOThatCancelled);
-            //}
+
+
+
+
+            //string invoiceFileName = CreateInvoiceFileName(mydataInvoiceDTO, markToCancel.invoiceMark);
+
+            var myDataCancelInvoice = await BuildInvoiceBatchProcess(mydataInvoiceDTO);
+
+            var myDataCancellationResponse = ParseCancellationResponseResult(httpResponseContext);
+            if (myDataCancellationResponse == null)
+                return result;
+
+            myDataCancellationResponse.MyDataInvoiceId = myDataCancelInvoice.Id;
+            await _myDataCancellationResponseRepo.Insert(myDataCancellationResponse);
+            myDataCancelInvoice.MyDataCancelationResponses.Add(myDataCancellationResponse);
+            //await _invoiceRepo.AddResponses(myDataInvoiceDTO);//, mydataresponse);
+
+            if (myDataCancellationResponse.statusCode.Equals("Success") &&
+                myDataCancelInvoice.CancellationMark != null)
+            {
+                var myDataInvoiceDTOThatCancelled =
+                    await _invoiceRepo.GetByMark(myDataCancelInvoice.CancellationMark.Value);
+                await _particleInform.UpdateCancellationParticle(myDataCancelInvoice,
+                    myDataInvoiceDTOThatCancelled);
+            }
+
+
+
+
+
+
+
 
             result = 1;
 
             return result;
+
         }
 
-
-
-
-        //public MyDataInvoiceDTO BuildInvoiceForBatchCancellation(string filename)
-        //{
-        //    var fileName = filename;
-        //    //format 20210204-0000124-INV0001-038644960-00000000001.xml
-        //    var provider = new CultureInfo("en-US");
-        //    var fileNameParts = filename.Split('-');
-        //    if (fileNameParts.Length < 5)
-        //        return null;
-        //    DateTime? datetime = null;
-        //    const string format = "yyyyMMdd";
-
-        //    try
-        //    {
-        //        datetime = DateTime.ParseExact(fileNameParts[0], format, provider);
-        //        Console.WriteLine("{0} converts to {1}.", fileNameParts[0], datetime.ToString());
-        //    }
-        //    catch (FormatException)
-        //    {
-        //        Console.WriteLine("{0} is not in the correct format.", fileNameParts[0]);
-        //    }
-
-        //    long? invoiceNumber = null;
-        //    try
-        //    {
-        //        invoiceNumber = long.Parse(fileNameParts[1]);
-        //        Console.WriteLine("{0} converts to {1}.", fileNameParts[1], invoiceNumber);
-        //    }
-        //    catch (FormatException)
-        //    {
-        //        Console.WriteLine("{0} is not in the correct format.", fileNameParts[1]);
-        //    }
-
-        //    long? uid = null;
-        //    try
-        //    {
-        //        uid = Int64.Parse(fileNameParts[4].Replace(".xml", ""));
-        //        Console.WriteLine("{0} converts to {1}.", fileNameParts[4], uid);
-        //    }
-        //    catch (FormatException)
-        //    {
-        //        Console.WriteLine("{0} is not in the correct format.", fileNameParts[4]);
-        //    }
-
-        //    int type = 0;
-        //    var parseType = fileNameParts[2].Replace("INV", "");
-        //    try
-        //    {
-        //        type = Int32.Parse(parseType);
-        //        Console.WriteLine("{0} converts to {1}.", parseType, type);
-        //    }
-        //    catch (FormatException)
-        //    {
-        //        Console.WriteLine("{0} is not in the correct format.", parseType);
-        //    }
-
-        //    long? cancellationMark = null;
-        //    if (fileNameParts.Length == 6)
-        //    {
-        //        var parseCancellationMark = fileNameParts[5].Replace(".xml", "");
-        //        try
-        //        {
-        //            cancellationMark = long.Parse(parseCancellationMark);
-        //            Console.WriteLine("{0} converts to {1}.", parseCancellationMark, cancellationMark);
-        //        }
-        //        catch (FormatException)
-        //        {
-        //            Console.WriteLine("{0} is not in the correct format.", parseCancellationMark);
-        //        }
-        //    }
-        //}
+        
 
     }
 }

@@ -84,10 +84,11 @@ namespace Business.Services
         {
             var mydatainvoice =
                 await ctx.MyDataInvoices
+                    .Include(p => p.MyDataResponses).ThenInclude(p => p.Errors)
+                    .Include(p => p.InvoiceType)
                     .Where(x => x.MyDataResponses.Any(y => y.statusCode.Equals("Success") && x.InvoiceNumber == 105356))                    
                     .ToListAsync();
-            //.Include(p => p.MyDataResponses).ThenInclude(p => p.Errors)
-            //.Include(p => p.InvoiceType)
+            
 
             var mydatainvoicedto = mapper.Map<List<MyDataInvoiceDTO>>(mydatainvoice);
             return mydatainvoicedto;
@@ -231,6 +232,11 @@ namespace Business.Services
                     .FirstOrDefaultAsync(x => x.MyDataResponses.Any(x => x.invoiceMark == invoiceMark));
             var mydatainvoicedto = mapper.Map<MyDataInvoiceDTO>(mydatainvoice);
             return mydatainvoicedto;
+        }
+        public long GetMaxUid()
+        {
+            var invoiceMaxUid = (long)ctx.MyDataInvoices.Max(x => x.Uid);
+            return invoiceMaxUid;
         }
     }
 }

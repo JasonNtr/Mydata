@@ -221,12 +221,8 @@ namespace Mydata
             {
                 if (invoice.Uid == 1460813)
                 {
-                    var mark = invoice.MyDataResponses
-                        .Where(x=>x.MyDataInvoiceId == invoice.Id && x.statusCode.Equals("Success"))
-                        .OrderBy(x=>x.Created)
-                        .FirstOrDefault();
                     //await _invoiceService.CancelInvoice(invoice);
-                    await _invoiceService.CancelInvoiceBatchProcess(""+mark.invoiceMark);//invoice.Uid.ToString());
+                    await _invoiceService.CancelInvoiceBatchProcess(invoice);//invoice.Uid.ToString());
                 }
                 
             }

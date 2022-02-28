@@ -20,5 +20,6 @@ namespace Infrastructure.Interfaces.Services
         Task<List<MyDataInvoiceDTO>> GetList(DateTime fromDate, DateTime ToDate);
         Task<List<MyDataInvoiceDTO>> GetList(DateTime selectedDate);
         Task<MyDataInvoiceDTO> GetByMark(long invoiceMark);
+        long GetMaxUid();
     }
 }

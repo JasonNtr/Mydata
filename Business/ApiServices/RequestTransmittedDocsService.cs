@@ -287,6 +287,17 @@ namespace Business.ApiServices
 
                 //this is to pass the values of the requestedDoc to the DTO in order for them to be saved
                 continuationToken = await ConvertRequestedDocsToDTO(invoices);
+
+
+                //var doc1 = new XmlDocument();
+                //doc1.LoadXml(httpResponseContext);
+                //if (httpResponseContext.TrimStart().StartsWith("<?"))
+                //{
+                //    doc1.RemoveChild(doc1.FirstChild);
+                //}
+                //var json = JsonConvert.SerializeXmlNode(doc1, Formatting.None, true);
+                //var docInvoice = JsonConvert.DeserializeObject<RequestDocs>(json);
+
             } while (continuationToken != null);
 
             ////////if (continuationToken != null)
