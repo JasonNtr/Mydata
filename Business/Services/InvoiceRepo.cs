@@ -86,7 +86,8 @@ namespace Business.Services
                 await ctx.MyDataInvoices
                     .Include(p => p.MyDataResponses).ThenInclude(p => p.Errors)
                     .Include(p => p.InvoiceType)
-                    .Where(x => x.MyDataResponses.Any(y => y.statusCode.Equals("Success") && x.InvoiceNumber == 105356))                    
+                    .Where(x => x.MyDataResponses.Any(y => y.statusCode.Equals("Success") && x.InvoiceTypeCode != 215 
+                    && (x.InvoiceDate >= new DateTime(2021, 1, 1, 0, 0, 0) && x.InvoiceDate <= new DateTime(2022, 1, 1, 0, 0, 0))))// && x.InvoiceNumber == 105356))                    
                     .ToListAsync();
             
 

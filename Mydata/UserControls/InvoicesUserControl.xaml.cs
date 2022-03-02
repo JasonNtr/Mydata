@@ -219,14 +219,8 @@ namespace Mydata
             var successfullInvoices = await _invoiceRepo.GetInvoicesWithSuccessStatusCode();
             foreach (var invoice in successfullInvoices)
             {
-                if (invoice.Uid == 1460813)
-                {
-                    //await _invoiceService.CancelInvoice(invoice);
-                    await _invoiceService.CancelInvoiceBatchProcess(invoice);//invoice.Uid.ToString());
-                }
-                
+                _ = await _invoiceService.CancelInvoiceBatchProcess(invoice);//invoice.Uid.ToString());
             }
-            //successfullInvoices[0].invoiceMark;
         }
     }
 }

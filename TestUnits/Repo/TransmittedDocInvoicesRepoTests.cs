@@ -24,7 +24,6 @@ namespace TestUnits.Repo
             var result = await service.RequestDocs("0");
             Assert.AreEqual(result, 1);
         }
-
         private static MyDataTransmittedDocInvoicesRepo GetRepo()
         {
             var repo = new MyDataTransmittedDocInvoicesRepo(GetContext(), GetMapper());

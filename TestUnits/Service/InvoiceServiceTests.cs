@@ -1,30 +1,31 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
-using System.Threading.Tasks;
-using Business.Services;
+﻿using Business.Services;
 using Domain.DTO;
 using Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using NUnit.Framework;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text;
+using System.Threading.Tasks;
 
-
-namespace TestUnits.Repo
+namespace TestUnits
 {
-    public class InvoiceRepoTests
+    class InvoiceServiceTests
     {
 
         [Test, Order(0)]
-        public async Task GetInvoicesWithSuccessStatusCode()
+        [TestCase("01.01.00022", ExpectedResult = true)]
+        [TestCase(null, ExpectedResult = false)]
+        public async Task<bool> BuildInvoiceBatchProcess(string Id)
         {
-
             var repo = GetRepo();
-            var myDataSuccessfulInvoices = await repo.GetInvoicesWithSuccessStatusCode();
-            var result = (myDataSuccessfulInvoices != null) && (myDataSuccessfulInvoices.Count > 1);
-            Assert.AreEqual(result, true);
+            var getDriverById = await repo.GetDriverById(Id);
+
+            if (getDriverById != null) return true;
+            return false;
         }
 
         private static InvoiceRepo GetRepo()

@@ -809,9 +809,6 @@ namespace Business.ApiServices
                 .FirstOrDefault();
 
 
-
-
-
             var url = _appSettings.Value.url;
             var aadeUserId = _appSettings.Value.aade_user_id;
             var ocpApimSubscriptionKey = _appSettings.Value.Ocp_Apim_Subscription_Key;
@@ -832,10 +829,11 @@ namespace Business.ApiServices
                 return result;
             var httpResponseContext = await httpResponse.Content.ReadAsStringAsync();
 
-            XmlSerializer mySerializer = new XmlSerializer(typeof(RequestedDoc));
-            StreamReader myStreamReader = new StreamReader(@"C:\Users\Aris\Desktop\Desktop TargetFolder\cancelresponse.xml");
-            string readxml = myStreamReader.ReadToEnd();
-            httpResponseContext = readxml;
+            //Code to give httpResponseContext the value of a pc stored xml
+            //XmlSerializer mySerializer = new XmlSerializer(typeof(RequestedDoc));
+            //StreamReader myStreamReader = new StreamReader(@"C:\Users\Aris\Desktop\Desktop TargetFolder\cancelresponse.xml");
+            //string readxml = myStreamReader.ReadToEnd();
+            //httpResponseContext = readxml;
 
 
 
@@ -859,16 +857,8 @@ namespace Business.ApiServices
             {
                 var myDataInvoiceDTOThatCancelled =
                     await _invoiceRepo.GetByMark(myDataCancelInvoice.CancellationMark.Value);
-                await _particleInform.UpdateCancellationParticle(myDataCancelInvoice,
-                    myDataInvoiceDTOThatCancelled);
+                await _particleInform.UpdateCancellationParticle_FixName(myDataCancelInvoice,myDataInvoiceDTOThatCancelled);
             }
-
-
-
-
-
-
-
 
             result = 1;
 
