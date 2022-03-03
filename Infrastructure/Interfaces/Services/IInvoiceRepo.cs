@@ -14,7 +14,7 @@ namespace Infrastructure.Interfaces.Services
         Task<int> AddResponses(MyDataInvoiceDTO mydatainvoicedto);
         Task<bool> ExistedUid(long? Uid);
         Task<MyDataInvoiceDTO> Get();
-        Task<List<MyDataInvoiceDTO>> GetInvoicesWithSuccessStatusCode();
+        Task<List<MyDataInvoiceDTO>> GetInvoicesWithSuccessStatusCodeFor2021();
         Task<MyDataInvoiceDTO> GetByUid(long? Uid);
         Task<List<MyDataInvoiceDTO>> GetList();
         Task<List<MyDataInvoiceDTO>> GetList(DateTime fromDate, DateTime ToDate);

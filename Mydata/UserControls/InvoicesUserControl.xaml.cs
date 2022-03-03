@@ -52,7 +52,7 @@ namespace Mydata
 
             var timer = new DispatcherTimer
             {
-                Interval = TimeSpan.FromMilliseconds(1000)
+                Interval = TimeSpan.FromMilliseconds(2000)
             };
             timer.Tick += timer_Tick;
             timer.Start();
@@ -216,10 +216,14 @@ namespace Mydata
         {
             //await _requestTransmittedDataService.RequestDocs("4000011868690575");
 
-            var successfullInvoices = await _invoiceRepo.GetInvoicesWithSuccessStatusCode();
+            var successfullInvoices = await _invoiceRepo.GetInvoicesWithSuccessStatusCodeFor2021();
             foreach (var invoice in successfullInvoices)
             {
-                _ = await _invoiceService.CancelInvoiceBatchProcess(invoice);//invoice.Uid.ToString());
+                if (invoice.Uid == 6666666)
+                {
+                    _ = await _invoiceService.CancelInvoiceBatchProcess(invoice);//invoice.Uid.ToString());
+                }
+                
             }
         }
     }

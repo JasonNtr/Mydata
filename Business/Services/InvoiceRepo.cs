@@ -80,7 +80,7 @@ namespace Business.Services
             return mydatainvoicedto;
         }
 
-        public async Task<List<MyDataInvoiceDTO>> GetInvoicesWithSuccessStatusCode()
+        public async Task<List<MyDataInvoiceDTO>> GetInvoicesWithSuccessStatusCodeFor2021()
         {
             var mydatainvoice =
                 await ctx.MyDataInvoices

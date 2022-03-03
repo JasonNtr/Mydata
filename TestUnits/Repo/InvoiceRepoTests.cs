@@ -22,7 +22,7 @@ namespace TestUnits.Repo
         {
 
             var repo = GetRepo();
-            var myDataSuccessfulInvoices = await repo.GetInvoicesWithSuccessStatusCode();
+            var myDataSuccessfulInvoices = await repo.GetInvoicesWithSuccessStatusCodeFor2021();
             var result = (myDataSuccessfulInvoices != null) && (myDataSuccessfulInvoices.Count > 1);
             Assert.AreEqual(result, true);
         }

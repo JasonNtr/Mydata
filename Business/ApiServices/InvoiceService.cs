@@ -79,7 +79,7 @@ namespace Business.ApiServices
             using var content = new ByteArrayContent(byteData);
             content.Headers.ContentType = new MediaTypeHeaderValue("text/xml");
             var httpResponseMessage = await client.PostAsync(uri, content);
-            if (!httpResponseMessage.IsSuccessStatusCode) 
+            if (!httpResponseMessage.IsSuccessStatusCode)
                 return 0;
             var httpresponsecontext = await httpResponseMessage.Content.ReadAsStringAsync();
             var mydataresponse = ParseInvoicePostResult(httpresponsecontext);
@@ -104,24 +104,24 @@ namespace Business.ApiServices
             var aadeUserId = _appSettings.Value.aade_user_id;
             var ocpApimSubscriptionKey = _appSettings.Value.Ocp_Apim_Subscription_Key;
             var client = new HttpClient();
-           
+
             var result = 0;
             // Request headers
             client.DefaultRequestHeaders.Add("aade-user-id", aadeUserId);
             client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", ocpApimSubscriptionKey);
-           
+
             var uri = url + "/CancelInvoice?mark=" + myDataInvoiceDTO.CancellationMark.ToString(); // + queryString;
             var byteData = new byte[0];
             using var content = new ByteArrayContent(byteData);
             //content.Headers.Add("mark", myDataInvoiceDTO.CancellationMark.ToString());
 
             var httpResponse = await client.PostAsync(uri, content);
-            if (!httpResponse.IsSuccessStatusCode) 
+            if (!httpResponse.IsSuccessStatusCode)
                 return result;
             var httpResponseContext = await httpResponse.Content.ReadAsStringAsync();
 
             var myDataCancellationResponse = ParseCancellationResponseResult(httpResponseContext);
-            if (myDataCancellationResponse == null) 
+            if (myDataCancellationResponse == null)
                 return result;
             myDataCancellationResponse.MyDataInvoiceId = myDataInvoiceDTO.Id;
             await _myDataCancellationResponseRepo.Insert(myDataCancellationResponse);
@@ -213,7 +213,7 @@ namespace Business.ApiServices
                             Created = DateTime.UtcNow,
                             Modified = DateTime.UtcNow,
                             Message = message,
-                            Code = code, 
+                            Code = code,
                             MyDataResponseId = mydataresponse.Id
                         };
                         mydataresponse.Errors.Add(myDataError);
@@ -285,7 +285,7 @@ namespace Business.ApiServices
                             Created = DateTime.UtcNow,
                             Modified = DateTime.UtcNow,
                             Message = message,
-                            Code = code, 
+                            Code = code,
                             MyDataCancelationResponseId = myDataErrorResponse.Id
                         };
                         myDataErrorResponse.Errors.Add(myDataError);
@@ -321,7 +321,7 @@ namespace Business.ApiServices
                 return null;
             DateTime? datetime = null;
             const string format = "yyyyMMdd";
-            
+
             try
             {
                 datetime = DateTime.ParseExact(fileNameParts[0], format, provider);
@@ -369,7 +369,7 @@ namespace Business.ApiServices
             long? cancellationMark = null;
             if (fileNameParts.Length == 6)
             {
-                var parseCancellationMark = fileNameParts[5].Replace(".xml", "") ;
+                var parseCancellationMark = fileNameParts[5].Replace(".xml", "");
                 try
                 {
                     cancellationMark = long.Parse(parseCancellationMark);
@@ -415,7 +415,7 @@ namespace Business.ApiServices
                 };
                 myDataInvoiceDTO = await _invoiceRepo.Insert(myDataInvoiceDTO);
             }
-            
+
             return myDataInvoiceDTO;
         }
 
@@ -423,8 +423,18 @@ namespace Business.ApiServices
         {
             var markToCancel = mydataInvoiceToCancelDTO.MyDataResponses
                 .Where(x => x.MyDataInvoiceId == mydataInvoiceToCancelDTO.Id && x.statusCode.Equals("Success"))
-                .OrderBy(x => x.Created)
+                .OrderByDescending(x => x.Created != null).ThenBy(x => x.Created)
                 .FirstOrDefault();
+
+            //var markToCancel = mydataInvoiceToCancelDTO.MyDataResponses
+            //    .Where(x => x.MyDataInvoiceId == mydataInvoiceToCancelDTO.Id && x.statusCode.Equals("Success"))
+            //    .OrderBy(x => x.Created)
+            //    .FirstOrDefault();
+            //var markToCancel = mydataInvoiceToCancelDTO.MyDataResponses
+            //    .Where(x => x.MyDataInvoiceId == mydataInvoiceToCancelDTO.Id && x.statusCode.Equals("Success"))
+            //    .OrderByDescending(x => x.Created != null).ThenBy(x => x.Created)
+            //    .FirstOrDefault();
+
 
             var date = DateTime.Now.Date;
 
@@ -454,7 +464,21 @@ namespace Business.ApiServices
             var invoiceType = "INV215";
             var invoiceVAT = mydataInvoiceToCancelDTO.VAT;
 
-            var fileName = dateString + "-" + invoiceNumber + "-" + invoiceType + "-" + invoiceVAT + "-" + newUid + "-" + markToCancel.invoiceMark;
+            long? cancellationMark;
+
+            var fileName = dateString + "-" + invoiceNumber + "-" + invoiceType + "-" + invoiceVAT + "-" + newUid;
+            if (markToCancel != null)
+            {
+                fileName += "-" + markToCancel.invoiceMark;
+                cancellationMark = markToCancel.invoiceMark;
+            }
+            else
+            {
+                cancellationMark = null;
+            }
+
+
+
 
 
 
@@ -465,7 +489,7 @@ namespace Business.ApiServices
             if (exist)
             {
                 myDataInvoiceDTO = await _invoiceRepo.GetByUid(newUid);
-                myDataInvoiceDTO.InvoiceDate = DateTime.UtcNow;
+                myDataInvoiceDTO.InvoiceDate = DateTime.Now;
                 //MyDataInvoiceDTO.InvoiceType = null;
                 myDataInvoiceDTO.InvoiceTypeCode = 215;
                 myDataInvoiceDTO.FileName = fileName;
@@ -473,7 +497,7 @@ namespace Business.ApiServices
                 myDataInvoiceDTO.InvoiceNumber = invoiceNumber;
                 myDataInvoiceDTO.Modified = DateTime.Now;
                 myDataInvoiceDTO.VAT = invoiceVAT;
-                myDataInvoiceDTO.CancellationMark = markToCancel.invoiceMark;
+                myDataInvoiceDTO.CancellationMark = cancellationMark;
                 myDataInvoiceDTO = await _invoiceRepo.Update(myDataInvoiceDTO);
             }
             else
@@ -490,7 +514,7 @@ namespace Business.ApiServices
                     InvoiceTypeCode = 215,
                     InvoiceNumber = invoiceNumber,
                     VAT = invoiceVAT,
-                    CancellationMark = markToCancel.invoiceMark
+                    CancellationMark = cancellationMark
                 };
                 myDataInvoiceDTO = await _invoiceRepo.Insert(myDataInvoiceDTO);
             }
@@ -533,7 +557,7 @@ namespace Business.ApiServices
                 //this is to pass the values of the requestedDoc to the DTO in order for them to be saved
                 continuationToken = await ConvertRequestedDocsToDTO(invoices);
             } while (continuationToken != null);
-            
+
             ////////if (continuationToken != null)
             ////////{
             ////////    uri = url +"/RequestDocs?mark=" + 0 + "&nextPartitionKey=" + continuationToken.nextPartitionKey + "&nextRowKey=" + continuationToken.nextRowKey;
@@ -618,11 +642,14 @@ namespace Business.ApiServices
                             Modified = docInvoice.counterpart[0].Modified,
                             MyDataDocEncounterInvoiceId = docInvoice.Id} };
                     }
-                    
+
                 }
 
-                transmittedDoc.invoiceHeaderType = new MyDataInvoiceHeaderTypeDTO {
-                    Id = docInvoice.invoiceHeader.Id, Created = docInvoice.invoiceHeader.Created, Modified = docInvoice.invoiceHeader.Modified,
+                transmittedDoc.invoiceHeaderType = new MyDataInvoiceHeaderTypeDTO
+                {
+                    Id = docInvoice.invoiceHeader.Id,
+                    Created = docInvoice.invoiceHeader.Created,
+                    Modified = docInvoice.invoiceHeader.Modified,
                     MyDataDocInvoiceId = docInvoice.Id,
                     aa = docInvoice.invoiceHeader.aa,
                     series = docInvoice.invoiceHeader.series,
@@ -632,7 +659,7 @@ namespace Business.ApiServices
                     currency = docInvoice.invoiceHeader.currency,
                     exchangeRate = docInvoice.invoiceHeader.exchangeRate,
                     correlatedInvoices = docInvoice.invoiceHeader.correlatedInvoices,
-                    selfPricing = docInvoice.invoiceHeader.selfPricing, 
+                    selfPricing = docInvoice.invoiceHeader.selfPricing,
                     dispatchDate = docInvoice.invoiceHeader.dispatchDate,
                     dispatchTime = docInvoice.invoiceHeader.dispatchTime,
                     vehicleNumber = docInvoice.invoiceHeader.vehicleNumber,
@@ -726,7 +753,7 @@ namespace Business.ApiServices
                             lineComments = docInvoice.invoiceDetails[i].lineComments
                         });
                     }
-                    
+
                 }
                 //transsmittedDoc.invoiceDetails = new MyDataInvoiceRowTypeDTO { Id = docInvoice.invoiceHeader.Id, Created = docInvoice.invoiceHeader.Created, Modified = docInvoice.invoiceHeader.Modified, MyDataDocInvoiceId = docInvoice.Id, };
 
@@ -746,7 +773,8 @@ namespace Business.ApiServices
                     });
                 }
 
-                transmittedDoc.invoiceSummary = new MyDataInvoiceSummaryDTO {
+                transmittedDoc.invoiceSummary = new MyDataInvoiceSummaryDTO
+                {
                     Id = docInvoice.invoiceSummary.Id,
                     Created = docInvoice.invoiceSummary.Created,
                     Modified = docInvoice.invoiceSummary.Modified,
@@ -782,7 +810,7 @@ namespace Business.ApiServices
             }
 
             return requestedDocs.continuationToken;
-            
+
         }
 
         public static RequestedDoc DeserializeXml(XmlDocument doc)
@@ -803,41 +831,18 @@ namespace Business.ApiServices
         public async Task<int> CancelInvoiceBatchProcess(MyDataInvoiceDTO mydataInvoiceDTO)
         {
 
-            var markToCancel = mydataInvoiceDTO.MyDataResponses
-                .Where(x => x.MyDataInvoiceId == mydataInvoiceDTO.Id && x.statusCode.Equals("Success"))
-                .OrderBy(x => x.Created)
-                .FirstOrDefault();
 
-
-            var url = _appSettings.Value.url;
-            var aadeUserId = _appSettings.Value.aade_user_id;
-            var ocpApimSubscriptionKey = _appSettings.Value.Ocp_Apim_Subscription_Key;
-            var client = new HttpClient();
-
+            var httpResponseContext = await CallCancelInvoiceMethod(mydataInvoiceDTO);
             var result = 0;
-            // Request headers
-            client.DefaultRequestHeaders.Add("aade-user-id", aadeUserId);
-            client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", ocpApimSubscriptionKey);
-
-            var uri = url + "/CancelInvoice?mark=" + markToCancel.invoiceMark; // + queryString;
-            var byteData = new byte[0];
-            using var content = new ByteArrayContent(byteData);
-            //content.Headers.Add("mark", myDataInvoiceDTO.CancellationMark.ToString());
-
-            var httpResponse = await client.PostAsync(uri, content);
-            if (!httpResponse.IsSuccessStatusCode)
-                return result;
-            var httpResponseContext = await httpResponse.Content.ReadAsStringAsync();
-
             //Code to give httpResponseContext the value of a pc stored xml
-            //XmlSerializer mySerializer = new XmlSerializer(typeof(RequestedDoc));
-            //StreamReader myStreamReader = new StreamReader(@"C:\Users\Aris\Desktop\Desktop TargetFolder\cancelresponse.xml");
-            //string readxml = myStreamReader.ReadToEnd();
-            //httpResponseContext = readxml;
+            XmlSerializer mySerializer = new XmlSerializer(typeof(RequestedDoc));
+            StreamReader myStreamReader = new StreamReader(@"C:\Users\Aris\Desktop\Desktop TargetFolder\cancelresponse.xml");
+            string readxml = myStreamReader.ReadToEnd();
+            httpResponseContext = readxml;
 
 
 
-
+            Debug.WriteLine(mydataInvoiceDTO.invoiceMark);
 
             //string invoiceFileName = CreateInvoiceFileName(mydataInvoiceDTO, markToCancel.invoiceMark);
 
@@ -852,12 +857,11 @@ namespace Business.ApiServices
             myDataCancelInvoice.MyDataCancelationResponses.Add(myDataCancellationResponse);
             //await _invoiceRepo.AddResponses(myDataInvoiceDTO);//, mydataresponse);
 
-            if (myDataCancellationResponse.statusCode.Equals("Success") &&
-                myDataCancelInvoice.CancellationMark != null)
+            if (myDataCancellationResponse.statusCode.Equals("Success") && myDataCancelInvoice.CancellationMark != null)
             {
                 var myDataInvoiceDTOThatCancelled =
                     await _invoiceRepo.GetByMark(myDataCancelInvoice.CancellationMark.Value);
-                await _particleInform.UpdateCancellationParticle_FixName(myDataCancelInvoice,myDataInvoiceDTOThatCancelled);
+                await _particleInform.UpdateCancellationParticle_FixName(myDataCancelInvoice, myDataInvoiceDTOThatCancelled);
             }
 
             result = 1;
@@ -866,7 +870,40 @@ namespace Business.ApiServices
 
         }
 
-        
+        public async Task<string> CallCancelInvoiceMethod(MyDataInvoiceDTO mydataInvoiceDTO)
+        {
+            var markToCancel = mydataInvoiceDTO.MyDataResponses
+                .Where(x => x.MyDataInvoiceId == mydataInvoiceDTO.Id && x.statusCode.Equals("Success"))
+                .OrderByDescending(x => x.Created != null).ThenBy(x => x.Created)
+                .FirstOrDefault();
+
+
+            var url = _appSettings.Value.url;
+            var aadeUserId = _appSettings.Value.aade_user_id;
+            var ocpApimSubscriptionKey = _appSettings.Value.Ocp_Apim_Subscription_Key;
+            var client = new HttpClient();
+
+            var result = "" + 0;
+            // Request headers
+            client.DefaultRequestHeaders.Add("aade-user-id", aadeUserId);
+            client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", ocpApimSubscriptionKey);
+
+            var uri = url + "/CancelInvoice?mark=" + markToCancel.invoiceMark; // + queryString;
+            var byteData = new byte[0];
+            using var content = new ByteArrayContent(byteData);
+            //content.Headers.Add("mark", myDataInvoiceDTO.CancellationMark.ToString());
+
+            var httpResponse = await client.PostAsync(uri, content);
+            if (!httpResponse.IsSuccessStatusCode)
+            {
+                return "" + result;
+            }
+
+            result = await httpResponse.Content.ReadAsStringAsync();
+
+            return result;
+        }
 
     }
+
 }

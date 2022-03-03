@@ -1,4 +1,5 @@
-﻿using Business.Services;
+﻿using Business.ApiServices;
+using Business.Services;
 using Domain.DTO;
 using Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
@@ -17,20 +18,96 @@ namespace TestUnits
     {
 
         [Test, Order(0)]
-        [TestCase("01.01.00022", ExpectedResult = true)]
-        [TestCase(null, ExpectedResult = false)]
-        public async Task<bool> BuildInvoiceBatchProcess(string Id)
+        [TestCase(-66666,"UnitTest.xml", 215, 66666, "666666666",  ExpectedResult = true)]
+        public async Task<bool> BuildInvoiceBatchProcess(long uid, string fileName, int typeCode, long invoiceNumber, string vat)
         {
             var repo = GetRepo();
-            var getDriverById = await repo.GetDriverById(Id);
+            
+            var path = Directory.GetParent(AppContext.BaseDirectory).FullName + "\\Configuration\\" + "appsettings.json";
+            var appSetting = Create(path);
+            var service = new InvoiceService(appSetting, repo, GetMyDataResponseRepo(), GetMyDataCancellationResponseRepo(), GetParticleInformRepo(),GetIMyDataTransmittedDocInvoicesRepo());
 
-            if (getDriverById != null) return true;
-            return false;
+            var id = Guid.Parse("66666666-6666-6666-6666-666666666666");
+            var date = DateTime.UtcNow;
+            MyDataInvoiceDTO myDataInvoiceDTO = new MyDataInvoiceDTO()
+            {
+                Id = id,
+                Created = date,
+                Modified = date,
+                Uid = uid,
+                FileName = fileName,
+                StoredXml = "",//AppSettings.Value.folderPath + "/Invoice/Stored/" + filename,
+                InvoiceDate = DateTime.UtcNow,
+                InvoiceTypeCode = 215,
+                InvoiceNumber = invoiceNumber,
+                VAT = vat,
+                CancellationMark = 66666666
+            };
+
+            var result = await service.BuildInvoiceBatchProcess(myDataInvoiceDTO);
+
+            return(result!=null);
+
+        }
+
+        [Test, Order(1)]
+        [TestCase(-66666, "UnitTest.xml", 215, -66666, "666666666", ExpectedResult = true)]
+        public async Task<bool> CallCancelInvoiceMethod(long uid, string fileName, int typeCode, long invoiceNumber, string vat)
+        {
+            var repo = GetRepo();
+
+            var path = Directory.GetParent(AppContext.BaseDirectory).FullName + "\\Configuration\\" + "appsettings.json";
+            var appSetting = Create(path);
+            var service = new InvoiceService(appSetting, repo, GetMyDataResponseRepo(), GetMyDataCancellationResponseRepo(), GetParticleInformRepo(), GetIMyDataTransmittedDocInvoicesRepo());
+
+            var id = Guid.Parse("66666666-6666-6666-6666-666666666666");
+            var date = DateTime.UtcNow;
+            MyDataInvoiceDTO myDataInvoiceDTO = new MyDataInvoiceDTO()
+            {
+                Id = id,
+                Created = date,
+                Modified = date,
+                Uid = uid,
+                FileName = fileName,
+                StoredXml = "",//AppSettings.Value.folderPath + "/Invoice/Stored/" + filename,
+                InvoiceDate = DateTime.UtcNow,
+                InvoiceTypeCode = 215,
+                InvoiceNumber = invoiceNumber,
+                VAT = vat,
+                CancellationMark = 66666666
+            };
+
+            var result = await service.CallCancelInvoiceMethod(myDataInvoiceDTO);
+
+            return (result != null);
+
         }
 
         private static InvoiceRepo GetRepo()
         {
             var repo = new InvoiceRepo(GetContext(), GetMapper());
+            return repo;
+        }
+
+        private static ParticleInform GetParticleInformRepo()
+        {
+            var repo = new ParticleInform(GetContext(), GetMapper());
+            return repo;
+        }
+        private static MyDataCancellationResponseRepo GetMyDataCancellationResponseRepo()
+        {
+            var repo = new MyDataCancellationResponseRepo(GetContext(), GetMapper());
+            return repo;
+        }
+        private static MyDataResponseRepo GetMyDataResponseRepo()
+        {
+            var repo = new MyDataResponseRepo(GetContext(), GetMapper());
+            return repo;
+        }
+
+        private static MyDataTransmittedDocInvoicesRepo GetIMyDataTransmittedDocInvoicesRepo()
+        {
+            var repo = new MyDataTransmittedDocInvoicesRepo(GetContext(), GetMapper());
             return repo;
         }
 
