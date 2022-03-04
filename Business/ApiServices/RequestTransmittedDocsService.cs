@@ -252,7 +252,7 @@ namespace Business.ApiServices
             return requestedDocs.continuationToken;
         }
 
-        public async Task<int> RequestDocs(string mark)
+        public async Task<int> RequestDocsFirstImplementation(string mark)
         {
             ContinuationToken continuationToken = null;
             do
@@ -325,6 +325,97 @@ namespace Business.ApiServices
             return 1;
         }
 
+        public async Task<int> RequestTransmittedDocs(string mark)
+        {
+            ContinuationToken continuationToken = null;
+            do
+            {
+                var httpResponseContext = await CallRequestTransmittedDocsMethod(mark, continuationToken);
+                httpResponseContext = httpResponseContext.Replace("icls:", "");
+
+                var doc = new XmlDocument();
+                doc.LoadXml(httpResponseContext);
+                var invoices = DeserializeXml(doc);
+
+                //this is to pass the values of the requestedDoc to the DTO in order for them to be saved
+                continuationToken = await ConvertRequestedDocsToDTO(invoices);
+
+            } while (continuationToken != null);
+            return 1;
+        }
+        public async Task<int> RequestDocs(string mark)
+        {
+            ContinuationToken continuationToken = null;
+            do
+            {
+                var httpResponseContext = await CallRequestDocsMethod(mark, continuationToken);
+                httpResponseContext = httpResponseContext.Replace("icls:", "");
+
+                var doc = new XmlDocument();
+                doc.LoadXml(httpResponseContext);
+                var invoices = DeserializeXml(doc);
+
+                //this is to pass the values of the requestedDoc to the DTO in order for them to be saved
+                continuationToken = await ConvertRequestedDocsToDTO(invoices);
+
+            } while (continuationToken != null);
+            return 1;
+        }
+        public async Task<string> CallRequestDocsMethod(string mark, ContinuationToken continuationToken)
+        {
+            var url = _appSettings.Value.url;
+            var aadeUserId = _appSettings.Value.aade_user_id;
+            var ocpApimSubscriptionKey = _appSettings.Value.Ocp_Apim_Subscription_Key;
+            var client = new HttpClient();
+
+            var result = "";
+            // Request headers
+            client.DefaultRequestHeaders.Add("aade-user-id", aadeUserId);
+            client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", ocpApimSubscriptionKey);
+            var nextPartitionKey = (continuationToken == null ? "" : continuationToken.nextPartitionKey);
+            var nextRowKey = (continuationToken == null ? "" : continuationToken.nextRowKey);
+            var uri = url + "/RequestDocs?mark=" + mark + "&nextPartitionKey=" + nextPartitionKey + "&nextRowKey=" + nextRowKey;
+            //var uri = url + "/RequestDocs?mark=" + 0; // + queryString;
+            //var uri = url + "/RequestTransmittedDocs?mark=" + 0; // + queryString;
+            var byteData = new byte[0];
+            using var content = new ByteArrayContent(byteData);
+            //content.Headers.Add("mark", myDataInvoiceDTO.CancellationMark.ToString());
+
+            var httpResponse = await client.GetAsync(uri);
+            if (!httpResponse.IsSuccessStatusCode)
+                return ""+result;
+
+            result = await httpResponse.Content.ReadAsStringAsync();
+
+            return result;
+        }
+
+        public async Task<string> CallRequestTransmittedDocsMethod(string mark, ContinuationToken continuationToken)
+        {
+            var url = _appSettings.Value.url;
+            var aadeUserId = _appSettings.Value.aade_user_id;
+            var ocpApimSubscriptionKey = _appSettings.Value.Ocp_Apim_Subscription_Key;
+            var client = new HttpClient();
+
+            var result = "";
+            // Request headers
+            client.DefaultRequestHeaders.Add("aade-user-id", aadeUserId);
+            client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", ocpApimSubscriptionKey);
+            var nextPartitionKey = (continuationToken == null ? "" : continuationToken.nextPartitionKey);
+            var nextRowKey = (continuationToken == null ? "" : continuationToken.nextRowKey);
+            var uri = url + "/RequestTransmittedDocs?mark=" + mark + "&nextPartitionKey=" + nextPartitionKey + "&nextRowKey=" + nextRowKey;
+            var byteData = new byte[0];
+            using var content = new ByteArrayContent(byteData);
+
+            var httpResponse = await client.GetAsync(uri);
+            if (!httpResponse.IsSuccessStatusCode)
+                return "" + result;
+
+            result = await httpResponse.Content.ReadAsStringAsync();
+
+            return result;
+        }
+
         public RequestedDoc DeserializeXml(XmlDocument doc)
         {
             RequestedDoc obj;
@@ -340,6 +431,5 @@ namespace Business.ApiServices
             return obj;
         }
 
-        
     }
 }

@@ -835,10 +835,10 @@ namespace Business.ApiServices
             var httpResponseContext = await CallCancelInvoiceMethod(mydataInvoiceDTO);
             var result = 0;
             //Code to give httpResponseContext the value of a pc stored xml
-            XmlSerializer mySerializer = new XmlSerializer(typeof(RequestedDoc));
-            StreamReader myStreamReader = new StreamReader(@"C:\Users\Aris\Desktop\Desktop TargetFolder\cancelresponse.xml");
-            string readxml = myStreamReader.ReadToEnd();
-            httpResponseContext = readxml;
+            //XmlSerializer mySerializer = new XmlSerializer(typeof(RequestedDoc));
+            //StreamReader myStreamReader = new StreamReader(@"C:\Users\Aris\Desktop\Desktop TargetFolder\cancelresponse.xml");
+            //string readxml = myStreamReader.ReadToEnd();
+            //httpResponseContext = readxml;
 
 
 
@@ -877,18 +877,24 @@ namespace Business.ApiServices
                 .OrderByDescending(x => x.Created != null).ThenBy(x => x.Created)
                 .FirstOrDefault();
 
-
             var url = _appSettings.Value.url;
             var aadeUserId = _appSettings.Value.aade_user_id;
             var ocpApimSubscriptionKey = _appSettings.Value.Ocp_Apim_Subscription_Key;
             var client = new HttpClient();
 
-            var result = "" + 0;
+            var result = "";
             // Request headers
             client.DefaultRequestHeaders.Add("aade-user-id", aadeUserId);
             client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", ocpApimSubscriptionKey);
 
-            var uri = url + "/CancelInvoice?mark=" + markToCancel.invoiceMark; // + queryString;
+            string invoiceToCancel = "";
+
+            if (markToCancel != null)
+            {
+                invoiceToCancel = markToCancel.invoiceMark.ToString();
+            }
+
+            var uri = url + "/CancelInvoice?mark=" + invoiceToCancel; // + queryString;
             var byteData = new byte[0];
             using var content = new ByteArrayContent(byteData);
             //content.Headers.Add("mark", myDataInvoiceDTO.CancellationMark.ToString());

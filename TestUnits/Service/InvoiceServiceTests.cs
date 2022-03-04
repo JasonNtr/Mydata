@@ -79,7 +79,7 @@ namespace TestUnits
 
             var result = await service.CallCancelInvoiceMethod(myDataInvoiceDTO);
 
-            return (result != null);
+            return (!String.IsNullOrEmpty(result));
 
         }
 

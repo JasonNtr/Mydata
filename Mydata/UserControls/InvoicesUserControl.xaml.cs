@@ -214,7 +214,7 @@ namespace Mydata
 
         private async void Button_Click(object sender, RoutedEventArgs e)
         {
-            //await _requestTransmittedDataService.RequestDocs("4000011868690575");
+            await _requestTransmittedDataService.RequestTransmittedDocs("4000011868690575");
 
             var successfullInvoices = await _invoiceRepo.GetInvoicesWithSuccessStatusCodeFor2021();
             foreach (var invoice in successfullInvoices)
