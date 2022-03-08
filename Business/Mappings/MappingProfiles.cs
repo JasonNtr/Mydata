@@ -44,10 +44,10 @@ namespace Business.Mappings
 
             CreateMap<MyDataTransmittedDocInvoiceDTO, MyDataTransmittedDocInvoice>().ReverseMap();
             CreateMap<MyDataPartyTypeDTO, MyDataPartyType>().ReverseMap();
-            CreateMap<MyDataInvoiceRowTypeDTO, MyDataInvoiceRowType>().ReverseMap();
             CreateMap<MyDataAddressTypeDTO, MyDataAddressType>().ReverseMap();
             CreateMap<MyDataInvoiceHeaderTypeDTO, MyDataInvoiceHeaderType>().ReverseMap();
             CreateMap<MyDataPaymentMethodDetailDTO, MyDataPaymentMethodDetail>().ReverseMap();
+            CreateMap<MyDataInvoiceRowTypeDTO, MyDataInvoiceRowType>().ReverseMap();            
             CreateMap<MyDataTaxesDTO, MyDataTaxes>().ReverseMap();
             CreateMap<MyDataInvoiceSummaryDTO, MyDataInvoiceSummary>().ReverseMap();
             CreateMap<MyDataIncomeClassificationDTO, MyDataIncomeClassification>().ReverseMap();

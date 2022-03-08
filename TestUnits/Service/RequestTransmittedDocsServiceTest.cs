@@ -13,10 +13,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using NUnit.Framework;
 
-namespace TestUnits.Repo
+
+namespace TestUnits.Service
 {
-    public class TransmittedDocInvoicesRepoTests
+    class RequestTransmittedDocsServiceTest
     {
+
         [Test, Order(0)]
         public async Task RequestDocs()
         {
@@ -85,48 +87,31 @@ namespace TestUnits.Repo
             Assert.IsNotNull(result);
         }
 
-        [Test, Order(5)]
-        [TestCase(400001831359180, ExpectedResult =true)]
-        [TestCase(666, ExpectedResult = false)]
-        //[TestCase(666666666, ExpectedResult = false)]
-        public async Task<bool> ExistsMark(long? mark)
-        {
-            var path = Directory.GetParent(AppContext.BaseDirectory).FullName + "\\Configuration\\" + "appsettings.json";
-            var repo = GetRepo();
-            var appSetting = Create(path);
-            var result = await repo.ExistsMark(mark);
-            return result;
-        }
-
-        [Test, Order(6)]
-        [TestCase(400001831359180, ExpectedResult = true)]
-        [TestCase(666, ExpectedResult = false)]
-        //[TestCase(666666666, ExpectedResult = false)]
-        public async Task<bool> GetByMark(long? mark)
-        {
-            var path = Directory.GetParent(AppContext.BaseDirectory).FullName + "\\Configuration\\" + "appsettings.json";
-            var repo = GetRepo();
-            var appSetting = Create(path);
-            var invoice = await repo.GetByMark(mark);
-            var result = (invoice != null);
-            return result;
-        }
-
-        [Test, Order(7)]
-        [TestCase(400001831359180, ExpectedResult = true)]
-        //[TestCase(666666666, ExpectedResult = false)]
-        public async Task<bool> Update(long? mark)
-        {
-            var path = Directory.GetParent(AppContext.BaseDirectory).FullName + "\\Configuration\\" + "appsettings.json";
-            var repo = GetRepo();
-            var appSetting = Create(path);
-            var invoice = await repo.GetByMark(mark);
-            invoice.Uid += "6";
-            var result = await repo.Update(invoice);
-            return result>0;
-        }
 
         private static MyDataTransmittedDocInvoicesRepo GetRepo()
+        {
+            var repo = new MyDataTransmittedDocInvoicesRepo(GetContext(), GetMapper());
+            return repo;
+        }
+
+
+        private static ParticleInform GetParticleInformRepo()
+        {
+            var repo = new ParticleInform(GetContext(), GetMapper());
+            return repo;
+        }
+        private static MyDataCancellationResponseRepo GetMyDataCancellationResponseRepo()
+        {
+            var repo = new MyDataCancellationResponseRepo(GetContext(), GetMapper());
+            return repo;
+        }
+        private static MyDataResponseRepo GetMyDataResponseRepo()
+        {
+            var repo = new MyDataResponseRepo(GetContext(), GetMapper());
+            return repo;
+        }
+
+        private static MyDataTransmittedDocInvoicesRepo GetIMyDataTransmittedDocInvoicesRepo()
         {
             var repo = new MyDataTransmittedDocInvoicesRepo(GetContext(), GetMapper());
             return repo;

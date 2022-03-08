@@ -31,13 +31,23 @@ namespace Business.ApiServices
             {
                 Debug.WriteLine(cnt);
                 cnt++;
-                MyDataTransmittedDocInvoiceDTO transmittedDoc = new MyDataTransmittedDocInvoiceDTO();
-                transmittedDoc.Id = docInvoice.Id;
-                transmittedDoc.Created = docInvoice.Created;
-                transmittedDoc.Modified = docInvoice.Modified;
-                transmittedDoc.Uid = docInvoice.Uid;
-                transmittedDoc.mark = docInvoice.mark;
-                transmittedDoc.authenticationCode = docInvoice.authenticationCode;
+                var exists = await _transmittedDocRepo.ExistsMark(docInvoice.mark);
+                MyDataTransmittedDocInvoiceDTO transmittedDoc = null;
+                if (exists)
+                {
+                    Debug.WriteLine("Invoice with mark : " + docInvoice.mark + " already exists");
+                    //transmittedDoc = await _transmittedDocRepo.GetByMark(docInvoice.mark);
+                    continue;
+                }
+                else {
+                    transmittedDoc = new MyDataTransmittedDocInvoiceDTO();
+                    transmittedDoc.Id = docInvoice.Id;
+                    transmittedDoc.Created = docInvoice.Created;
+                    transmittedDoc.Modified = docInvoice.Modified;
+                    transmittedDoc.Uid = docInvoice.Uid;
+                    transmittedDoc.mark = docInvoice.mark;
+                    transmittedDoc.authenticationCode = docInvoice.authenticationCode;
+                }
 
                 if (docInvoice.issuer.Count > 0)
                 {
@@ -229,9 +239,11 @@ namespace Business.ApiServices
                     totalGrossValue = docInvoice.invoiceSummary.totalGrossValue
                 };
 
-
-                await _transmittedDocRepo.Insert(transmittedDoc);
-
+                var insertResult = await _transmittedDocRepo.Insert(transmittedDoc);
+                if (insertResult>0)
+                {
+                    Debug.WriteLine("Inserted invoice : " + transmittedDoc.Id + "   with mark : " + transmittedDoc.mark);
+                }
                 transmittedDocs.Add(transmittedDoc);
 
             }
