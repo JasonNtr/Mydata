@@ -185,6 +185,31 @@ namespace Infrastructure.Migrations
                     b.ToTable("MyDataErrors");
                 });
 
+            modelBuilder.Entity("Domain.Model.MyDataExpenseType", b =>
+                {
+                    b.Property<int>("Code")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ShortTitle")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("sign")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(1)");
+
+                    b.HasKey("Code");
+
+                    b.ToTable("MyDataExpenseTypes");
+                });
+
             modelBuilder.Entity("Domain.Model.MyDataExpensesClassification", b =>
                 {
                     b.Property<Guid>("Id")

@@ -216,22 +216,20 @@ namespace Mydata
         {
             var successfullInvoices = await _invoiceRepo.GetInvoicesWithSuccessStatusCodeFor2021();
             foreach (var invoice in successfullInvoices)
-            {
-                if (invoice.Uid == 6666666)
-                {
-                    _ = await _invoiceService.CancelInvoiceBatchProcess(invoice);//invoice.Uid.ToString());
-                }
-                
+            {           
+                _= await _invoiceService.CancelInvoiceBatchProcess(invoice);//invoice.Uid.ToString());         
             }
         }
 
         private async void Button_Click_RequestDocs(object sender, RoutedEventArgs e)
         {
+            //What others have sent with us as counterpart
             await _requestTransmittedDataService.RequestDocs("4000011868690575");
         }
 
         private async void Button_Click_RequestTransmittedDocs(object sender, RoutedEventArgs e)
         {
+            //Invoices we have sent as issuer to API and have been successfully marked
             await _requestTransmittedDataService.RequestTransmittedDocs("4000011868690575");
         }
     }

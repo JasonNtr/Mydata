@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Infrastructure.Migrations
 {
-    public partial class Initial : Migration
+    public partial class ExpenseTypes : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -35,6 +35,22 @@ namespace Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_MyDataCancelledInvoicesDocs", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "MyDataExpenseTypes",
+                columns: table => new
+                {
+                    Code = table.Column<int>(nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Title = table.Column<string>(nullable: true),
+                    ShortTitle = table.Column<string>(nullable: true),
+                    Description = table.Column<string>(nullable: true),
+                    sign = table.Column<string>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MyDataExpenseTypes", x => x.Code);
                 });
 
             migrationBuilder.CreateTable(
@@ -685,6 +701,9 @@ namespace Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "MyDataErrors");
+
+            migrationBuilder.DropTable(
+                name: "MyDataExpenseTypes");
 
             migrationBuilder.DropTable(
                 name: "MyDataIncomeClassifications");

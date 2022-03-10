@@ -25,7 +25,7 @@ namespace Business.ApiServices
         }
         public async Task<ContinuationToken> ConvertRequestedDocsToDTO(RequestedDoc requestedDocs)
         {
-            int cnt = 0;
+            int cnt = 1;
             var transmittedDocs = new List<MyDataTransmittedDocInvoiceDTO>();
             foreach (var docInvoice in requestedDocs.invoicesDoc.invoice)
             {

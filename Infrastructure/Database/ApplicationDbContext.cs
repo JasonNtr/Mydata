@@ -32,6 +32,7 @@ namespace Infrastructure.Database
         public DbSet<MyDataExpensesClassification> MyDataExpensesClassifications { get; set; }
         public DbSet<MyDataInvoiceExpensesClassificationType> MyDataInvoiceExpensesClassificationTypes { get; set; }
         public DbSet<MyDataCancelledInvoicesDoc> MyDataCancelledInvoicesDocs { get; set; }
+        public DbSet<MyDataExpenseType> MyDataExpenseTypes { get; set; }
 
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)

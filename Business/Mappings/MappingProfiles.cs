@@ -51,6 +51,7 @@ namespace Business.Mappings
             CreateMap<MyDataTaxesDTO, MyDataTaxes>().ReverseMap();
             CreateMap<MyDataInvoiceSummaryDTO, MyDataInvoiceSummary>().ReverseMap();
             CreateMap<MyDataIncomeClassificationDTO, MyDataIncomeClassification>().ReverseMap();
+            CreateMap<MyDataExpenseTypeDTO, MyDataExpenseType>().ReverseMap();
             
         }
 

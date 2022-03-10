@@ -842,7 +842,7 @@ namespace Business.ApiServices
 
 
 
-            Debug.WriteLine(mydataInvoiceDTO.invoiceMark);
+            //Debug.WriteLine(mydataInvoiceDTO.invoiceMark);
 
             //string invoiceFileName = CreateInvoiceFileName(mydataInvoiceDTO, markToCancel.invoiceMark);
 

@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20220222080802_Initial")]
-    partial class Initial
+    [Migration("20220310135330_ExpenseTypes")]
+    partial class ExpenseTypes
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -185,6 +185,31 @@ namespace Infrastructure.Migrations
                     b.HasIndex("MyDataResponseId");
 
                     b.ToTable("MyDataErrors");
+                });
+
+            modelBuilder.Entity("Domain.Model.MyDataExpenseType", b =>
+                {
+                    b.Property<int>("Code")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ShortTitle")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("sign")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(1)");
+
+                    b.HasKey("Code");
+
+                    b.ToTable("MyDataExpenseTypes");
                 });
 
             modelBuilder.Entity("Domain.Model.MyDataExpensesClassification", b =>
