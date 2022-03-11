@@ -188,9 +188,7 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Domain.Model.MyDataExpenseType", b =>
                 {
                     b.Property<int>("Code")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("int");
 
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
@@ -208,6 +206,46 @@ namespace Infrastructure.Migrations
                     b.HasKey("Code");
 
                     b.ToTable("MyDataExpenseTypes");
+
+                    b.HasData(
+                        new
+                        {
+                            Code = 270,
+                            Description = "12 παρ. 5",
+                            ShortTitle = "ΤΙΜ.ΑΓΟΡ",
+                            Title = "ΤΙΜΟΛΟΓΙΟ ΑΓΟΡΑΣ",
+                            sign = "-"
+                        },
+                        new
+                        {
+                            Code = 272,
+                            Description = "12 παρ. 5, 11 παρ. 1",
+                            ShortTitle = "ΤΙΜ.ΑΓ.−Δ.Α.",
+                            Title = "ΤΙΜΟΛΟΓΙΟ ΑΓΟΡΑΣ − ΔΕΛΤΙΟ ΑΠΟΣΤΟΛΗΣ",
+                            sign = "-"
+                        },
+                        new
+                        {
+                            Code = 279,
+                            Description = "ΠΟΛ 1151/06−06−2001 (ελαιοτριβεία)",
+                            ShortTitle = "Α.Π.Υ−Δ.Π.Π−Δ.Α",
+                            Title = "ΑΠΟΔ. ΠΑΡΟΧΗΣ ΥΠΗΡΕΣΙΩΝ − ΔΕΛ. ΠΟΣΟΤ. ΠAΡΑΛΑΒΗΣ − ΔΕΛ. ΑΠΟΣΤΟΛΗΣ",
+                            sign = "+"
+                        },
+                        new
+                        {
+                            Code = 295,
+                            ShortTitle = "ΔΠΠ−ΤΙΜ ΑΓΟΡ",
+                            Title = "ΔΕΛΤΙΟ ΠΟΣΟΤΙΚΗΣ ΠΑΡΑΛΑΒΗΣ − ΤΙΜΟΛΟΓΙΟ ΑΓΟΡΑΣ",
+                            sign = "-"
+                        },
+                        new
+                        {
+                            Code = 329,
+                            ShortTitle = "ΤΠ−Τ(ΑΓ.ΑΓΡ)−ΔΑ",
+                            Title = "ΤΙΜΟΛΟΓΙΟ (Παροχ. Υπηρ.) − ΤΙΜ. (Αγοράς Αγρ. Προϊόντων) − ΔΕΛ. ΑΠΟΣΤ",
+                            sign = "+"
+                        });
                 });
 
             modelBuilder.Entity("Domain.Model.MyDataExpensesClassification", b =>

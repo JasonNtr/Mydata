@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Infrastructure.Migrations
 {
-    public partial class ExpenseTypes : Migration
+    public partial class MyDataExpenseType : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -41,8 +41,7 @@ namespace Infrastructure.Migrations
                 name: "MyDataExpenseTypes",
                 columns: table => new
                 {
-                    Code = table.Column<int>(nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Code = table.Column<int>(nullable: false),
                     Title = table.Column<string>(nullable: true),
                     ShortTitle = table.Column<string>(nullable: true),
                     Description = table.Column<string>(nullable: true),
@@ -565,6 +564,18 @@ namespace Infrastructure.Migrations
                         principalTable: "MyDataResponses",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.InsertData(
+                table: "MyDataExpenseTypes",
+                columns: new[] { "Code", "Description", "ShortTitle", "Title", "sign" },
+                values: new object[,]
+                {
+                    { 270, "12 παρ. 5", "ΤΙΜ.ΑΓΟΡ", "ΤΙΜΟΛΟΓΙΟ ΑΓΟΡΑΣ", "-" },
+                    { 272, "12 παρ. 5, 11 παρ. 1", "ΤΙΜ.ΑΓ.−Δ.Α.", "ΤΙΜΟΛΟΓΙΟ ΑΓΟΡΑΣ − ΔΕΛΤΙΟ ΑΠΟΣΤΟΛΗΣ", "-" },
+                    { 279, "ΠΟΛ 1151/06−06−2001 (ελαιοτριβεία)", "Α.Π.Υ−Δ.Π.Π−Δ.Α", "ΑΠΟΔ. ΠΑΡΟΧΗΣ ΥΠΗΡΕΣΙΩΝ − ΔΕΛ. ΠΟΣΟΤ. ΠAΡΑΛΑΒΗΣ − ΔΕΛ. ΑΠΟΣΤΟΛΗΣ", "+" },
+                    { 295, null, "ΔΠΠ−ΤΙΜ ΑΓΟΡ", "ΔΕΛΤΙΟ ΠΟΣΟΤΙΚΗΣ ΠΑΡΑΛΑΒΗΣ − ΤΙΜΟΛΟΓΙΟ ΑΓΟΡΑΣ", "-" },
+                    { 329, null, "ΤΠ−Τ(ΑΓ.ΑΓΡ)−ΔΑ", "ΤΙΜΟΛΟΓΙΟ (Παροχ. Υπηρ.) − ΤΙΜ. (Αγοράς Αγρ. Προϊόντων) − ΔΕΛ. ΑΠΟΣΤ", "+" }
                 });
 
             migrationBuilder.InsertData(

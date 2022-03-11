@@ -240,6 +240,47 @@ namespace Infrastructure.Database
 
                 );
             });
+            builder.Entity<MyDataExpenseType>(b =>
+            {
+                b.HasData(
+                    new MyDataExpenseType
+                    {
+                        Code = 270,
+                        Title = "ΤΙΜΟΛΟΓΙΟ ΑΓΟΡΑΣ",
+                        ShortTitle = "ΤΙΜ.ΑΓΟΡ",
+                        Description = "12 παρ. 5",
+                        sign = '-'
+                    }, new MyDataExpenseType
+                    {
+                        Code = 272,
+                        Title = "ΤΙΜΟΛΟΓΙΟ ΑΓΟΡΑΣ − ΔΕΛΤΙΟ ΑΠΟΣΤΟΛΗΣ",
+                        ShortTitle = "ΤΙΜ.ΑΓ.−Δ.Α.",
+                        Description = "12 παρ. 5, 11 παρ. 1",
+                        sign = '-'
+                    }, new MyDataExpenseType
+                    {
+                        Code = 279,
+                        Title = "ΑΠΟΔ. ΠΑΡΟΧΗΣ ΥΠΗΡΕΣΙΩΝ − ΔΕΛ. ΠΟΣΟΤ. ΠAΡΑΛΑΒΗΣ − ΔΕΛ. ΑΠΟΣΤΟΛΗΣ",
+                        ShortTitle = "Α.Π.Υ−Δ.Π.Π−Δ.Α",
+                        Description = "ΠΟΛ 1151/06−06−2001 (ελαιοτριβεία)",
+                        sign = '+'
+                    }, new MyDataExpenseType
+                    {
+                        Code = 295,
+                        Title = "ΔΕΛΤΙΟ ΠΟΣΟΤΙΚΗΣ ΠΑΡΑΛΑΒΗΣ − ΤΙΜΟΛΟΓΙΟ ΑΓΟΡΑΣ",
+                        ShortTitle = "ΔΠΠ−ΤΙΜ ΑΓΟΡ",
+                        Description = null,
+                        sign = '-'
+                    }, new MyDataExpenseType
+                    {
+                        Code = 329,
+                        Title = "ΤΙΜΟΛΟΓΙΟ (Παροχ. Υπηρ.) − ΤΙΜ. (Αγοράς Αγρ. Προϊόντων) − ΔΕΛ. ΑΠΟΣΤ",
+                        ShortTitle = "ΤΠ−Τ(ΑΓ.ΑΓΡ)−ΔΑ",
+                        Description = null,
+                        sign = '+'
+                    }
+                );
+            });
         }
     }
 }
