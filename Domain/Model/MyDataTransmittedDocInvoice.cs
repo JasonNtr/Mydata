@@ -9,6 +9,7 @@ namespace Domain.Model
         public virtual string? Uid { get; set; }
         public virtual string? authenticationCode { get; set; }
         public virtual long? mark { get; set; }
+        public virtual long? cancelledByMark { get; set; }
         public virtual ICollection<MyDataPartyType> issuer { get; set; } = new List<MyDataPartyType>();
         public virtual ICollection<MyDataPartyType> counterpart { get; set; } = new List<MyDataPartyType>();
         public virtual MyDataInvoiceHeaderType invoiceHeaderType { get; set; }

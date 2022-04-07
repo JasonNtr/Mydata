@@ -27,31 +27,35 @@ namespace Business.ApiServices
         {
             int cnt = 1;
             var transmittedDocs = new List<MyDataTransmittedDocInvoiceDTO>();
-            foreach (var docInvoice in requestedDocs.invoicesDoc.invoice)
+            if (requestedDocs.invoicesDoc != null)
             {
-                Debug.WriteLine(cnt);
-                cnt++;
-                var exists = await _transmittedDocRepo.ExistsMark(docInvoice.mark);
-                MyDataTransmittedDocInvoiceDTO transmittedDoc = null;
-                if (exists)
+                foreach (var docInvoice in requestedDocs.invoicesDoc.invoice)
                 {
-                    Debug.WriteLine("Invoice with mark : " + docInvoice.mark + " already exists");
-                    //transmittedDoc = await _transmittedDocRepo.GetByMark(docInvoice.mark);
-                    continue;
-                }
-                else {
-                    transmittedDoc = new MyDataTransmittedDocInvoiceDTO();
-                    transmittedDoc.Id = docInvoice.Id;
-                    transmittedDoc.Created = docInvoice.Created;
-                    transmittedDoc.Modified = docInvoice.Modified;
-                    transmittedDoc.Uid = docInvoice.Uid;
-                    transmittedDoc.mark = docInvoice.mark;
-                    transmittedDoc.authenticationCode = docInvoice.authenticationCode;
-                }
+                    Debug.WriteLine(cnt);
+                    cnt++;
+                    var exists = await _transmittedDocRepo.ExistsMark(docInvoice.mark);
+                    MyDataTransmittedDocInvoiceDTO transmittedDoc = null;
+                    if (exists)
+                    {
+                        Debug.WriteLine("Invoice with mark : " + docInvoice.mark + " already exists");
+                        //transmittedDoc = await _transmittedDocRepo.GetByMark(docInvoice.mark);
+                        continue;
+                    }
+                    else
+                    {
+                        transmittedDoc = new MyDataTransmittedDocInvoiceDTO();
+                        transmittedDoc.Id = docInvoice.Id;
+                        transmittedDoc.Created = docInvoice.Created;
+                        transmittedDoc.Modified = docInvoice.Modified;
+                        transmittedDoc.Uid = docInvoice.Uid;
+                        transmittedDoc.mark = docInvoice.mark;
+                        transmittedDoc.cancelledByMark = docInvoice.cancelledByMark;
+                        transmittedDoc.authenticationCode = docInvoice.authenticationCode;
+                    }
 
-                if (docInvoice.issuer.Count > 0)
-                {
-                    transmittedDoc.issuer = new List<MyDataPartyTypeDTO> {
+                    if (docInvoice.issuer.Count > 0)
+                    {
+                        transmittedDoc.issuer = new List<MyDataPartyTypeDTO> {
                     new MyDataPartyTypeDTO {
                         branch = docInvoice.issuer[0].branch,
                         country = docInvoice.issuer[0].country,
@@ -60,13 +64,13 @@ namespace Business.ApiServices
                         Created = docInvoice.issuer[0].Created,
                         Modified = docInvoice.issuer[0].Modified,
                         MyDataDocIssuerInvoiceId = docInvoice.Id } };
-                }
+                    }
 
-                if (docInvoice.counterpart.Count > 0)
-                {
-                    if (docInvoice.counterpart[0].address != null)
+                    if (docInvoice.counterpart.Count > 0)
                     {
-                        transmittedDoc.counterpart = new List<MyDataPartyTypeDTO> {
+                        if (docInvoice.counterpart[0].address != null)
+                        {
+                            transmittedDoc.counterpart = new List<MyDataPartyTypeDTO> {
                         new MyDataPartyTypeDTO {branch = docInvoice.counterpart[0].branch,
                             country = docInvoice.counterpart[0].country,
                             vatNumber = docInvoice.counterpart[0].vatNumber,
@@ -80,10 +84,10 @@ namespace Business.ApiServices
                             Created = docInvoice.counterpart[0].Created,
                             Modified = docInvoice.counterpart[0].Modified,
                             MyDataDocEncounterInvoiceId = docInvoice.Id} };
-                    }
-                    else
-                    {
-                        transmittedDoc.counterpart = new List<MyDataPartyTypeDTO> {
+                        }
+                        else
+                        {
+                            transmittedDoc.counterpart = new List<MyDataPartyTypeDTO> {
                         new MyDataPartyTypeDTO {branch = docInvoice.counterpart[0].branch,
                             country = docInvoice.counterpart[0].country,
                             vatNumber = docInvoice.counterpart[0].vatNumber,
@@ -91,164 +95,168 @@ namespace Business.ApiServices
                             Created = docInvoice.counterpart[0].Created,
                             Modified = docInvoice.counterpart[0].Modified,
                             MyDataDocEncounterInvoiceId = docInvoice.Id} };
+                        }
+
                     }
 
-                }
-
-                transmittedDoc.invoiceHeaderType = new MyDataInvoiceHeaderTypeDTO
-                {
-                    Id = docInvoice.invoiceHeader.Id,
-                    Created = docInvoice.invoiceHeader.Created,
-                    Modified = docInvoice.invoiceHeader.Modified,
-                    MyDataDocInvoiceId = docInvoice.Id,
-                    aa = docInvoice.invoiceHeader.aa,
-                    series = docInvoice.invoiceHeader.series,
-                    issueDate = docInvoice.invoiceHeader.issueDate,
-                    invoiceType = docInvoice.invoiceHeader.invoiceType,
-                    vatPaymentSuspension = docInvoice.invoiceHeader.vatPaymentSuspension,
-                    currency = docInvoice.invoiceHeader.currency,
-                    exchangeRate = docInvoice.invoiceHeader.exchangeRate,
-                    correlatedInvoices = docInvoice.invoiceHeader.correlatedInvoices,
-                    selfPricing = docInvoice.invoiceHeader.selfPricing,
-                    dispatchDate = docInvoice.invoiceHeader.dispatchDate,
-                    dispatchTime = docInvoice.invoiceHeader.dispatchTime,
-                    vehicleNumber = docInvoice.invoiceHeader.vehicleNumber,
-                    movePurpose = docInvoice.invoiceHeader.movePurpose
-                };
-
-                transmittedDoc.paymentMethodDetailType = new List<MyDataPaymentMethodDetailDTO>();
-                for (int i = 0; i < docInvoice.paymentMethods.paymentMethodDetails.Count; i++)
-                {
-                    transmittedDoc.paymentMethodDetailType.Add(new MyDataPaymentMethodDetailDTO
+                    transmittedDoc.invoiceHeaderType = new MyDataInvoiceHeaderTypeDTO
                     {
-                        Id = docInvoice.paymentMethods.paymentMethodDetails[i].Id,
-                        Created = docInvoice.paymentMethods.paymentMethodDetails[i].Created,
-                        Modified = docInvoice.paymentMethods.paymentMethodDetails[i].Modified,
+                        Id = docInvoice.invoiceHeader.Id,
+                        Created = docInvoice.invoiceHeader.Created,
+                        Modified = docInvoice.invoiceHeader.Modified,
                         MyDataDocInvoiceId = docInvoice.Id,
-                        amount = docInvoice.paymentMethods.paymentMethodDetails[i].amount,
-                        type = docInvoice.paymentMethods.paymentMethodDetails[i].type,
-                        paymentMethodInfo = docInvoice.paymentMethods.paymentMethodDetails[i].paymentMethodInfo
-                    });
-                }
+                        aa = docInvoice.invoiceHeader.aa,
+                        series = docInvoice.invoiceHeader.series,
+                        issueDate = docInvoice.invoiceHeader.issueDate,
+                        invoiceType = docInvoice.invoiceHeader.invoiceType,
+                        vatPaymentSuspension = docInvoice.invoiceHeader.vatPaymentSuspension,
+                        currency = docInvoice.invoiceHeader.currency,
+                        exchangeRate = docInvoice.invoiceHeader.exchangeRate,
+                        correlatedInvoices = docInvoice.invoiceHeader.correlatedInvoices,
+                        selfPricing = docInvoice.invoiceHeader.selfPricing,
+                        dispatchDate = docInvoice.invoiceHeader.dispatchDate,
+                        dispatchTime = docInvoice.invoiceHeader.dispatchTime,
+                        vehicleNumber = docInvoice.invoiceHeader.vehicleNumber,
+                        movePurpose = docInvoice.invoiceHeader.movePurpose
+                    };
 
-                transmittedDoc.invoiceDetails = new List<MyDataInvoiceRowTypeDTO>();
-                for (int i = 0; i < docInvoice.invoiceDetails.Count; i++)
-                {
-                    if (docInvoice.invoiceDetails[i].incomeClassification != null)
+                    transmittedDoc.paymentMethodDetailType = new List<MyDataPaymentMethodDetailDTO>();
+                    for (int i = 0; i < docInvoice.paymentMethods.paymentMethodDetails.Count; i++)
                     {
-                        transmittedDoc.invoiceDetails.Add(new MyDataInvoiceRowTypeDTO
+                        transmittedDoc.paymentMethodDetailType.Add(new MyDataPaymentMethodDetailDTO
                         {
-                            Id = docInvoice.invoiceDetails[i].Id,
-                            Created = docInvoice.invoiceDetails[i].Created,
-                            Modified = docInvoice.invoiceDetails[i].Modified,
+                            Id = docInvoice.paymentMethods.paymentMethodDetails[i].Id,
+                            Created = docInvoice.paymentMethods.paymentMethodDetails[i].Created,
+                            Modified = docInvoice.paymentMethods.paymentMethodDetails[i].Modified,
                             MyDataDocInvoiceId = docInvoice.Id,
-                            lineNumber = docInvoice.invoiceDetails[i].lineNumber,
-                            netValue = docInvoice.invoiceDetails[i].netValue,
-                            vatCategory = docInvoice.invoiceDetails[i].vatCategory,
-                            vatAmount = docInvoice.invoiceDetails[i].vatAmount,
-                            quantity = docInvoice.invoiceDetails[i].quantity,
-                            measurementUnit = docInvoice.invoiceDetails[i].measurementUnit,
-                            invoiceDetailType = docInvoice.invoiceDetails[i].invoiceDetailType,
-                            vatExemptionCategory = docInvoice.invoiceDetails[i].vatExemptionCategory,
-                            discountOption = docInvoice.invoiceDetails[i].discountOption,
-                            withheldAmount = docInvoice.invoiceDetails[i].withheldAmount,
-                            withheldPercentCategory = docInvoice.invoiceDetails[i].withheldPercentCategory,
-                            stampDutyAmount = docInvoice.invoiceDetails[i].stampDutyAmount,
-                            stampDutyPercentCategory = docInvoice.invoiceDetails[i].stampDutyPercentCategory,
-                            feesAmount = docInvoice.invoiceDetails[i].feesAmount,
-                            feesPercentCategory = docInvoice.invoiceDetails[i].feesPercentCategory,
-                            otherTaxesPercentCategory = docInvoice.invoiceDetails[i].otherTaxesPercentCategory,
-                            otherTaxesAmount = docInvoice.invoiceDetails[i].otherTaxesAmount,
-                            deductionsAmount = docInvoice.invoiceDetails[i].deductionsAmount,
-                            lineComments = docInvoice.invoiceDetails[i].lineComments,
-                            incomeClassification = new MyDataIncomeClassificationDTO
+                            amount = docInvoice.paymentMethods.paymentMethodDetails[i].amount,
+                            type = docInvoice.paymentMethods.paymentMethodDetails[i].type,
+                            paymentMethodInfo = docInvoice.paymentMethods.paymentMethodDetails[i].paymentMethodInfo
+                        });
+                    }
+
+                    transmittedDoc.invoiceDetails = new List<MyDataInvoiceRowTypeDTO>();
+                    for (int i = 0; i < docInvoice.invoiceDetails.Count; i++)
+                    {
+                        if (docInvoice.invoiceDetails[i].incomeClassification != null)
+                        {
+                            transmittedDoc.invoiceDetails.Add(new MyDataInvoiceRowTypeDTO
                             {
-                                Id = docInvoice.invoiceDetails[i].incomeClassification.Id,
-                                Created = docInvoice.invoiceDetails[i].incomeClassification.Created,
-                                Modified = docInvoice.invoiceDetails[i].incomeClassification.Modified,
-                                MyDataInvoiceDetailsId = docInvoice.invoiceDetails[i].Id,
-                                amount = docInvoice.invoiceDetails[i].incomeClassification.amount,
-                                classificationCategory = docInvoice.invoiceDetails[i].incomeClassification.classificationCategory,
-                                classificationType = docInvoice.invoiceDetails[i].incomeClassification.classificationType,
-                                optionalId = docInvoice.invoiceDetails[i].incomeClassification.optionalId
-                            }
-                        });
-                    }
-                    else
-                    {
-                        transmittedDoc.invoiceDetails.Add(new MyDataInvoiceRowTypeDTO
+                                Id = docInvoice.invoiceDetails[i].Id,
+                                Created = docInvoice.invoiceDetails[i].Created,
+                                Modified = docInvoice.invoiceDetails[i].Modified,
+                                MyDataDocInvoiceId = docInvoice.Id,
+                                lineNumber = docInvoice.invoiceDetails[i].lineNumber,
+                                netValue = docInvoice.invoiceDetails[i].netValue,
+                                vatCategory = docInvoice.invoiceDetails[i].vatCategory,
+                                vatAmount = docInvoice.invoiceDetails[i].vatAmount,
+                                quantity = docInvoice.invoiceDetails[i].quantity,
+                                measurementUnit = docInvoice.invoiceDetails[i].measurementUnit,
+                                invoiceDetailType = docInvoice.invoiceDetails[i].invoiceDetailType,
+                                vatExemptionCategory = docInvoice.invoiceDetails[i].vatExemptionCategory,
+                                discountOption = docInvoice.invoiceDetails[i].discountOption,
+                                withheldAmount = docInvoice.invoiceDetails[i].withheldAmount,
+                                withheldPercentCategory = docInvoice.invoiceDetails[i].withheldPercentCategory,
+                                stampDutyAmount = docInvoice.invoiceDetails[i].stampDutyAmount,
+                                stampDutyPercentCategory = docInvoice.invoiceDetails[i].stampDutyPercentCategory,
+                                feesAmount = docInvoice.invoiceDetails[i].feesAmount,
+                                feesPercentCategory = docInvoice.invoiceDetails[i].feesPercentCategory,
+                                otherTaxesPercentCategory = docInvoice.invoiceDetails[i].otherTaxesPercentCategory,
+                                otherTaxesAmount = docInvoice.invoiceDetails[i].otherTaxesAmount,
+                                deductionsAmount = docInvoice.invoiceDetails[i].deductionsAmount,
+                                lineComments = docInvoice.invoiceDetails[i].lineComments,
+                                incomeClassification = new MyDataIncomeClassificationDTO
+                                {
+                                    Id = docInvoice.invoiceDetails[i].incomeClassification.Id,
+                                    Created = docInvoice.invoiceDetails[i].incomeClassification.Created,
+                                    Modified = docInvoice.invoiceDetails[i].incomeClassification.Modified,
+                                    MyDataInvoiceDetailsId = docInvoice.invoiceDetails[i].Id,
+                                    amount = docInvoice.invoiceDetails[i].incomeClassification.amount,
+                                    classificationCategory = docInvoice.invoiceDetails[i].incomeClassification.classificationCategory,
+                                    classificationType = docInvoice.invoiceDetails[i].incomeClassification.classificationType,
+                                    optionalId = docInvoice.invoiceDetails[i].incomeClassification.optionalId
+                                }
+                            });
+                        }
+                        else
                         {
-                            Id = docInvoice.invoiceDetails[i].Id,
-                            Created = docInvoice.invoiceDetails[i].Created,
-                            Modified = docInvoice.invoiceDetails[i].Modified,
+                            transmittedDoc.invoiceDetails.Add(new MyDataInvoiceRowTypeDTO
+                            {
+                                Id = docInvoice.invoiceDetails[i].Id,
+                                Created = docInvoice.invoiceDetails[i].Created,
+                                Modified = docInvoice.invoiceDetails[i].Modified,
+                                MyDataDocInvoiceId = docInvoice.Id,
+                                lineNumber = docInvoice.invoiceDetails[i].lineNumber,
+                                netValue = docInvoice.invoiceDetails[i].netValue,
+                                vatCategory = docInvoice.invoiceDetails[i].vatCategory,
+                                vatAmount = docInvoice.invoiceDetails[i].vatAmount,
+                                quantity = docInvoice.invoiceDetails[i].quantity,
+                                measurementUnit = docInvoice.invoiceDetails[i].measurementUnit,
+                                invoiceDetailType = docInvoice.invoiceDetails[i].invoiceDetailType,
+                                vatExemptionCategory = docInvoice.invoiceDetails[i].vatExemptionCategory,
+                                discountOption = docInvoice.invoiceDetails[i].discountOption,
+                                withheldAmount = docInvoice.invoiceDetails[i].withheldAmount,
+                                withheldPercentCategory = docInvoice.invoiceDetails[i].withheldPercentCategory,
+                                stampDutyAmount = docInvoice.invoiceDetails[i].stampDutyAmount,
+                                stampDutyPercentCategory = docInvoice.invoiceDetails[i].stampDutyPercentCategory,
+                                feesAmount = docInvoice.invoiceDetails[i].feesAmount,
+                                feesPercentCategory = docInvoice.invoiceDetails[i].feesPercentCategory,
+                                otherTaxesPercentCategory = docInvoice.invoiceDetails[i].otherTaxesPercentCategory,
+                                otherTaxesAmount = docInvoice.invoiceDetails[i].otherTaxesAmount,
+                                deductionsAmount = docInvoice.invoiceDetails[i].deductionsAmount,
+                                lineComments = docInvoice.invoiceDetails[i].lineComments
+                            });
+                        }
+
+                    }
+                    //transsmittedDoc.invoiceDetails = new MyDataInvoiceRowTypeDTO { Id = docInvoice.invoiceHeader.Id, Created = docInvoice.invoiceHeader.Created, Modified = docInvoice.invoiceHeader.Modified, MyDataDocInvoiceId = docInvoice.Id, };
+
+                    transmittedDoc.taxesTotals = new List<MyDataTaxesDTO>();
+                    for (int i = 0; i < docInvoice.taxesTotals.Count; i++)
+                    {
+                        transmittedDoc.taxesTotals.Add(new MyDataTaxesDTO
+                        {
+                            Id = docInvoice.taxesTotals[i].taxes.Id,
+                            Created = docInvoice.taxesTotals[i].taxes.Created,
+                            Modified = docInvoice.taxesTotals[i].taxes.Modified,
                             MyDataDocInvoiceId = docInvoice.Id,
-                            lineNumber = docInvoice.invoiceDetails[i].lineNumber,
-                            netValue = docInvoice.invoiceDetails[i].netValue,
-                            vatCategory = docInvoice.invoiceDetails[i].vatCategory,
-                            vatAmount = docInvoice.invoiceDetails[i].vatAmount,
-                            quantity = docInvoice.invoiceDetails[i].quantity,
-                            measurementUnit = docInvoice.invoiceDetails[i].measurementUnit,
-                            invoiceDetailType = docInvoice.invoiceDetails[i].invoiceDetailType,
-                            vatExemptionCategory = docInvoice.invoiceDetails[i].vatExemptionCategory,
-                            discountOption = docInvoice.invoiceDetails[i].discountOption,
-                            withheldAmount = docInvoice.invoiceDetails[i].withheldAmount,
-                            withheldPercentCategory = docInvoice.invoiceDetails[i].withheldPercentCategory,
-                            stampDutyAmount = docInvoice.invoiceDetails[i].stampDutyAmount,
-                            stampDutyPercentCategory = docInvoice.invoiceDetails[i].stampDutyPercentCategory,
-                            feesAmount = docInvoice.invoiceDetails[i].feesAmount,
-                            feesPercentCategory = docInvoice.invoiceDetails[i].feesPercentCategory,
-                            otherTaxesPercentCategory = docInvoice.invoiceDetails[i].otherTaxesPercentCategory,
-                            otherTaxesAmount = docInvoice.invoiceDetails[i].otherTaxesAmount,
-                            deductionsAmount = docInvoice.invoiceDetails[i].deductionsAmount,
-                            lineComments = docInvoice.invoiceDetails[i].lineComments
+                            taxAmount = docInvoice.taxesTotals[i].taxes.taxAmount,
+                            taxCategory = docInvoice.taxesTotals[i].taxes.taxCategory,
+                            taxType = docInvoice.taxesTotals[i].taxes.taxType,
+                            taxunderlyingValueType = docInvoice.taxesTotals[i].taxes.taxunderlyingValueType
                         });
                     }
 
-                }
-                //transsmittedDoc.invoiceDetails = new MyDataInvoiceRowTypeDTO { Id = docInvoice.invoiceHeader.Id, Created = docInvoice.invoiceHeader.Created, Modified = docInvoice.invoiceHeader.Modified, MyDataDocInvoiceId = docInvoice.Id, };
-
-                transmittedDoc.taxesTotals = new List<MyDataTaxesDTO>();
-                for (int i = 0; i < docInvoice.taxesTotals.Count; i++)
-                {
-                    transmittedDoc.taxesTotals.Add(new MyDataTaxesDTO
+                    transmittedDoc.invoiceSummary = new MyDataInvoiceSummaryDTO
                     {
-                        Id = docInvoice.taxesTotals[i].taxes.Id,
-                        Created = docInvoice.taxesTotals[i].taxes.Created,
-                        Modified = docInvoice.taxesTotals[i].taxes.Modified,
+                        Id = docInvoice.invoiceSummary.Id,
+                        Created = docInvoice.invoiceSummary.Created,
+                        Modified = docInvoice.invoiceSummary.Modified,
                         MyDataDocInvoiceId = docInvoice.Id,
-                        taxAmount = docInvoice.taxesTotals[i].taxes.taxAmount,
-                        taxCategory = docInvoice.taxesTotals[i].taxes.taxCategory,
-                        taxType = docInvoice.taxesTotals[i].taxes.taxType,
-                        taxunderlyingValueType = docInvoice.taxesTotals[i].taxes.taxunderlyingValueType
-                    });
+                        totalNetValue = docInvoice.invoiceSummary.totalNetValue,
+                        totalVatAmount = docInvoice.invoiceSummary.totalVatAmount,
+                        totalWithheldAmounr = docInvoice.invoiceSummary.totalWithheldAmounr,
+                        totalFeesAmount = docInvoice.invoiceSummary.totalFeesAmount,
+                        totalStumpDutyAmount = docInvoice.invoiceSummary.totalStumpDutyAmount,
+                        totalOtherTaxesAmount = docInvoice.invoiceSummary.totalOtherTaxesAmount,
+                        totalDeductionsAmount = docInvoice.invoiceSummary.totalDeductionsAmount,
+                        totalGrossValue = docInvoice.invoiceSummary.totalGrossValue
+                    };
+
+                    var insertResult = await _transmittedDocRepo.Insert(transmittedDoc);
+                    if (insertResult > 0)
+                    {
+                        Debug.WriteLine("Inserted invoice : " + transmittedDoc.Id + "   with mark : " + transmittedDoc.mark);
+                    }
+                    transmittedDocs.Add(transmittedDoc);
+
                 }
-
-                transmittedDoc.invoiceSummary = new MyDataInvoiceSummaryDTO
-                {
-                    Id = docInvoice.invoiceSummary.Id,
-                    Created = docInvoice.invoiceSummary.Created,
-                    Modified = docInvoice.invoiceSummary.Modified,
-                    MyDataDocInvoiceId = docInvoice.Id,
-                    totalNetValue = docInvoice.invoiceSummary.totalNetValue,
-                    totalVatAmount = docInvoice.invoiceSummary.totalVatAmount,
-                    totalWithheldAmounr = docInvoice.invoiceSummary.totalWithheldAmounr,
-                    totalFeesAmount = docInvoice.invoiceSummary.totalFeesAmount,
-                    totalStumpDutyAmount = docInvoice.invoiceSummary.totalStumpDutyAmount,
-                    totalOtherTaxesAmount = docInvoice.invoiceSummary.totalOtherTaxesAmount,
-                    totalDeductionsAmount = docInvoice.invoiceSummary.totalDeductionsAmount,
-                    totalGrossValue = docInvoice.invoiceSummary.totalGrossValue
-                };
-
-                var insertResult = await _transmittedDocRepo.Insert(transmittedDoc);
-                if (insertResult>0)
-                {
-                    Debug.WriteLine("Inserted invoice : " + transmittedDoc.Id + "   with mark : " + transmittedDoc.mark);
-                }
-                transmittedDocs.Add(transmittedDoc);
-
             }
+            
+
             if (requestedDocs.cancelledInvoicesDoc != null)
             {
+                cnt = 1;
                 foreach (var cancelledInvoiceDoc in requestedDocs.cancelledInvoicesDoc.cancelledInvoice)
                 {
                     var cancelledInvoicesDocDTO = new MyDataCancelledInvoicesDocDTO();
@@ -258,6 +266,8 @@ namespace Business.ApiServices
                     cancelledInvoicesDocDTO.invoiceMark = cancelledInvoiceDoc.invoiceMark;
                     cancelledInvoicesDocDTO.cancellationMark = cancelledInvoiceDoc.cancellationMark;
                     cancelledInvoicesDocDTO.cancellationDate = cancelledInvoiceDoc.cancellationDate;
+                    Debug.WriteLine(cnt + ") Cancellled Invoice : " + cancelledInvoiceDoc.cancellationMark);
+                    cnt++;
                 }
             }
 
@@ -348,9 +358,9 @@ namespace Business.ApiServices
                 var doc = new XmlDocument();
                 doc.LoadXml(httpResponseContext);
                 var invoices = DeserializeXml(doc);
-
-                //this is to pass the values of the requestedDoc to the DTO in order for them to be saved
                 continuationToken = await ConvertRequestedDocsToDTO(invoices);
+                //this is to pass the values of the requestedDoc to the DTO in order for them to be saved
+                
 
             } while (continuationToken != null);
             return 1;
@@ -424,7 +434,6 @@ namespace Business.ApiServices
                 return "" + result;
 
             result = await httpResponse.Content.ReadAsStringAsync();
-
             return result;
         }
 

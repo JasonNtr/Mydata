@@ -11,6 +11,7 @@ namespace Domain.DTO
         public virtual string? Uid { get; set; }
         public virtual string? authenticationCode { get; set; }
         public virtual long? mark { get; set; }
+        public virtual long? cancelledByMark { get; set; }
 
 
         public virtual ICollection<MyDataPartyTypeDTO> issuer { get; set; } = new List<MyDataPartyTypeDTO>();

@@ -13,5 +13,6 @@ namespace Infrastructure.Interfaces.ApiServices
         Task<int> RequestDocs(string mark);
         Task<int> CancelInvoiceBatchProcess(MyDataInvoiceDTO mydataInvoiceDTO);
         Task<MyDataInvoiceDTO> BuildInvoiceBatchProcess(MyDataInvoiceDTO mydataInvoiceDTO);
+        bool CreateLogFileForBatchProcess();
     }
 }

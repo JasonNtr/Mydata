@@ -32,8 +32,8 @@ namespace Mydata
         private readonly GridRowSizingOptions _gridRowResizingOptions;
         private readonly IOptions<AppSettings> _appSettings;
         private List<string> _currentFiles;
-
         private readonly IRequestTransmittedDocsService _requestTransmittedDataService;
+        private bool _sendFilesFinished = true;
 
         public InvoicesUserControl(IInvoiceRepo invoiceRepo, IMapper mapper, IOptions<AppSettings> appSettings, IInvoiceService invoiceService)
         {
@@ -52,7 +52,7 @@ namespace Mydata
 
             var timer = new DispatcherTimer
             {
-                Interval = TimeSpan.FromMilliseconds(2000)
+                Interval = TimeSpan.FromMilliseconds(_appSettings.Value.timerSeconds)
             };
             timer.Tick += timer_Tick;
             timer.Start();
@@ -77,7 +77,7 @@ namespace Mydata
 
             var timer = new DispatcherTimer
             {
-                Interval = TimeSpan.FromMilliseconds(1000)
+                Interval = TimeSpan.FromMilliseconds(_appSettings.Value.timerSeconds)
             };
             timer.Tick += timer_Tick;
             timer.Start();
@@ -219,18 +219,19 @@ namespace Mydata
             {           
                 _= await _invoiceService.CancelInvoiceBatchProcess(invoice);//invoice.Uid.ToString());         
             }
+            _invoiceService.CreateLogFileForBatchProcess();
         }
 
         private async void Button_Click_RequestDocs(object sender, RoutedEventArgs e)
         {
             //What others have sent with us as counterpart
-            await _requestTransmittedDataService.RequestDocs("4000011868690575");
+            await _requestTransmittedDataService.RequestDocs("0");
         }
 
         private async void Button_Click_RequestTransmittedDocs(object sender, RoutedEventArgs e)
         {
             //Invoices we have sent as issuer to API and have been successfully marked
-            await _requestTransmittedDataService.RequestTransmittedDocs("4000011868690575");
+            await _requestTransmittedDataService.RequestTransmittedDocs("0");
         }
     }
 }

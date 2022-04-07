@@ -11,6 +11,7 @@ namespace Infrastructure.Database.RequestDocModels
         public virtual string? Uid { get; set; }
         public virtual string? authenticationCode { get; set; }
         public virtual long? mark { get; set; }
+        public virtual long? cancelledByMark { get; set; }
         [XmlElement(ElementName = "issuer")]
         public virtual List<PartyType> issuer { get; set; } = new List<PartyType>();
         [XmlElement(ElementName = "counterpart")]

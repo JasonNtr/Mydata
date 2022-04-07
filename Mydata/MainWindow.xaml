@@ -9,7 +9,7 @@
           xmlns:syncfusion2="clr-namespace:Syncfusion.Windows.Controls.Input;assembly=Syncfusion.SfInput.Wpf"
           xmlns:mydata="clr-namespace:Mydata"
           mc:Ignorable="d" MouseLeftButtonDown="Window_MouseLeftButtonDown" WindowStyle="None"
-        Title="MainWindow" Height = "870" Width = "1900" AllowsTransparency="True"  ShowInTaskbar="False" ResizeMode="NoResize" Topmost="False"
+        Title="MainWindow" Height = "870" Width = "1600" AllowsTransparency="True"  ShowInTaskbar="False" ResizeMode="NoResize" Topmost="False"
         FontFamily="{DynamicResource MaterialDesignFont}" Background="#b5c7da">
 
     <Window.Resources>

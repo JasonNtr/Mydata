@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
@@ -27,6 +28,9 @@ namespace Business.ApiServices
         private readonly IMyDataCancellationResponseRepo _myDataCancellationResponseRepo;
         private readonly IParticleInform _particleInform;
         private readonly IMyDataTransmittedDocInvoicesRepo _transmittedDocRepo;
+        private int _invoicesToCancelBatchCounter = 0;
+        private int _invoicesCancelledBatchCounter = 0;
+        private string _invoicesThatFailedBatch = "";
 
         public InvoiceService(IOptions<AppSettings> appSettings, IInvoiceRepo invoiceRepo, IMyDataResponseRepo myDataResponseRepo, IMyDataCancellationResponseRepo myDataCancellationResponseRepo, IParticleInform particleInform, IMyDataTransmittedDocInvoicesRepo myDataTransmittedDocInvoicesRepo)
         {
@@ -477,13 +481,6 @@ namespace Business.ApiServices
                 cancellationMark = null;
             }
 
-
-
-
-
-
-
-
             MyDataInvoiceDTO myDataInvoiceDTO;
             var exist = await _invoiceRepo.ExistedUid(newUid);
             if (exist)
@@ -828,21 +825,23 @@ namespace Business.ApiServices
             return obj;
         }
 
+        
         public async Task<int> CancelInvoiceBatchProcess(MyDataInvoiceDTO mydataInvoiceDTO)
         {
+            //Using counters in order to keep track of invoices that are found, cancelled and write down the fileName of the ones that failed to be cancelled, for the batch cancellation process
+            //This information is written in Log File in the folder LogFiles inside the bin folder.
+            
+            _invoicesToCancelBatchCounter++;
 
-
+            Debug.WriteLine(_invoicesToCancelBatchCounter + ") Cancelling : " + mydataInvoiceDTO.invoiceMark);
             var httpResponseContext = await CallCancelInvoiceMethod(mydataInvoiceDTO);
             var result = 0;
-            //Code to give httpResponseContext the value of a pc stored xml
+
+            //Code to give httpResponseContext the value of a pc stored xml (FOR TESTING PURPSES)
             //XmlSerializer mySerializer = new XmlSerializer(typeof(RequestedDoc));
             //StreamReader myStreamReader = new StreamReader(@"C:\Users\Aris\Desktop\Desktop TargetFolder\cancelresponse.xml");
             //string readxml = myStreamReader.ReadToEnd();
             //httpResponseContext = readxml;
-
-
-
-            //Debug.WriteLine(mydataInvoiceDTO.invoiceMark);
 
             //string invoiceFileName = CreateInvoiceFileName(mydataInvoiceDTO, markToCancel.invoiceMark);
 
@@ -850,7 +849,9 @@ namespace Business.ApiServices
 
             var myDataCancellationResponse = ParseCancellationResponseResult(httpResponseContext);
             if (myDataCancellationResponse == null)
+            {
                 return result;
+            }
 
             myDataCancellationResponse.MyDataInvoiceId = myDataCancelInvoice.Id;
             await _myDataCancellationResponseRepo.Insert(myDataCancellationResponse);
@@ -859,9 +860,14 @@ namespace Business.ApiServices
 
             if (myDataCancellationResponse.statusCode.Equals("Success") && myDataCancelInvoice.CancellationMark != null)
             {
+                _invoicesCancelledBatchCounter++;
                 var myDataInvoiceDTOThatCancelled =
                     await _invoiceRepo.GetByMark(myDataCancelInvoice.CancellationMark.Value);
                 await _particleInform.UpdateCancellationParticle_FixName(myDataCancelInvoice, myDataInvoiceDTOThatCancelled);
+            }
+            else
+            {
+                _invoicesThatFailedBatch += "\n" + mydataInvoiceDTO.FileName;
             }
 
             result = 1;
@@ -894,10 +900,9 @@ namespace Business.ApiServices
                 invoiceToCancel = markToCancel.invoiceMark.ToString();
             }
 
-            var uri = url + "/CancelInvoice?mark=" + invoiceToCancel; // + queryString;
+            var uri = url + "/CancelInvoice?mark=" + invoiceToCancel;
             var byteData = new byte[0];
             using var content = new ByteArrayContent(byteData);
-            //content.Headers.Add("mark", myDataInvoiceDTO.CancellationMark.ToString());
 
             var httpResponse = await client.PostAsync(uri, content);
             if (!httpResponse.IsSuccessStatusCode)
@@ -908,6 +913,44 @@ namespace Business.ApiServices
             result = await httpResponse.Content.ReadAsStringAsync();
 
             return result;
+        }
+
+        public bool CreateLogFileForBatchProcess()
+        {
+            try
+            {
+                var projectExePath = Assembly.GetExecutingAssembly().CodeBase;
+
+                //after getting the path you get the directory with:
+                var projectDirectory = Directory.GetParent(AppContext.BaseDirectory).FullName;//Path.GetDirectoryName(projectExePath);
+                projectDirectory = Path.Combine(projectDirectory, "LogFiles");
+                //projectDirectory = projectDirectory.Replace("file:\\", "");
+                Directory.CreateDirectory(projectDirectory);
+                var textFilePath = Path.Combine(projectDirectory, DateTime.Now.ToString("yyyy-MM-dd HHmmss") + ".txt");
+
+                var textContent = "FOUND : " + _invoicesToCancelBatchCounter;
+                textContent += "\nCANCELLED : " + _invoicesCancelledBatchCounter;
+                textContent += "\n_______________________________________________";
+                if (string.IsNullOrEmpty(_invoicesThatFailedBatch))
+                {
+                    _invoicesThatFailedBatch = "NONE";
+                }
+                textContent += "\nFAILED : \n" + _invoicesThatFailedBatch;
+                using (StreamWriter sw = File.CreateText(textFilePath))
+                {
+                    sw.WriteLine(textContent);
+                }
+                //clear to reuse
+                _invoicesToCancelBatchCounter = 0;
+                _invoicesCancelledBatchCounter = 0;
+                _invoicesThatFailedBatch = "";
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Error while creating LogFile : " + ex.Message);
+                return false;
+            }
         }
 
     }
