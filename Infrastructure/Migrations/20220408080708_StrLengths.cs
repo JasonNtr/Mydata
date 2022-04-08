@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Infrastructure.Migrations
 {
-    public partial class CancelledByMark : Migration
+    public partial class StrLengths : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -96,8 +96,8 @@ namespace Infrastructure.Migrations
                     Id = table.Column<Guid>(nullable: false),
                     Created = table.Column<DateTime>(nullable: false),
                     Modified = table.Column<DateTime>(nullable: false),
-                    Uid = table.Column<string>(nullable: true),
-                    authenticationCode = table.Column<string>(nullable: true),
+                    Uid = table.Column<string>(maxLength: 100, nullable: true),
+                    authenticationCode = table.Column<string>(maxLength: 100, nullable: true),
                     mark = table.Column<long>(nullable: true),
                     cancelledByMark = table.Column<long>(nullable: true)
                 },
@@ -214,18 +214,18 @@ namespace Infrastructure.Migrations
                     Created = table.Column<DateTime>(nullable: false),
                     Modified = table.Column<DateTime>(nullable: false),
                     MyDataDocInvoiceId = table.Column<Guid>(nullable: false),
-                    series = table.Column<string>(nullable: true),
-                    aa = table.Column<string>(nullable: true),
+                    series = table.Column<string>(maxLength: 50, nullable: true),
+                    aa = table.Column<string>(maxLength: 50, nullable: true),
                     issueDate = table.Column<DateTime>(nullable: false),
-                    invoiceType = table.Column<string>(nullable: true),
+                    invoiceType = table.Column<string>(maxLength: 20, nullable: true),
                     vatPaymentSuspension = table.Column<bool>(nullable: true),
-                    currency = table.Column<string>(nullable: true),
+                    currency = table.Column<string>(maxLength: 20, nullable: true),
                     exchangeRate = table.Column<double>(nullable: true),
                     correlatedInvoices = table.Column<long>(nullable: true),
                     selfPricing = table.Column<bool>(nullable: true),
                     dispatchDate = table.Column<DateTime>(nullable: true),
-                    dispatchTime = table.Column<string>(nullable: true),
-                    vehicleNumber = table.Column<string>(nullable: true),
+                    dispatchTime = table.Column<string>(maxLength: 50, nullable: true),
+                    vehicleNumber = table.Column<string>(maxLength: 50, nullable: true),
                     movePurpose = table.Column<int>(nullable: true)
                 },
                 constraints: table =>
@@ -249,7 +249,7 @@ namespace Infrastructure.Migrations
                     MyDataDocInvoiceId = table.Column<Guid>(nullable: true),
                     lineNumber = table.Column<int>(nullable: false),
                     netValue = table.Column<double>(nullable: false),
-                    vatCategory = table.Column<string>(nullable: true),
+                    vatCategory = table.Column<string>(maxLength: 20, nullable: true),
                     vatAmount = table.Column<double>(nullable: false),
                     quantity = table.Column<double>(nullable: true),
                     measurementUnit = table.Column<int>(nullable: true),
@@ -265,7 +265,7 @@ namespace Infrastructure.Migrations
                     otherTaxesPercentCategory = table.Column<int>(nullable: true),
                     otherTaxesAmount = table.Column<double>(nullable: true),
                     deductionsAmount = table.Column<double>(nullable: true),
-                    lineComments = table.Column<string>(nullable: true)
+                    lineComments = table.Column<string>(maxLength: 150, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -315,10 +315,10 @@ namespace Infrastructure.Migrations
                     Modified = table.Column<DateTime>(nullable: false),
                     MyDataDocIssuerInvoiceId = table.Column<Guid>(nullable: true),
                     MyDataDocEncounterInvoiceId = table.Column<Guid>(nullable: true),
-                    vatNumber = table.Column<string>(nullable: true),
-                    country = table.Column<string>(nullable: true),
-                    branch = table.Column<string>(nullable: true),
-                    name = table.Column<string>(nullable: true)
+                    vatNumber = table.Column<string>(maxLength: 50, nullable: true),
+                    country = table.Column<string>(maxLength: 50, nullable: true),
+                    branch = table.Column<string>(maxLength: 20, nullable: true),
+                    name = table.Column<string>(maxLength: 50, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -345,7 +345,7 @@ namespace Infrastructure.Migrations
                     MyDataDocInvoiceId = table.Column<Guid>(nullable: false),
                     type = table.Column<int>(nullable: false),
                     amount = table.Column<double>(nullable: false),
-                    paymentMethodInfo = table.Column<string>(nullable: true)
+                    paymentMethodInfo = table.Column<string>(maxLength: 100, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -484,8 +484,8 @@ namespace Infrastructure.Migrations
                     Modified = table.Column<DateTime>(nullable: false),
                     MyDataInvoiceDetailsId = table.Column<Guid>(nullable: true),
                     optionalId = table.Column<int>(nullable: true),
-                    classificationType = table.Column<string>(nullable: true),
-                    classificationCategory = table.Column<string>(nullable: true),
+                    classificationType = table.Column<string>(maxLength: 50, nullable: true),
+                    classificationCategory = table.Column<string>(maxLength: 50, nullable: true),
                     amount = table.Column<double>(nullable: true)
                 },
                 constraints: table =>
@@ -507,10 +507,10 @@ namespace Infrastructure.Migrations
                     Created = table.Column<DateTime>(nullable: false),
                     Modified = table.Column<DateTime>(nullable: false),
                     MyDataPartyTypeId = table.Column<Guid>(nullable: false),
-                    postalCode = table.Column<string>(nullable: true),
-                    city = table.Column<string>(nullable: true),
-                    street = table.Column<string>(nullable: true),
-                    number = table.Column<string>(nullable: true)
+                    postalCode = table.Column<string>(maxLength: 50, nullable: true),
+                    city = table.Column<string>(maxLength: 50, nullable: true),
+                    street = table.Column<string>(maxLength: 50, nullable: true),
+                    number = table.Column<string>(maxLength: 50, nullable: true)
                 },
                 constraints: table =>
                 {

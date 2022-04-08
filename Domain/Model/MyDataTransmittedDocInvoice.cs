@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Text;
 
 namespace Domain.Model
 {
     public class MyDataTransmittedDocInvoice : MyDataEntity
     {
+        [StringLength(100)]
         public virtual string? Uid { get; set; }
+        [StringLength(100)]
         public virtual string? authenticationCode { get; set; }
         public virtual long? mark { get; set; }
         public virtual long? cancelledByMark { get; set; }

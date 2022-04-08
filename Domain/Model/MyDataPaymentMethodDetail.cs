@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domain.Model
@@ -11,6 +12,7 @@ namespace Domain.Model
         public virtual Guid MyDataDocInvoiceId { get; set; }
         public virtual int type { get; set; }
         public virtual double amount { get; set; }
+        [StringLength(100)]
         public virtual string paymentMethodInfo { get; set; }
 
     }
