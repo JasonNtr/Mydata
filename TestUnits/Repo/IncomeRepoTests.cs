@@ -62,9 +62,6 @@ namespace TestUnits.Repo
             return repo;
         }
 
-
-
-
         private static ApplicationDbContext GetDatabase()
         {
             var configuration = GetConfig();

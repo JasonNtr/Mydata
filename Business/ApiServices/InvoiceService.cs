@@ -915,14 +915,19 @@ namespace Business.ApiServices
             return result;
         }
 
-        public bool CreateLogFileForBatchProcess()
+        public bool CreateLogFileForBatchProcess(string selectedPath = "")
         {
             try
             {
                 var projectExePath = Assembly.GetExecutingAssembly().CodeBase;
 
                 //after getting the path you get the directory with:
-                var projectDirectory = Directory.GetParent(AppContext.BaseDirectory).FullName;//Path.GetDirectoryName(projectExePath);
+                //var projectDirectory = Directory.GetParent(AppContext.BaseDirectory).FullName;//Path.GetDirectoryName(projectExePath);
+                var projectDirectory = _appSettings.Value.folderPath;//Path.GetDirectoryName(projectExePath);
+                if (!string.IsNullOrEmpty(selectedPath))
+                {
+                    projectDirectory = selectedPath;
+                }
                 projectDirectory = Path.Combine(projectDirectory, "LogFiles");
                 //projectDirectory = projectDirectory.Replace("file:\\", "");
                 Directory.CreateDirectory(projectDirectory);

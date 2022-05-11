@@ -212,14 +212,32 @@ namespace Mydata
             }
         }
 
-        private async void Button_Click(object sender, RoutedEventArgs e)
+        private async void ButtonCancel2021_Click(object sender, RoutedEventArgs e)
         {
+            var result = MessageBox.Show("Θέλετε σίγουρα να προχωρήσετε σε ακύρωση των παραστατικών του 2021?", "Επιβεβαίωση", MessageBoxButton.YesNo,MessageBoxImage.Question);
+
+            if (result != MessageBoxResult.Yes)
+            {
+                return;
+            }
+
             var successfullInvoices = await _invoiceRepo.GetInvoicesWithSuccessStatusCodeFor2021();
             foreach (var invoice in successfullInvoices)
             {           
-                _= await _invoiceService.CancelInvoiceBatchProcess(invoice);//invoice.Uid.ToString());         
+                _= await _invoiceService.CancelInvoiceBatchProcess(invoice);      
             }
-            _invoiceService.CreateLogFileForBatchProcess();
+
+            var logFileResult = _invoiceService.CreateLogFileForBatchProcess();
+
+            if (logFileResult)
+            {
+                MessageBox.Show("Το αρχείο καταγραφής, δημιουργήθηκε στο path : \n" +
+                    _appSettings.Value.folderPath +"\\LogFiles", "Η Διαδικασία Ολοκληρώθηκε", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            else
+            {
+                MessageBox.Show("Υπήρξε πρόβλημα κατά την δημιουργία αρχείου log.", "Η Διαδικασία Ολοκληρώθηκε", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         private async void Button_Click_RequestDocs(object sender, RoutedEventArgs e)

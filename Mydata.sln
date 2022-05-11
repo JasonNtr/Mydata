@@ -11,7 +11,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Infrastructure", "Infrastru
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Business", "Business\Business.csproj", "{A6A3F018-2000-46DC-8A56-B1149D8B03B2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestUnits", "TestUnits\TestUnits.csproj", "{EBFBEE3E-312D-488F-84A4-89DB23EE4D47}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestUnits", "TestUnits\TestUnits.csproj", "{EBFBEE3E-312D-488F-84A4-89DB23EE4D47}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyDataCancel2021Invoices", "MyDataCancel2021Invoices\MyDataCancel2021Invoices.csproj", "{15EFBB34-8C43-478C-8CD7-5A1BB2D064DC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,10 @@ Global
 		{EBFBEE3E-312D-488F-84A4-89DB23EE4D47}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EBFBEE3E-312D-488F-84A4-89DB23EE4D47}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EBFBEE3E-312D-488F-84A4-89DB23EE4D47}.Release|Any CPU.Build.0 = Release|Any CPU
+		{15EFBB34-8C43-478C-8CD7-5A1BB2D064DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{15EFBB34-8C43-478C-8CD7-5A1BB2D064DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{15EFBB34-8C43-478C-8CD7-5A1BB2D064DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{15EFBB34-8C43-478C-8CD7-5A1BB2D064DC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
