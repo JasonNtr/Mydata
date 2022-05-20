@@ -82,20 +82,23 @@ namespace Business.Services
             }
         }
 
-        public async Task UpdateCancellationParticle_FixName(MyDataInvoiceDTO mydatainvoicedto, MyDataInvoiceDTO mydatainvoicedtobecancelled)
+        public async Task UpdateCancellationParticle_FixName(MyDataInvoiceDTO mydatainvoicedto, MyDataInvoiceDTO mydatainvoicedtobecancelled, long? cancellationInvoiceMark)
         {
             try
             {
-                var succesfullresponse = mydatainvoicedto.MyDataCancelationResponses.Where(x => x.statusCode.Equals("Success"))
-                    .OrderByDescending(x => x.Created).FirstOrDefault();
-                var order = "update [PARTICLE] set AADE_MARK='' where PARTL_REC0 = @uid";
-                //order = order.Replace("@aademark", succesfullresponse.cancellationMark.ToString());
-                order = order.Replace("@uid", mydatainvoicedto.Uid.ToString());
-                await ctx.Database.ExecuteSqlRawAsync(order);
+                //var succesfullresponse = mydatainvoicedto.MyDataCancelationResponses.Where(x => x.statusCode.Equals("Success"))
+                //    .OrderByDescending(x => x.Created).FirstOrDefault();
 
-                var order2 = "update [PARTICLE] set SYSX_MARK='' where PARTL_REC0 = @uid";
+                //var order = "update [PARTICLE] set AADE_MARK='' where PARTL_REC0 = @uid";
+                ////order = order.Replace("@aademark", succesfullresponse.cancellationMark.ToString());
+                //order = order.Replace("@uid", mydatainvoicedto.Uid.ToString());
+                //await ctx.Database.ExecuteSqlRawAsync(order);
+
+                var order2 = "update [PARTICLE] set SYSX_MARK='@sysxmark' where PARTL_REC0 = @uid";
+                var uid = mydatainvoicedto.Uid * -1;
                 //order2 = order2.Replace("@aademark", succesfullresponse.cancellationMark.ToString());
-                order2 = order2.Replace("@uid", mydatainvoicedtobecancelled.Uid.ToString());
+                order2 = order2.Replace("@uid", uid.ToString());
+                order2 = order2.Replace("@sysxmark", cancellationInvoiceMark.ToString());
                 await ctx.Database.ExecuteSqlRawAsync(order2);
             }
             catch (Exception ex)

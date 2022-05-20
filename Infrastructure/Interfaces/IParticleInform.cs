@@ -12,6 +12,6 @@ namespace Infrastructure.Interfaces
         Task UpdateCancellationParticle(MyDataInvoiceDTO mydatainvoicedto, MyDataInvoiceDTO mydatainvoicedtobecancelled);
 
         Task UpdateParticle_FixName(MyDataInvoiceDTO mydatainvoicedto);
-        Task UpdateCancellationParticle_FixName(MyDataInvoiceDTO mydatainvoicedto, MyDataInvoiceDTO mydatainvoicedtobecancelled);
+        Task UpdateCancellationParticle_FixName(MyDataInvoiceDTO mydatainvoicedto, MyDataInvoiceDTO mydatainvoicedtobecancelled, long? cancellationInvoiceMark);
     }
 }

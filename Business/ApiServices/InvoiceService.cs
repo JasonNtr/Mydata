@@ -64,6 +64,8 @@ namespace Business.ApiServices
             var aadeUserId = _appSettings.Value.aade_user_id;
             var ocpApimSubscriptionKey = _appSettings.Value.Ocp_Apim_Subscription_Key;
             var client = new HttpClient();
+            
+            var result = 0;
 
             var invoiceXmlFile = "";
             try
@@ -84,7 +86,10 @@ namespace Business.ApiServices
             content.Headers.ContentType = new MediaTypeHeaderValue("text/xml");
             var httpResponseMessage = await client.PostAsync(uri, content);
             if (!httpResponseMessage.IsSuccessStatusCode)
-                return 0;
+            {
+                result = -1;
+                return result;
+            }
             var httpresponsecontext = await httpResponseMessage.Content.ReadAsStringAsync();
             var mydataresponse = ParseInvoicePostResult(httpresponsecontext);
             if (myDataInvoiceDTO != null && mydataresponse != null)
@@ -95,10 +100,23 @@ namespace Business.ApiServices
                 //await _invoiceRepo.AddResponses(myDataInvoiceDTO);//, mydataresponse);
 
                 if (mydataresponse.statusCode.Equals("Success"))
+                {
                     await _particleInform.UpdateParticle(myDataInvoiceDTO);
+                }
+                else
+                {
+                    result = -1;
+                    return result;
+                }
+            }
+            else if (mydataresponse == null)
+            {
+                result = -1;
+                return result;
             }
             Debug.WriteLine("Post Invoice Completed");
-            return 0;
+            result = 1;
+            return result;
         }
 
         public async Task<int> CancelInvoice(MyDataInvoiceDTO myDataInvoiceDTO)
@@ -121,12 +139,18 @@ namespace Business.ApiServices
 
             var httpResponse = await client.PostAsync(uri, content);
             if (!httpResponse.IsSuccessStatusCode)
+            {
+                result = -1;
                 return result;
+            }
             var httpResponseContext = await httpResponse.Content.ReadAsStringAsync();
 
             var myDataCancellationResponse = ParseCancellationResponseResult(httpResponseContext);
             if (myDataCancellationResponse == null)
+            {
+                result = -1;
                 return result;
+            }
             myDataCancellationResponse.MyDataInvoiceId = myDataInvoiceDTO.Id;
             await _myDataCancellationResponseRepo.Insert(myDataCancellationResponse);
             myDataInvoiceDTO.MyDataCancelationResponses.Add(myDataCancellationResponse);
@@ -139,6 +163,11 @@ namespace Business.ApiServices
                     await _invoiceRepo.GetByMark(myDataInvoiceDTO.CancellationMark.Value);
                 await _particleInform.UpdateCancellationParticle(myDataInvoiceDTO,
                     myDataInvoiceDTOThatCancelled);
+            }
+            else
+            {
+                result = -1;
+                return result;
             }
 
             result = 1;
@@ -863,7 +892,7 @@ namespace Business.ApiServices
                 _invoicesCancelledBatchCounter++;
                 var myDataInvoiceDTOThatCancelled =
                     await _invoiceRepo.GetByMark(myDataCancelInvoice.CancellationMark.Value);
-                await _particleInform.UpdateCancellationParticle_FixName(myDataCancelInvoice, myDataInvoiceDTOThatCancelled);
+                await _particleInform.UpdateCancellationParticle_FixName(myDataCancelInvoice, myDataInvoiceDTOThatCancelled, myDataCancellationResponse.cancellationMark);
             }
             else
             {
@@ -873,7 +902,6 @@ namespace Business.ApiServices
             result = 1;
 
             return result;
-
         }
 
         public async Task<string> CallCancelInvoiceMethod(MyDataInvoiceDTO mydataInvoiceDTO)

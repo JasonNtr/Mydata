@@ -183,8 +183,16 @@ namespace Mydata
         {
             var path = _appSettings.Value.folderPath + @"\\Invoice\\" + filename;
             var destinationPath = _appSettings.Value.folderPath + @"\\Stored\\Invoice\\" + filename;
-            await _invoiceService.PostAction(path);
-            File.Copy(path, destinationPath, true);
+            var result = await _invoiceService.PostAction(path);
+            if (result == -1)
+            {
+                destinationPath = _appSettings.Value.folderPath + @"\\InvoiceFailed\\" + filename;
+                File.Copy(path, destinationPath, true);
+            }
+            else
+            {
+                File.Copy(path, destinationPath, true);
+            }            
             File.Delete(path);
             _invoicesVm?.LoadInvoices();
         }
