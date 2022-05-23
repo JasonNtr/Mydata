@@ -34,6 +34,7 @@ namespace Mydata
         private List<string> _currentFiles;
         private readonly IRequestTransmittedDocsService _requestTransmittedDataService;
         private bool _sendFilesFinished = true;
+        private bool isFirstTimeDelay = true;
 
         public InvoicesUserControl(IInvoiceRepo invoiceRepo, IMapper mapper, IOptions<AppSettings> appSettings, IInvoiceService invoiceService)
         {
@@ -89,7 +90,7 @@ namespace Mydata
         private async void timer_Tick(object sender, EventArgs e)
         {
             if (_isSearchFinish)
-            {
+            {                
                 await LoadFiles();//.ContinueWith(async task => await CancellationFinish());
             }
         }
@@ -118,8 +119,16 @@ namespace Mydata
             _currentFiles = list;
             _invoicesVm.ShowFilesToCheckBoxList(_currentFiles);
 
+
             if (_appSettings.Value.Auto && list.Count > 0)
             {
+
+                if (isFirstTimeDelay)
+                {
+                    isFirstTimeDelay = false;
+                    await Task.Delay(_appSettings.Value.startupDelayMSeconds);
+                }
+
                 var filename = list.FirstOrDefault();
                 await InvoiceChecked(filename);
             }
