@@ -98,12 +98,20 @@ namespace Business.Services
 
         public async Task<bool> ExistedUid(long? Uid)
         {
-            if (Uid == null) return false;
+            try
+            {
+                if (Uid == null) return false;
 
-            var exist =
-                await ctx.MyDataInvoices
-                    .AnyAsync(x => x.Uid == Uid);
-            return exist;
+                var exist =
+                    await ctx.MyDataInvoices
+                        .AnyAsync(x => x.Uid == Uid);
+                return exist;
+            }
+            catch (Exception)
+            {
+
+            }
+            return false;           
         }
 
         public async Task<List<MyDataInvoiceDTO>> GetList(DateTime selectedDate)

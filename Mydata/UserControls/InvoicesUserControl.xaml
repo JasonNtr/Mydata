@@ -102,9 +102,10 @@
                 </Grid>
             </StackPanel>
         </materialDesign:PopupBox>
-        <Button Content="ΜΑΖΙΚΗ ΑΚΥΡΩΣΗ 2021" Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center" Click="ButtonCancel2021_Click" Margin="43,0,0,0"/>
+        <Button Content="ΜΑΖΙΚΗ ΑΚΥΡΩΣΗ 2021" Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center" Click="ButtonCancel2021_Click" Margin="10,0,0,0"/>
         <Button Content="RequestDocs" Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center" Click="Button_Click_RequestDocs" Margin="148,0,0,0" FontSize="13" Visibility="Collapsed"/>
         <Button Content="TransmittedDocs" Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center" Click="Button_Click_RequestTransmittedDocs" Margin="267,0,0,0" FontSize="12" Visibility="Collapsed"/>
+        <Label Name="LabelCancelled" Content="" Grid.Column="1" HorizontalAlignment="Left" Margin="200,0,0,0" VerticalAlignment="Center" Width="335"/>
 
     </Grid>
 </UserControl>

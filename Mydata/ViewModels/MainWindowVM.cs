@@ -92,7 +92,7 @@ namespace Mydata.ViewModels
         public MainWindowVM(IInvoiceRepo invoiceRepo)
         {
             this._invoiceRepo = invoiceRepo;
-            // Submit = new AsyncCommand(ExecuteSubmitAsync, CanExecuteSubmit);
+            //Submit = new AsyncCommand(ExecuteSubmitAsync, CanExecuteSubmit);
             _myDataInvoiceDtos = new ObservableCollection<MyDataInvoiceDTO>();
             _mydataErrorDTOs = new ObservableCollection<MyGenericErrorsDTO>();
             _mydataErrorDTOs.Add(new MyGenericErrorsDTO()

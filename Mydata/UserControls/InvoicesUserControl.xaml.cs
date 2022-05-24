@@ -89,10 +89,17 @@ namespace Mydata
 
         private async void timer_Tick(object sender, EventArgs e)
         {
-            if (_isSearchFinish)
-            {                
-                await LoadFiles();//.ContinueWith(async task => await CancellationFinish());
+            try
+            {
+                if (_isSearchFinish)
+                {
+                    await LoadFiles();//.ContinueWith(async task => await CancellationFinish());
+                }
             }
+            catch (Exception)
+            {
+
+            }           
         }
 
         private async Task LoadFiles()
@@ -190,20 +197,27 @@ namespace Mydata
 
         private async Task InvoiceChecked(string filename)
         {
-            var path = _appSettings.Value.folderPath + @"\\Invoice\\" + filename;
-            var destinationPath = _appSettings.Value.folderPath + @"\\Stored\\Invoice\\" + filename;
-            var result = await _invoiceService.PostAction(path);
-            if (result == -1)
+            try
             {
-                destinationPath = _appSettings.Value.folderPath + @"\\InvoiceFailed\\" + filename;
-                File.Copy(path, destinationPath, true);
+                var path = _appSettings.Value.folderPath + @"\\Invoice\\" + filename;
+                var destinationPath = _appSettings.Value.folderPath + @"\\Stored\\Invoice\\" + filename;
+                var result = await _invoiceService.PostAction(path);
+                if (result == -1)
+                {
+                    destinationPath = _appSettings.Value.folderPath + @"\\InvoiceFailed\\" + filename;
+                    File.Copy(path, destinationPath, true);
+                }
+                else
+                {
+                    File.Copy(path, destinationPath, true);
+                }
+                File.Delete(path);
+                _invoicesVm?.LoadInvoices();
             }
-            else
+            catch (Exception)
             {
-                File.Copy(path, destinationPath, true);
+
             }            
-            File.Delete(path);
-            _invoicesVm?.LoadInvoices();
         }
 
         private void PopupNewClosed(object sender, RoutedEventArgs e)
@@ -239,11 +253,32 @@ namespace Mydata
             }
 
             var successfullInvoices = await _invoiceRepo.GetInvoicesWithSuccessStatusCodeFor2021();
-            foreach (var invoice in successfullInvoices)
-            {           
-                _= await _invoiceService.CancelInvoiceBatchProcess(invoice);      
+            var counter = 0;
+
+            try
+            {
+                foreach (var invoice in successfullInvoices)
+                {
+                    counter++;
+                    LabelCancelled.Content = "(" + counter + ") " + invoice.FileName;
+                    var cancellationResult = await _invoiceService.CancelInvoiceBatchProcess(invoice);
+                    if (cancellationResult == -1)
+                    {
+                        LabelCancelled.Content += " : FAILED";
+                    }
+                    else
+                    {
+                        LabelCancelled.Content += " : OK";
+                    }
+
+                }
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Υπήρξε πρόβλημα κατά την διαδικασία ακύρωσης. Δεν ήταν δυνατή η δημιουργία Log File", "Η Διαδικασία απέτυχε", MessageBoxButton.OK, MessageBoxImage.Error);
             }
 
+            
             var logFileResult = _invoiceService.CreateLogFileForBatchProcess();
 
             if (logFileResult)

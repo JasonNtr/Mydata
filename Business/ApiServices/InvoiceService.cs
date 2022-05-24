@@ -879,6 +879,7 @@ namespace Business.ApiServices
             var myDataCancellationResponse = ParseCancellationResponseResult(httpResponseContext);
             if (myDataCancellationResponse == null)
             {
+                result = -1;
                 return result;
             }
 
@@ -897,6 +898,8 @@ namespace Business.ApiServices
             else
             {
                 _invoicesThatFailedBatch += "\n" + mydataInvoiceDTO.FileName;
+                result = -1;
+                return result;
             }
 
             result = 1;

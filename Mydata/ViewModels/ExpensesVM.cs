@@ -118,7 +118,7 @@ namespace Mydata.ViewModels
             var listOfInvoice = await _expenseRepo.GetList(DateFrom, DateTo);
             foreach (var myDataInvoiceDto in listOfInvoice)
             {
-                mydataInvoiceDTOs.Add(myDataInvoiceDto);
+                //mydataInvoiceDTOs.Add(myDataInvoiceDto);
             }
             finishLoading = true;
         }

@@ -18,6 +18,7 @@ using Mydata.ViewModels;
 using Application = System.Windows.Application;
 using System;
 using Hardcodet.Wpf.TaskbarNotification;
+using System.Diagnostics;
 
 namespace Mydata
 {
@@ -36,8 +37,9 @@ namespace Mydata
             Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense("Mzg1MjUyQDMxMzgyZTM0MmUzMFNHSUlDTlNGMW4vUTRtZ1hGUDVuWGUrSWVzdHBTa2JZcnFEMUhhK2RnQWs9");
 
             // Global exception handling  
-            Application.Current.DispatcherUnhandledException += new DispatcherUnhandledExceptionEventHandler(AppDispatcherUnhandledException);
-
+            Current.DispatcherUnhandledException += new DispatcherUnhandledExceptionEventHandler(Current_DispatcherUnhandledException);
+            DispatcherUnhandledException += new DispatcherUnhandledExceptionEventHandler(App_DispatcherUnhandledException);
+            AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
 
 
             var builder = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
@@ -99,31 +101,37 @@ namespace Mydata
             base.OnExit(e);
         }
 
-         
-         
 
-        private void AppDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
-        {    
-            #if DEBUG   // In debug mode do not custom-handle the exception, let Visual Studio handle it
-                e.Handled = false;
-            #else
-                ShowUnhandledException(e);  
-            #endif     
+
+        private void Current_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e) => e.Handled = false;
+
+        private void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e) => e.Handled = false;
+
+        private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            // we cannot handle this, but not to worry, I have not encountered this exception yet.  
+            // However, you can show/log the exception message and show a message that if the application is terminating or not.  
+            LogUnhandledException(e);
         }
 
-        private void ShowUnhandledException(DispatcherUnhandledExceptionEventArgs e)
+        private void LogUnhandledException(UnhandledExceptionEventArgs e)
         {
-            e.Handled = true;
-
-            string errorMessage = string.Format(
-                "An application error occurred.\nPlease check whether your data is correct and repeat the action. If this error occurs again there seems to be a more serious malfunction in the application, and you better close it.\n\nError: {0}\n\nDo you want to continue?\n(if you click Yes you will continue with your work, if you click No the application will close)",
-                e.Exception.Message + (e.Exception.InnerException != null ? "\n" + e.Exception.InnerException.Message : null));
-
-            if (System.Windows.MessageBox.Show(errorMessage, "Application Error", MessageBoxButton.YesNoCancel, MessageBoxImage.Error) == MessageBoxResult.No)
+            try
             {
-                if (System.Windows.MessageBox.Show("WARNING: The application will close. Any changes will not be saved!\nDo you really want to close it?", "Close the application!", MessageBoxButton.YesNoCancel, MessageBoxImage.Warning) == MessageBoxResult.Yes)
-                    Application.Current.Shutdown();
+                Exception ex = (Exception)e.ExceptionObject;
+                string errorMessage = string.Format(
+               "An application error occurred.\nPlease check whether your data is correct and repeat the action. If this error occurs again there seems to be a more serious malfunction in the application, and you better close it.\n\nError: {0}\n",
+                ex.ToString() + (ex.InnerException != null ? "\n" + ex.InnerException.Message : null));
+                LogProgramError.WriteError(errorMessage);
             }
+            catch
+            {
+                // do nothing to silently swallow error, or try something else...
+            }
+
+
+
+
         }
     }
 }
