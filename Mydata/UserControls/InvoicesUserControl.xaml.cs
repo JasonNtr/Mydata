@@ -16,6 +16,7 @@ using Mydata.ViewModels;
 using Syncfusion.UI.Xaml.Grid;
 using Path = System.IO.Path;
 using SelectionChangedEventArgs = System.Windows.Controls.SelectionChangedEventArgs;
+using System.Windows.Input;
 
 namespace Mydata
 {
@@ -252,6 +253,8 @@ namespace Mydata
                 return;
             }
 
+            Mouse.OverrideCursor = Cursors.Wait;
+
             var successfullInvoices = await _invoiceRepo.GetInvoicesWithSuccessStatusCodeFor2021();
             var counter = 0;
 
@@ -275,10 +278,12 @@ namespace Mydata
             }
             catch (Exception)
             {
+                Mouse.OverrideCursor = null;
                 MessageBox.Show("Υπήρξε πρόβλημα κατά την διαδικασία ακύρωσης. Δεν ήταν δυνατή η δημιουργία Log File", "Η Διαδικασία απέτυχε", MessageBoxButton.OK, MessageBoxImage.Error);
             }
 
-            
+            Mouse.OverrideCursor = null;
+
             var logFileResult = _invoiceService.CreateLogFileForBatchProcess();
 
             if (logFileResult)
@@ -294,14 +299,34 @@ namespace Mydata
 
         private async void Button_Click_RequestDocs(object sender, RoutedEventArgs e)
         {
-            //What others have sent with us as counterpart
-            await _requestTransmittedDataService.RequestDocs("0");
+            try
+            {
+                Mouse.OverrideCursor = Cursors.Wait;
+                //What others have sent with us as counterpart
+                await _requestTransmittedDataService.RequestDocs("0");
+                MessageBox.Show("Η βάση ενημερώθηκε επιτυχώς με τα τελευταία δεδομένα τα οποία αφορούν παραστατικά που έχουν αποστείλει τρίτοι.", "Η Διαδικασία Ολοκληρώθηκε", MessageBoxButton.OK, MessageBoxImage.Information);
+                Mouse.OverrideCursor = null;
+            }
+            catch (Exception ex)
+            {
+                Mouse.OverrideCursor = null;
+            }
         }
 
         private async void Button_Click_RequestTransmittedDocs(object sender, RoutedEventArgs e)
         {
-            //Invoices we have sent as issuer to API and have been successfully marked
-            await _requestTransmittedDataService.RequestTransmittedDocs("0");
+            try
+            {
+                Mouse.OverrideCursor = Cursors.Wait;
+                //Invoices we have sent as issuer to API and have been successfully marked
+                await _requestTransmittedDataService.RequestTransmittedDocs("0");
+                MessageBox.Show("Η βάση ενημερώθηκε επιτυχώς με τα τελευταία δεδομένα τα οποία αφορούν παραστατικά που έχετε αποστείλει.", "Η Διαδικασία Ολοκληρώθηκε", MessageBoxButton.OK, MessageBoxImage.Information);
+                Mouse.OverrideCursor = null;
+            }
+            catch (Exception ex)
+            {
+                Mouse.OverrideCursor = null;
+            }
         }
     }
 }
