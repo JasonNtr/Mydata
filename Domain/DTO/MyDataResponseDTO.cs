@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Xml.Serialization;
 
 namespace Domain.DTO
 {
@@ -11,7 +12,9 @@ namespace Domain.DTO
         public virtual string statusCode { get; set; }
         public virtual string invoiceUid { get; set; }
         public virtual long? invoiceMark { get; set; }
+        public virtual long? cancellationMark { get; set; }
         public virtual string authenticationCode { get; set; }
-        public virtual ICollection<MyDataErrorDTO> Errors { get; set; } = new List<MyDataErrorDTO>();
+        [XmlElement]
+        public virtual List<MyDataErrorDTO> errors { get; set; } = new List<MyDataErrorDTO>();
     }
 }

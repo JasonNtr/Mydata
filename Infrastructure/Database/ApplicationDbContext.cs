@@ -1,55 +1,47 @@
-﻿using Domain.Model;
+﻿using Domain.DTO;
+using Domain.Model;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection.Emit;
 
 namespace Infrastructure.Database
 {
     public sealed class ApplicationDbContext : DbContext
     {
-        public DbSet<MyDataInvoice> MyDataInvoices { get; set; }
-        public DbSet<MyDataResponse> MyDataResponses { get; set; }
-        public DbSet<MyDataError> MyDataErrors { get; set; }
-        public DbSet<MyDataInvoiceType> MyDataInvoiceTypes { get; set; }
-        public DbSet<MyDataCancelationError> MyDataCancellationErrors { get; set; }
-        public DbSet<MyDataCancelationResponse> MyDataCancellationResponses { get; set; }
-        public DbSet<MyDataCancelInvoice> MyDataCancelInvoices { get; set; }
+        private readonly string _connectionString;
 
-        public DbSet<MyDataIncome> MyDataIncomes { get; set; }
-        public DbSet<MyDataIncomeResponse> MyDataIncomeResponses { get; set; }
-        public DbSet<MyDataIncomeError> MyDataIncomeErrors { get; set; }
-
-
-
-        public DbSet<MyDataTransmittedDocInvoice> MyDataTransmittedDocInvoices { get; set; }
-        public DbSet<MyDataInvoiceHeaderType> MyDataInvoiceHeaderTypes { get; set; }
-        public DbSet<MyDataPartyType> MyDataPartyTypes { get; set; }
-        public DbSet<MyDataPaymentMethodDetail> MyDataPaymentMethodDetails { get; set; }
-        public DbSet<MyDataInvoiceDetails> MyDataInvoiceDetails { get; set; }
-        public DbSet<MyDataInvoiceSummary> MyDataInvoiceSummary { get; set; }
-        public DbSet<MyDataAddressType> MyDataAddressType { get; set; }
-        public DbSet<MyDataInvoiceRowType> MyDataInvoiceRowType { get; set; }
-        public DbSet<MyDataTaxes> MyDataTaxes { get; set; }
-        public DbSet<MyDataIncomeClassification> MyDataIncomeClassifications { get; set; }
-        public DbSet<MyDataExpensesClassification> MyDataExpensesClassifications { get; set; }
-        public DbSet<MyDataInvoiceExpensesClassificationType> MyDataInvoiceExpensesClassificationTypes { get; set; }
-        public DbSet<MyDataCancelledInvoicesDoc> MyDataCancelledInvoicesDocs { get; set; }
-        public DbSet<MyDataExpenseType> MyDataExpenseTypes { get; set; }
+       
 
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
             //Database.EnsureCreated();
         }
+        public ApplicationDbContext(string connectionString)
+        {
+            _connectionString = connectionString;
+        }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            base.OnConfiguring(optionsBuilder);
+            optionsBuilder?
+                .UseSqlServer(_connectionString)
+                .EnableSensitiveDataLogging();
+            // options => options.EnableRetryOnFailure());
+            //optionsBuilder?.c
         }
+
+        
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
             SetSystemEntityModels(builder);
+           
             SeedData(builder);
         }
+
+      
+
         private void SetSystemEntityModels(ModelBuilder builder)
         {
             builder.Entity<MyDataInvoice>()
@@ -57,11 +49,7 @@ namespace Infrastructure.Database
                 .WithOne(p => p.MyDataInvoice)
                 .HasForeignKey(p => p.MyDataInvoiceId)
                 .OnDelete(DeleteBehavior.Cascade);
-            builder.Entity<MyDataInvoice>()
-                .HasMany(p => p.MyDataCancelationResponses)
-                .WithOne(p => p.MyDataInvoice)
-                .HasForeignKey(p => p.MyDataInvoiceId)
-                .OnDelete(DeleteBehavior.Cascade);
+            
             builder.Entity<MyDataInvoice>()
                 .HasOne(p => p.InvoiceType)
                 .WithMany()
@@ -159,6 +147,16 @@ namespace Infrastructure.Database
                 .WithOne(p => p.MyDataInvoiceDocRowType)
                 .HasForeignKey<MyDataIncomeClassification>(p => p.MyDataInvoiceDetailsId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<Particle>().HasKey(c => new { c.Company, c.Branch, c.Year, c.CTYPKIN_CODE, c.WTYPKIN_CODE, c.PTYPPAR_CODE, c.Series, c.CUSTPROM_CODE, c.ClientId, c.Number, c.Date });
+            builder.Entity<Pmove>().HasKey(c => new { c.Company, c.Branch, c.Year, c.CTYPKIN_CODE, c.WTYPKIN_CODE, c.PTYPPAR_CODE, c.Series, c.CUSTPROM_CODE, c.ClientId, c.Number, c.Date, c.ConstructionCode, c.PMS_REC0 });
+            builder.Entity<Item>().HasKey(c => new { c.UNITS_CODE, c.WITEMKAT_CODE, c.ITEM_CODE });
+            builder.Entity<Client>().HasKey(c => new { c.CompanyCode, c.BranchCode, c.Year, c.CustomPromCode, c.ClientId });
+            builder.Entity<FPA>().HasKey(c => c.Percentage);
+            builder.Entity<Ptyppar>().HasNoKey();
+            builder.Entity<Branch>().HasNoKey();
+            builder.Entity<TaxInvoice>().HasKey(c => new { c.TaxCode, c.PtyparCode, c.Module });
+            builder.Entity<Psxetika>().HasKey(c => new { c.COMPANY_CODE, c.BRANCH_CODE, c.YEAR_YEAR, c.CTYPKIN_CODE ,c.WTYPKIN_CODE , c.PTYPPAR_CODE , c.PSEIRA_SEIRA ,c.CUSTPROM_CODE ,c.CLIENT_ID, c.PARTL_HMNIA , c.PSX_PARTL_RECR });
         }
 
         private void SeedData(ModelBuilder builder)
@@ -282,5 +280,46 @@ namespace Infrastructure.Database
                 );
             });
         }
+
+
+        #region DbSets
+        public DbSet<MyDataInvoice> MyDataInvoices { get; set; }
+        public DbSet<TaxInvoice> TaxInvoices { get; set; }
+        public DbSet<MyDataResponse> MyDataResponses { get; set; }
+        public DbSet<MyDataTransmittedDocInvoice> MyDataTransmittedDocInvoices { get; set; }
+        public DbSet<MyDataCancelationResponse> MyDataCancellationResponses { get; set; }
+        public DbSet<MyDataCancelInvoice> MyDataCancelInvoices { get; set; }
+        public DbSet<MyDataIncome> MyDataIncomes { get; set; }
+        public DbSet<MyDataIncomeResponse> MyDataIncomeResponses { get; set; }
+
+        public DbSet<Particle> Particles { get; set; }
+        public DbSet<Client> Clients { get; set; }
+        public DbSet<Ptyppar> Ptyppars { get; set; }
+        public DbSet<Psxetika> Psxetika { get; set; }
+        public DbSet<Pmove> Pmoves { get; set; }
+        public DbSet<Item> Item { get; set; }
+        public DbSet<FPA> FPA { get; set; }
+        public DbSet<Branch> Branches { get; set; }
+        public DbSet<City> Cities { get; set; }
+
+
+        public DbSet<MyDataIncomeError> MyDataIncomeErrors { get; set; }
+        public DbSet<MyDataInvoiceHeaderType> MyDataInvoiceHeaderTypes { get; set; }
+        public DbSet<MyDataPartyType> MyDataPartyTypes { get; set; }
+        public DbSet<MyDataPaymentMethodDetail> MyDataPaymentMethodDetails { get; set; }
+        public DbSet<MyDataInvoiceDetails> MyDataInvoiceDetails { get; set; }
+        public DbSet<MyDataInvoiceSummary> MyDataInvoiceSummary { get; set; }
+        public DbSet<MyDataAddressType> MyDataAddressType { get; set; }
+        public DbSet<MyDataInvoiceRowType> MyDataInvoiceRowType { get; set; }
+        public DbSet<MyDataTaxes> MyDataTaxes { get; set; }
+        public DbSet<MyDataIncomeClassification> MyDataIncomeClassifications { get; set; }
+        public DbSet<MyDataExpensesClassification> MyDataExpensesClassifications { get; set; }
+        public DbSet<MyDataInvoiceExpensesClassificationType> MyDataInvoiceExpensesClassificationTypes { get; set; }
+        public DbSet<MyDataCancelledInvoicesDoc> MyDataCancelledInvoicesDocs { get; set; }
+        public DbSet<MyDataExpenseType> MyDataExpenseTypes { get; set; }
+        public DbSet<MyDataError> MyDataErrors { get; set; }
+        public DbSet<MyDataInvoiceType> MyDataInvoiceTypes { get; set; }
+        public DbSet<MyDataCancelationError> MyDataCancellationErrors { get; set; }
+        #endregion
     }
 }

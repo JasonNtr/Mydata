@@ -1,6 +1,7 @@
 ﻿using Domain.DTO;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -17,6 +18,11 @@ using Syncfusion.UI.Xaml.Grid;
 using Path = System.IO.Path;
 using SelectionChangedEventArgs = System.Windows.Controls.SelectionChangedEventArgs;
 using System.Windows.Input;
+using Infrastructure.Database;
+using Syncfusion.Windows.Tools.Controls;
+using Newtonsoft.Json.Linq;
+using Business.Services;
+using Mydata.UiModels;
 
 namespace Mydata
 {
@@ -27,222 +33,72 @@ namespace Mydata
     {
         private readonly IInvoiceRepo _invoiceRepo;
         private readonly IInvoiceService _invoiceService;
-        private readonly IMapper _mapper;
+      
         private double _autoHeight;
-        private readonly InvoicesVM _invoicesVm;
+        private InvoicesViewModel _viewmodel;
+        
         private readonly GridRowSizingOptions _gridRowResizingOptions;
         private readonly IOptions<AppSettings> _appSettings;
-        private List<string> _currentFiles;
+        private readonly string _conenctionString;
+
         private readonly IRequestTransmittedDocsService _requestTransmittedDataService;
-        private bool _sendFilesFinished = true;
-        private bool isFirstTimeDelay = true;
+        private int _rowHeight = 30;
 
-        public InvoicesUserControl(IInvoiceRepo invoiceRepo, IMapper mapper, IOptions<AppSettings> appSettings, IInvoiceService invoiceService)
+        public InvoicesUserControl(IOptions<AppSettings> appSettings, string conenctionString)
         {
             InitializeComponent();
-            _invoicesVm = new InvoicesVM(invoiceRepo);
-            this.DataContext = _invoicesVm;
-            _mapper = mapper;
-            this.errorGrid.QueryRowHeight += dataGrid_QueryRowHeight;
-            _invoiceRepo = invoiceRepo;
-            _appSettings = appSettings;
-            _invoiceService = invoiceService;
-            _gridRowResizingOptions = new GridRowSizingOptions();
-            _currentFiles = new List<string>();
-            SfDatePicker1.ValueChanged += SfDatePicker_OnValueChanged;
-            SfDatePicker2.ValueChanged += SfDatePicker_OnValueChanged;
-
-            var timer = new DispatcherTimer
-            {
-                Interval = TimeSpan.FromMilliseconds(_appSettings.Value.timerSeconds)
-            };
-            timer.Tick += timer_Tick;
-            timer.Start();
-        }
-
-        public InvoicesUserControl(IInvoiceRepo invoiceRepo, IMapper mapper, IOptions<AppSettings> appSettings, IInvoiceService invoiceService, IRequestTransmittedDocsService requestTransmittedDocsService)
-        {
-            InitializeComponent();
-            _invoicesVm = new InvoicesVM(invoiceRepo);
-            this.DataContext = _invoicesVm;
-            _mapper = mapper;
-            this.errorGrid.QueryRowHeight += dataGrid_QueryRowHeight;
-            _invoiceRepo = invoiceRepo;
-            _appSettings = appSettings;
-            _invoiceService = invoiceService;
-            _gridRowResizingOptions = new GridRowSizingOptions();
-            _currentFiles = new List<string>();
-            SfDatePicker1.ValueChanged += SfDatePicker_OnValueChanged;
-            SfDatePicker2.ValueChanged += SfDatePicker_OnValueChanged;
-
-            _requestTransmittedDataService = requestTransmittedDocsService;
-
-            var timer = new DispatcherTimer
-            {
-                Interval = TimeSpan.FromMilliseconds(_appSettings.Value.timerSeconds)
-            };
-            timer.Tick += timer_Tick;
-            timer.Start();
+            _viewmodel = new InvoicesViewModel(appSettings, conenctionString);
+            this.DataContext = _viewmodel;
         }
 
 
-        private bool _isSearchFinish = true;
-
-        private async void timer_Tick(object sender, EventArgs e)
-        {
-            try
-            {
-                if (_isSearchFinish)
-                {
-                    await LoadFiles();//.ContinueWith(async task => await CancellationFinish());
-                }
-            }
-            catch (Exception)
-            {
-
-            }           
-        }
-
-        private async Task LoadFiles()
-        {
-            _isSearchFinish = false;
-            var fileDirectory = _appSettings.Value.folderPath + @"\\Invoice";
-            var files = Directory
-                .GetFiles(fileDirectory, "*", SearchOption.AllDirectories)
-                .Select(Path.GetFileName);
-
-
-            var list = _currentFiles;
-            var listToBeRemove = list.Where(x => !files.Contains(x)).ToList();
-            foreach (var item in listToBeRemove)
-            {
-                list.Remove(item);
-            }
-            var listToBeAdded = files.Where(x => !list.Contains(x)).ToList();
-            foreach (var item in listToBeAdded)
-            {
-                list.Add(item);
-            }
-
-            _currentFiles = list;
-            _invoicesVm.ShowFilesToCheckBoxList(_currentFiles);
-
-
-            if (_appSettings.Value.Auto && list.Count > 0)
-            {
-
-                if (isFirstTimeDelay)
-                {
-                    isFirstTimeDelay = false;
-                    await Task.Delay(_appSettings.Value.startupDelayMSeconds);
-                }
-
-                var filename = list.FirstOrDefault();
-                await InvoiceChecked(filename);
-            }
-            _isSearchFinish = true;
-
-        }
 
         private void ViewClicked(object sender, RoutedEventArgs e)
         {
             var rowDataContent = sfGrid.SelectedItem as MyDataInvoiceDTO;
+
+            if (rowDataContent.invoiceMark != null) return;
+
             List<MyGenericErrorsDTO> errors;
+            var myDataResponseRepo = new MyDataResponseRepo(_conenctionString);
             if (rowDataContent.CancellationMark == null)
             {
-                errors = _mapper.Map<List<MyGenericErrorsDTO>>(rowDataContent.MyDataResponses.Last().Errors);
+                errors = myDataResponseRepo.MapToGenericErrorDTO(rowDataContent.MyDataResponses.OrderBy(x=>x.Created).Last().errors);
             }
             else
             {
-                errors = _mapper.Map<List<MyGenericErrorsDTO>>(rowDataContent.MyDataCancelationResponses.Last().Errors);
+                errors = myDataResponseRepo.MapToGenericErrorDTOCancellation(rowDataContent.MyDataCancelationResponses.OrderBy(x => x.Created).Last().errors);
             }
 
-            if (errorGrid.DataContext is InvoicesVM viewmodel)
+            if (errors.Count > 0)
             {
-                viewmodel.mydataErrorDTOs.Clear();
+
+                _viewmodel.MyDataErrorDTOs.Clear();
                 foreach (var myDataErrorDTO in errors)
                 {
-                    viewmodel.mydataErrorDTOs.Add(myDataErrorDTO);
+                    _viewmodel.MyDataErrorDTOs.Add(myDataErrorDTO);
                 }
+
+                var maxLength = errors.Max(x => x.Message.Length);
+                var lines = maxLength / 10;
+                _rowHeight = 5 * lines;
             }
 
             Popupnew.IsPopupOpen = true;
             MainGrid.Opacity = 0.2;
         }
-        private void CheckBox2_ItemChecked(object sender, SelectionChangedEventArgs e)
-        {
-            var selected = OldFileList.SelectedItem as string;
-            var list = _invoicesVm.oldFiles;
-            list.Remove(selected);
-            OldFileList.SelectedItems.Clear();
-        }
-        private async void CheckBox1_ItemChecked(object sender, SelectionChangedEventArgs e)
-        {
-            if (_appSettings.Value.Auto)
-                NewFileList.SelectedItems.Clear();
-            
-            var files = this.NewFileList.SelectedItems;
-            if (files.Count < 1)
-            {
-                var x = NewFileList.SelectedItems;
-                return;
-            }
-                
 
-            var selectedString = files[0].ToString();
-            var list = _invoicesVm.oldFiles;
-            list.Add(selectedString);
-            NewFileList.SelectedItems.Clear();
-            await InvoiceChecked(selectedString);
-        }
+        
 
-        private async Task InvoiceChecked(string filename)
-        {
-            try
-            {
-                var path = _appSettings.Value.folderPath + @"\\Invoice\\" + filename;
-                var destinationPath = _appSettings.Value.folderPath + @"\\Stored\\Invoice\\" + filename;
-                var result = await _invoiceService.PostAction(path);
-                if (result == -1)
-                {
-                    destinationPath = _appSettings.Value.folderPath + @"\\InvoiceFailed\\" + filename;
-                    File.Copy(path, destinationPath, true);
-                }
-                else
-                {
-                    File.Copy(path, destinationPath, true);
-                }
-                File.Delete(path);
-                _invoicesVm?.LoadInvoices();
-            }
-            catch (Exception)
-            {
-
-            }            
-        }
 
         private void PopupNewClosed(object sender, RoutedEventArgs e)
         {
             this.MainGrid.Opacity = 1;
         }
 
-        private void SfDatePicker_OnValueChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            if (_invoicesVm is {finishLoading: true})
-                _invoicesVm?.LoadInvoices();
-        }
+      
 
-        private void dataGrid_QueryRowHeight(object sender, QueryRowHeightEventArgs e)
-        {
-            if (errorGrid.GridColumnSizer.GetAutoRowHeight(e.RowIndex, _gridRowResizingOptions, out _autoHeight))
-            {
-                if (_autoHeight > 24)
-                {
-                    e.Height = _autoHeight;
-                    e.Handled = true;
-                }
-            }
-        }
+       
 
         private async void ButtonCancel2021_Click(object sender, RoutedEventArgs e)
         {
@@ -297,36 +153,27 @@ namespace Mydata
             }
         }
 
-        private async void Button_Click_RequestDocs(object sender, RoutedEventArgs e)
+        
+ 
+        
+
+        private void ErrorGrid_OnQueryRowHeight(object sender, QueryRowHeightEventArgs e)
         {
-            try
-            {
-                Mouse.OverrideCursor = Cursors.Wait;
-                //What others have sent with us as counterpart
-                await _requestTransmittedDataService.RequestDocs("0");
-                MessageBox.Show("Η βάση ενημερώθηκε επιτυχώς με τα τελευταία δεδομένα τα οποία αφορούν παραστατικά που έχουν αποστείλει τρίτοι.", "Η Διαδικασία Ολοκληρώθηκε", MessageBoxButton.OK, MessageBoxImage.Information);
-                Mouse.OverrideCursor = null;
-            }
-            catch (Exception ex)
-            {
-                Mouse.OverrideCursor = null;
-            }
+            if (e.RowIndex == 0) return;
+            e.Height = _rowHeight;
+            e.Handled = true;
         }
 
-        private async void Button_Click_RequestTransmittedDocs(object sender, RoutedEventArgs e)
+        private void SfGrid2_OnSelectionChanged(object sender, GridSelectionChangedEventArgs e)
         {
-            try
+            var items = sfGrid2.SelectedItems;
+            var list = new ObservableCollection<DataGridParticle>();
+            foreach (var item in items)
             {
-                Mouse.OverrideCursor = Cursors.Wait;
-                //Invoices we have sent as issuer to API and have been successfully marked
-                await _requestTransmittedDataService.RequestTransmittedDocs("0");
-                MessageBox.Show("Η βάση ενημερώθηκε επιτυχώς με τα τελευταία δεδομένα τα οποία αφορούν παραστατικά που έχετε αποστείλει.", "Η Διαδικασία Ολοκληρώθηκε", MessageBoxButton.OK, MessageBoxImage.Information);
-                Mouse.OverrideCursor = null;
+                var myItem = item as DataGridParticle;
+                list.Add(myItem);
             }
-            catch (Exception ex)
-            {
-                Mouse.OverrideCursor = null;
-            }
+            _viewmodel.SelectedParticles = new ObservableCollection<DataGridParticle>(list);
         }
     }
 }

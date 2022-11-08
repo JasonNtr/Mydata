@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using System.Collections.Generic;
+using Newtonsoft.Json;
 using System.IO;
 using System.Text;
 
@@ -13,6 +14,7 @@ namespace Domain.DTO
         public int startupDelayMSeconds { get; set; }
         public string folderPath { get; set; }
         public bool Auto { get; set; }
+        public List<string> ConnectionStrings { get; set; }
 
         public static AppSettings Create(string filePath)
         {

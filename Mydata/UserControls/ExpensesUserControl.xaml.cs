@@ -105,31 +105,31 @@ namespace Mydata
 
         }
 
-        private void ViewClicked(object sender, RoutedEventArgs e)
-        {
-            var rowDataContent = sfGrid.SelectedItem as MyDataInvoiceDTO;
-            List<MyGenericErrorsDTO> errors;
-            if (rowDataContent.CancellationMark == null)
-            {
-                errors = _mapper.Map<List<MyGenericErrorsDTO>>(rowDataContent.MyDataResponses.Last().Errors);
-            }
-            else
-            {
-                errors = _mapper.Map<List<MyGenericErrorsDTO>>(rowDataContent.MyDataCancelationResponses.Last().Errors);
-            }
+        //private void ViewClicked(object sender, RoutedEventArgs e)
+        //{
+        //    var rowDataContent = sfGrid.SelectedItem as MyDataInvoiceDTO;
+        //    List<MyGenericErrorsDTO> errors;
+        //    if (rowDataContent.CancellationMark == null)
+        //    {
+        //        errors = _mapper.Map<List<MyGenericErrorsDTO>>(rowDataContent.MyDataResponses.Last().Errors);
+        //    }
+        //    else
+        //    {
+        //        errors = _mapper.Map<List<MyGenericErrorsDTO>>(rowDataContent.MyDataCancelationResponses.Last().Errors);
+        //    }
 
-            if (errorGrid.DataContext is InvoicesVM viewmodel)
-            {
-                viewmodel.mydataErrorDTOs.Clear();
-                foreach (var myDataErrorDTO in errors)
-                {
-                    viewmodel.mydataErrorDTOs.Add(myDataErrorDTO);
-                }
-            }
+        //    if (errorGrid.DataContext is InvoicesVM viewmodel)
+        //    {
+        //        viewmodel.mydataErrorDTOs.Clear();
+        //        foreach (var myDataErrorDTO in errors)
+        //        {
+        //            viewmodel.mydataErrorDTOs.Add(myDataErrorDTO);
+        //        }
+        //    }
 
-            Popupnew.IsPopupOpen = true;
-            MainGrid.Opacity = 0.2;
-        }
+        //    Popupnew.IsPopupOpen = true;
+        //    MainGrid.Opacity = 0.2;
+        //}
         private void CheckBox2_ItemChecked(object sender, SelectionChangedEventArgs e)
         {
             var selected = OldFileList.SelectedItem as string;

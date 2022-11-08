@@ -60,7 +60,7 @@
                 <Syncfusion:GridTemplateColumn Syncfusion:FocusManagerHelper.WantsKeyInput="True" ColumnMemberType="Button" Width="70"  VerticalAlignment="Stretch">
                     <Syncfusion:GridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <Button  Content="View" Syncfusion:FocusManagerHelper.FocusedElement="True" Height="45" Click="ViewClicked" VerticalAlignment="Stretch" Background="#3366ff" />
+                            <Button  Content="View" Syncfusion:FocusManagerHelper.FocusedElement="True" Height="45"  VerticalAlignment="Stretch" Background="#3366ff" />
                         </DataTemplate>
                     </Syncfusion:GridTemplateColumn.CellTemplate>
                 </Syncfusion:GridTemplateColumn>

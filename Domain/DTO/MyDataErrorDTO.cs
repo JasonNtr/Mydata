@@ -8,7 +8,7 @@ namespace Domain.DTO
     {
         public virtual Guid MyDataResponseId { get; set; }
         public virtual MyDataResponseDTO MyDataResponse { get; set; }
-        public virtual string Message { get; set; }
-        public virtual int Code { get; set; }
+        public virtual string message { get; set; }
+        public virtual int code { get; set; }
     }
 }

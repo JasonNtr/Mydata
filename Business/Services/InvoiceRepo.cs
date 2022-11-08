@@ -1,34 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using AutoMapper;
-using Business.Helpers;
 using Domain.DTO;
 using Domain.Model;
-using Infrastructure.Database;
-using Infrastructure.Interfaces;
 using Infrastructure.Interfaces.Services;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Internal;
 
 namespace Business.Services
 {
-    public class InvoiceRepo : IInvoiceRepo
+    public class InvoiceRepo : Repo, IInvoiceRepo 
     {
-        private readonly ApplicationDbContext ctx;
-        private readonly IMapper mapper;
-        public InvoiceRepo(ApplicationDbContext ctx, IMapper mapper)
+         
+        public InvoiceRepo(string connectionString) : base(connectionString)
         {
-            this.ctx = ctx;
-            this.mapper = mapper;
+
         }
+        
 
         public async Task<int> AddIfNotExist(MyDataInvoiceDTO mydatainvoicedto)
         {
-            var mydatainvoice = await ctx.MyDataInvoices
+            var context = GetContext();
+            var mydatainvoice = await context.MyDataInvoices
                 .Where(x => x.Uid.Equals(mydatainvoicedto.Uid))
                 .Include(p => p.MyDataResponses).ThenInclude(p => p.Errors)
                 .Include(p => p.InvoiceType)
@@ -49,42 +42,43 @@ namespace Business.Services
                     mydataresponsedto.MyDataInvoiceId = mydatainvoice.Id;
 
                     var mydataresponse = new MyDataResponse();
-                    mapper.Map(mydataresponsedto, mydataresponse);
-                    ctx.Attach(mydataresponse);
+                    Mapper.Map(mydataresponsedto, mydataresponse);
+                    context.Attach(mydataresponse);
                     mydatainvoice.MyDataResponses.Add(mydataresponse);
                 }
 
-                ctx.Update(mydatainvoice);
-                result = await ctx.SaveChangesAsync();
+                context.Update(mydatainvoice);
+                result = await context.SaveChangesAsync();
             }
             else
             {
                 var newmydatainvoice = new MyDataInvoice();
-                mapper.Map(mydatainvoicedto, newmydatainvoice);
-                await ctx.MyDataInvoices.AddAsync(newmydatainvoice);
-                result = await ctx.SaveChangesAsync();
+                Mapper.Map(mydatainvoicedto, newmydatainvoice);
+                await context.MyDataInvoices.AddAsync(newmydatainvoice);
+                result = await context.SaveChangesAsync();
             }
             return result;
         }
         
         public async Task<MyDataInvoiceDTO> Get()
         {
+            var context = GetContext();
             var mydatainvoice = 
-                await ctx.MyDataInvoices
+                await context.MyDataInvoices
                     .Where(x => x.MyDataResponses.Any(y => y.statusCode.Equals("Success")))
                     .Include(p => p.MyDataResponses).ThenInclude(p => p.Errors)
                     .Include(p => p.InvoiceType)
                     .FirstOrDefaultAsync();
             
-            var mydatainvoicedto = mapper.Map<MyDataInvoiceDTO>(mydatainvoice);
+            var mydatainvoicedto = Mapper.Map<MyDataInvoiceDTO>(mydatainvoice);
             return mydatainvoicedto;
         }
 
         public async Task<List<MyDataInvoiceDTO>> GetInvoicesWithSuccessStatusCodeFor2021()
         {
-
+            var context = GetContext();
             var mydatainvoice =
-                await ctx.MyDataInvoices
+                await context.MyDataInvoices
                     .Include(p => p.MyDataResponses).ThenInclude(p => p.Errors)
                     .Include(p => p.InvoiceType)
                     .Where(x => x.MyDataResponses.Any(y => y.statusCode.Equals("Success") && x.InvoiceTypeCode != 215
@@ -92,161 +86,202 @@ namespace Business.Services
                     .ToListAsync();
             
 
-            var mydatainvoicedto = mapper.Map<List<MyDataInvoiceDTO>>(mydatainvoice);
+            var mydatainvoicedto = Mapper.Map<List<MyDataInvoiceDTO>>(mydatainvoice);
             return mydatainvoicedto;
         }
 
         public async Task<bool> ExistedUid(long? Uid)
         {
-            try
-            {
-                if (Uid == null) return false;
+            var context = GetContext();
+            if (Uid == null) return false;
 
-                var exist =
-                    await ctx.MyDataInvoices
-                        .AnyAsync(x => x.Uid == Uid);
-                return exist;
-            }
-            catch (Exception)
-            {
-
-            }
-            return false;           
+            var exist =
+                await context.MyDataInvoices
+                    .AnyAsync(x => x.Uid == Uid);
+            return exist;           
         }
 
         public async Task<List<MyDataInvoiceDTO>> GetList(DateTime selectedDate)
         {
-            try
-            {
-                var list =
-                    await ctx.MyDataInvoices
-                        .Where(x => x.Modified.Year == selectedDate.Year && x.Modified.Month == selectedDate.Month && x.Modified.Day == selectedDate.Day)
-                        .Include(p => p.MyDataResponses).ThenInclude(p => p.Errors)
-                        .Include(p => p.InvoiceType)
-                        .ToListAsync();
+            var context = GetContext();
+            var list =
+                await context.MyDataInvoices
+                    .Where(x => x.Modified.Year == selectedDate.Year && x.Modified.Month == selectedDate.Month && x.Modified.Day == selectedDate.Day)
+                    .Include(p => p.MyDataResponses).ThenInclude(p => p.Errors)
+                    .Include(p => p.InvoiceType)
+                    .ToListAsync();
 
-                var mydatainvoicedto = mapper.Map<List<MyDataInvoiceDTO>>(list);
-                return mydatainvoicedto;
-            }
-            catch (Exception ex)
-            {
-
-            }
-            return new List<MyDataInvoiceDTO>();
+            var mydatainvoicedto = Mapper.Map<List<MyDataInvoiceDTO>>(list);
+            return mydatainvoicedto;
         }
 
         public async Task<List<MyDataInvoiceDTO>> GetList()
         {
-            try
-            {
-                var list =
-                    await ctx.MyDataInvoices
-                        .Include(p => p.MyDataResponses).ThenInclude(p => p.Errors)
-                        .Include(p => p.InvoiceType)
-                        .OrderByDescending(x => x.Modified)
-                        .Take(20)
-                        .ToListAsync();
+            var context = GetContext();
+            var list =
+                await context.MyDataInvoices
+                    .Include(p => p.MyDataResponses).ThenInclude(p => p.Errors)
+                    .Include(p => p.InvoiceType)
+                    .OrderByDescending(x => x.Modified)
+                    .Take(20)
+                    .ToListAsync();
 
-                var mydatainvoicedto = mapper.Map<List<MyDataInvoiceDTO>>(list);
-                return mydatainvoicedto;
-            }
-            catch (Exception ex)
-            {
-
-            }
-            return new List<MyDataInvoiceDTO>();
+            var mydatainvoicedto = Mapper.Map<List<MyDataInvoiceDTO>>(list);
+            return mydatainvoicedto;
         }
 
         public async Task<MyDataInvoiceDTO> GetByUid(long? Uid)
         {
+            var context = GetContext();
             var mydatainvoice =
-                await ctx.MyDataInvoices
+                await context.MyDataInvoices
                     .FirstOrDefaultAsync(x => x.Uid == Uid);
-            var mydatainvoicedto = mapper.Map<MyDataInvoiceDTO>(mydatainvoice);
+            var mydatainvoicedto = Mapper.Map<MyDataInvoiceDTO>(mydatainvoice);
             return mydatainvoicedto;
         }
 
         public async Task<int> AddResponses(MyDataInvoiceDTO mydatainvoicedto)
         {
-            var newmydatainvoice = await ctx.MyDataInvoices
+            var context = GetContext();
+            var newmydatainvoice = await context.MyDataInvoices
                 .Include(p => p.MyDataResponses).ThenInclude(p => p.Errors)
                 .Include(p => p.MyDataCancelationResponses).ThenInclude(p => p.Errors)
                 .Include(p => p.InvoiceType)
                 .FirstOrDefaultAsync(x => x.Uid == mydatainvoicedto.Uid);
-            try
-            {
-                mapper.Map(mydatainvoicedto, newmydatainvoice);
-                ctx.Update(newmydatainvoice);
-                var result = await ctx.SaveChangesAsync();
-                return result;
-            }
-            catch (Exception ex)
-            {
-                var error = ex.ToString();
-                Debug.WriteLine(error);
-                return 0;
-            }
+            Mapper.Map(mydatainvoicedto, newmydatainvoice);
+            context.Update(newmydatainvoice);
+            var result = await context.SaveChangesAsync();
+            return result;
         }
 
         public async Task<MyDataInvoiceDTO> Insert(MyDataInvoiceDTO myDataInvoiceDTO)
         {
+            var context = GetContext();
             var newMyDataInvoice = new MyDataInvoice();
-            mapper.Map(myDataInvoiceDTO, newMyDataInvoice);
-            await ctx.MyDataInvoices.AddAsync(newMyDataInvoice);
-            var result = await ctx.SaveChangesAsync();
+            Mapper.Map(myDataInvoiceDTO, newMyDataInvoice);
+            await context.MyDataInvoices.AddAsync(newMyDataInvoice);
+            var result = await context.SaveChangesAsync();
             var myDataInvoiceDTORefreshed = await GetByUid(newMyDataInvoice.Uid);
             return myDataInvoiceDTORefreshed;
         }
 
         public async Task<MyDataInvoiceDTO> Update(MyDataInvoiceDTO myDataInvoiceDTO)
         {
-            var newMyDataInvoice = await ctx.MyDataInvoices
+            var context = GetContext();
+            var newMyDataInvoice = await context.MyDataInvoices
                 .FirstOrDefaultAsync(x => x.Uid == myDataInvoiceDTO.Uid);
-            mapper.Map(myDataInvoiceDTO, newMyDataInvoice);
-            ctx.Update(newMyDataInvoice);
-            var result = await ctx.SaveChangesAsync();
+
+            if (newMyDataInvoice == null) return null;
+            Mapper.Map(myDataInvoiceDTO, newMyDataInvoice);
+            context.Update(newMyDataInvoice);
+            var result = await context.SaveChangesAsync();
             var myDataInvoiceDTORefreshed = await GetByUid(newMyDataInvoice.Uid);
             return myDataInvoiceDTORefreshed;
         }
 
         public async Task<List<MyDataInvoiceDTO>> GetList(DateTime fromDate, DateTime toDate)
         {
+            var context = GetContext();
+            var newFromDate = fromDate.Date;
+            var newToDate = toDate.AddDays(1).Date;
+            var list =
+                await context.MyDataInvoices
+                    .Where(x => x.Modified.Date >= newFromDate && x.Modified.Date <= newToDate)
+                    .Include(p => p.MyDataResponses).ThenInclude(p => p.Errors)
+                    .Include(p => p.MyDataCancelationResponses).ThenInclude(p => p.Errors)
+                    .Include(p => p.InvoiceType)
+                    .OrderByDescending(x => x.Modified)
+                    .ToListAsync();
+
+            var mydatainvoicedto = Mapper.Map<List<MyDataInvoiceDTO>>(list);
+            return mydatainvoicedto;
            
-            try
-            {
-                var list =
-                    await ctx.MyDataInvoices
-                        .Where(x => x.Modified.Date >= fromDate.Date && x.Modified.Date <= toDate.Date)
-                        .Include(p => p.MyDataResponses).ThenInclude(p => p.Errors)
-                        .Include(p => p.MyDataCancelationResponses).ThenInclude(p => p.Errors)
-                        .Include(p => p.InvoiceType)
-                        .OrderByDescending(x => x.Modified)
-                        .ToListAsync();
-
-                var mydatainvoicedto = mapper.Map<List<MyDataInvoiceDTO>>(list);
-                return mydatainvoicedto;
-            }
-            catch (Exception ex)
-            {
-
-            }
-            return new List<MyDataInvoiceDTO>();
         }
 
         public async Task<MyDataInvoiceDTO> GetByMark(long invoiceMark)
         {
+            var context = GetContext();
             var mydatainvoice =
-                await ctx.MyDataInvoices
+                await context.MyDataInvoices
                     .Include(p => p.MyDataResponses).ThenInclude(p => p.Errors)
                     .Include(p => p.MyDataCancelationResponses).ThenInclude(p => p.Errors)
                     .FirstOrDefaultAsync(x => x.MyDataResponses.Any(x => x.invoiceMark == invoiceMark));
-            var mydatainvoicedto = mapper.Map<MyDataInvoiceDTO>(mydatainvoice);
+            var mydatainvoicedto = Mapper.Map<MyDataInvoiceDTO>(mydatainvoice);
             return mydatainvoicedto;
         }
         public long GetMaxUid()
         {
-            var invoiceMaxUid = (long)ctx.MyDataInvoices.Max(x => x.Uid);
+            var context = GetContext();
+            var invoiceMaxUid = (long)context.MyDataInvoices.Max(x => x.Uid);
             return invoiceMaxUid;
+        }
+
+        public async Task<bool> InsertOrUpdateRangeForPost(List<MyDataInvoiceDTO> transferModelMyDataInvoices)
+        {
+            var context = GetContext();
+
+            var invoices = new List<MyDataInvoice>();
+            Mapper.Map(transferModelMyDataInvoices, invoices);
+
+            foreach (var invoice in invoices)
+            {
+                var exists = await context.MyDataInvoices.AnyAsync(x =>
+                    x.InvoiceDate == invoice.InvoiceDate && x.Uid == invoice.Uid &&
+                    x.InvoiceNumber == invoice.InvoiceNumber && x.VAT.Equals(invoice.VAT));
+
+                if (exists)
+                {
+                    var myInvoice = await context.MyDataInvoices.FirstOrDefaultAsync(x =>
+                        x.InvoiceDate == invoice.InvoiceDate && x.Uid == invoice.Uid &&
+                        x.InvoiceNumber == invoice.InvoiceNumber && x.VAT.Equals(invoice.VAT));
+                    foreach (var response in invoice.MyDataResponses)
+                    {
+                        response.MyDataInvoiceId = myInvoice.Id;
+                    }
+
+                    await context.AddRangeAsync(invoice.MyDataResponses);
+                }
+                else
+                {
+                    await context.AddAsync(invoice);
+                }
+            }
+            
+            
+            var result = await context.SaveChangesAsync();
+            return result > 0;
+        }
+
+        public async Task<bool> InsertOrUpdateRangeForCancel(List<MyDataInvoiceDTO> transferModelMyDataInvoices)
+        {
+            var context = GetContext();
+
+            var invoices = new List<MyDataCancelInvoice>();
+            Mapper.Map(transferModelMyDataInvoices, invoices);
+
+            foreach (var invoice in invoices)
+            {
+                var exists = await context.MyDataCancelInvoices.AnyAsync(x => x.Uid == invoice.Uid);
+
+                if (exists)
+                {
+                    var myInvoice = await context.MyDataInvoices.FirstOrDefaultAsync(x => x.Uid == invoice.Uid);
+                    foreach (var response in invoice.MyDataCancelationResponses)
+                    {
+                        response.MyDataInvoiceId = myInvoice.Id;
+                    }
+
+                    await context.AddRangeAsync(invoice.MyDataCancelationResponses);
+                }
+                else
+                {
+                    await context.AddAsync(invoice);
+                }
+            }
+
+
+            var result = await context.SaveChangesAsync();
+            return result > 0;
         }
     }
 }

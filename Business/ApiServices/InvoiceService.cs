@@ -1,994 +1,208 @@
-﻿using System;
+﻿using AutoMapper;
+using Business.Mappings;
+using Business.Services;
+using Domain.AADE;
+using Domain.DTO;
+using Microsoft.Extensions.Options;
+using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
-using Domain.DTO;
-using Infrastructure.Database.RequestDocModels;
-using Infrastructure.Interfaces;
-using Infrastructure.Interfaces.ApiServices;
-using Infrastructure.Interfaces.Services;
-using Microsoft.Extensions.Options;
 
 namespace Business.ApiServices
 {
-    public class InvoiceService : IInvoiceService
+    public class InvoiceService
     {
         private readonly IOptions<AppSettings> _appSettings;
-        private readonly IInvoiceRepo _invoiceRepo;
-        private readonly IMyDataResponseRepo _myDataResponseRepo;
-        private readonly IMyDataCancellationResponseRepo _myDataCancellationResponseRepo;
-        private readonly IParticleInform _particleInform;
-        private readonly IMyDataTransmittedDocInvoicesRepo _transmittedDocRepo;
-        private int _invoicesToCancelBatchCounter = 0;
-        private int _invoicesCancelledBatchCounter = 0;
-        private string _invoicesThatFailedBatch = "";
+        private readonly string _connectionString;
 
-        public InvoiceService(IOptions<AppSettings> appSettings, IInvoiceRepo invoiceRepo, IMyDataResponseRepo myDataResponseRepo, IMyDataCancellationResponseRepo myDataCancellationResponseRepo, IParticleInform particleInform, IMyDataTransmittedDocInvoicesRepo myDataTransmittedDocInvoicesRepo)
+        public InvoiceService(IOptions<AppSettings> appSettings, string connectionString)
         {
             _appSettings = appSettings;
-            _invoiceRepo = invoiceRepo;
-            _myDataResponseRepo = myDataResponseRepo;
-            _myDataCancellationResponseRepo = myDataCancellationResponseRepo;
-            _particleInform = particleInform;
-            _transmittedDocRepo = myDataTransmittedDocInvoicesRepo;
-        }
-        public async Task<int> PostAction(string filePath)
-        {
-            var myDataInvoiceDTO = await BuildInvoice(filePath);
-
-            int result;
-            if (myDataInvoiceDTO.InvoiceTypeCode == 215)
-            {
-                result = await CancelInvoice(myDataInvoiceDTO);
-            }
-            else
-            {
-                result = await PostInvoice(myDataInvoiceDTO, filePath);
-            }
-
-            return result;
+            _connectionString = connectionString;
         }
 
-        public async Task<int> PostInvoice(MyDataInvoiceDTO myDataInvoiceDTO, string invoiceFilePath)
+        public async Task<bool> PostActionNew(MyDataInvoiceTransferModel transferModel)
         {
             var url = _appSettings.Value.url;
             var aadeUserId = _appSettings.Value.aade_user_id;
             var ocpApimSubscriptionKey = _appSettings.Value.Ocp_Apim_Subscription_Key;
+
+            var uri = url + "/SendInvoices"; // + queryString;
+
             var client = new HttpClient();
-            
-            var result = 0;
-
-            var invoiceXmlFile = "";
-            try
-            {
-                invoiceXmlFile = await File.ReadAllTextAsync(invoiceFilePath);
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine("PostInvoice " + ex);
-            }
-
-            // Request headers
             client.DefaultRequestHeaders.Add("aade-user-id", aadeUserId);
             client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", ocpApimSubscriptionKey);
-            var uri = url + "/SendInvoices"; // + queryString;
-            var byteData = Encoding.UTF8.GetBytes(invoiceXmlFile);
-            using var content = new ByteArrayContent(byteData);
-            content.Headers.ContentType = new MediaTypeHeaderValue("text/xml");
-            var httpResponseMessage = await client.PostAsync(uri, content);
-            if (!httpResponseMessage.IsSuccessStatusCode)
+            HttpResponseMessage httpResponseMessage;
+
+            // Request body
+            byte[] byteData = Encoding.UTF8.GetBytes(transferModel.Xml);
+            using (var content = new ByteArrayContent(byteData))
             {
-                result = -1;
-                return result;
+                content.Headers.ContentType = new MediaTypeHeaderValue("text/xml");
+                httpResponseMessage = await client.PostAsync(uri, content);
             }
             var httpresponsecontext = await httpResponseMessage.Content.ReadAsStringAsync();
-            var mydataresponse = ParseInvoicePostResult(httpresponsecontext);
-            if (myDataInvoiceDTO != null && mydataresponse != null)
-            {
-                mydataresponse.MyDataInvoiceId = myDataInvoiceDTO.Id;
-                await _myDataResponseRepo.Insert(mydataresponse);
-                myDataInvoiceDTO.MyDataResponses.Add(mydataresponse);
-                //await _invoiceRepo.AddResponses(myDataInvoiceDTO);//, mydataresponse);
+            var mydataresponse = ParseInvoiceResponseResult(httpresponsecontext);
 
-                if (mydataresponse.statusCode.Equals("Success"))
-                {
-                    await _particleInform.UpdateParticle(myDataInvoiceDTO);
-                }
-                else
-                {
-                    result = -1;
-                    return result;
-                }
-            }
-            else if (mydataresponse == null)
+            var i = 0;
+            var particleRepo = new ParticleRepo(_connectionString);
+            var result = false;
+            foreach (var invoice in transferModel.MyDataInvoices)
             {
-                result = -1;
-                return result;
+                mydataresponse[i].MyDataInvoiceId = invoice.Id;
+                invoice.MyDataResponses.Add(mydataresponse[i]);
+                if (mydataresponse[i].statusCode.Equals("Success"))
+                {
+                    invoice.Particle.Mark = mydataresponse[i].invoiceMark.ToString();
+                    result = await particleRepo.Update(invoice.Particle);
+                }
+                i++;
             }
-            Debug.WriteLine("Post Invoice Completed");
-            result = 1;
+
+            var invoiceRepo = new InvoiceRepo(_connectionString);
+
+            result = await invoiceRepo.InsertOrUpdateRangeForPost(transferModel.MyDataInvoices);
+
             return result;
         }
 
-        public async Task<int> CancelInvoice(MyDataInvoiceDTO myDataInvoiceDTO)
+        public async Task<bool> CancelActionNew(MyDataInvoiceTransferModel transferModel)
         {
-
             var url = _appSettings.Value.url;
             var aadeUserId = _appSettings.Value.aade_user_id;
             var ocpApimSubscriptionKey = _appSettings.Value.Ocp_Apim_Subscription_Key;
-            var client = new HttpClient();
 
-            var result = 0;
-            // Request headers
+            var client = new HttpClient();
             client.DefaultRequestHeaders.Add("aade-user-id", aadeUserId);
             client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", ocpApimSubscriptionKey);
+            var result = false;
 
-            var uri = url + "/CancelInvoice?mark=" + myDataInvoiceDTO.CancellationMark.ToString(); // + queryString;
             var byteData = new byte[0];
             using var content = new ByteArrayContent(byteData);
-            //content.Headers.Add("mark", myDataInvoiceDTO.CancellationMark.ToString());
 
-            var httpResponse = await client.PostAsync(uri, content);
-            if (!httpResponse.IsSuccessStatusCode)
+            var httpResponseMessage = string.Empty;
+            foreach (var invoice in transferModel.MyDataInvoices)
             {
-                result = -1;
-                return result;
-            }
-            var httpResponseContext = await httpResponse.Content.ReadAsStringAsync();
+                var uri = url + "/CancelInvoice?mark=" + invoice.CancellationMark.ToString();
+                var httpResponse = await client.PostAsync(uri, content);
+                httpResponseMessage = await httpResponse.Content.ReadAsStringAsync();
 
-            var myDataCancellationResponse = ParseCancellationResponseResult(httpResponseContext);
-            if (myDataCancellationResponse == null)
-            {
-                result = -1;
-                return result;
-            }
-            myDataCancellationResponse.MyDataInvoiceId = myDataInvoiceDTO.Id;
-            await _myDataCancellationResponseRepo.Insert(myDataCancellationResponse);
-            myDataInvoiceDTO.MyDataCancelationResponses.Add(myDataCancellationResponse);
-            //await _invoiceRepo.AddResponses(myDataInvoiceDTO);//, mydataresponse);
+                var mydataresponse = ParseInvoiceCancelResponseResult(httpResponseMessage);
 
-            if (myDataCancellationResponse.statusCode.Equals("Success") &&
-                myDataInvoiceDTO.CancellationMark != null)
-            {
-                var myDataInvoiceDTOThatCancelled =
-                    await _invoiceRepo.GetByMark(myDataInvoiceDTO.CancellationMark.Value);
-                await _particleInform.UpdateCancellationParticle(myDataInvoiceDTO,
-                    myDataInvoiceDTOThatCancelled);
-            }
-            else
-            {
-                result = -1;
-                return result;
+                var particleRepo = new ParticleRepo(_connectionString);
+
+                mydataresponse.MyDataInvoiceId = invoice.Id;
+                invoice.MyDataCancelationResponses.Add(mydataresponse);
+                if (mydataresponse.statusCode.Equals("Success"))
+                {
+                    invoice.Particle.Mark = mydataresponse.cancellationMark.ToString();
+                    result = await particleRepo.Update(invoice.Particle);
+
+                    var particleToBeCancelled = await particleRepo.GetByMark(invoice.CancellationMark);
+                    particleToBeCancelled.CancelMark = invoice.Particle.Mark;
+                    result = await particleRepo.Update(particleToBeCancelled);
+                }
             }
 
-            result = 1;
+            var invoiceRepo = new InvoiceRepo(_connectionString);
 
-            return result;
+            result = await invoiceRepo.InsertOrUpdateRangeForCancel(transferModel.MyDataInvoices);
+
+            return false;
         }
 
-        public MyDataResponseDTO ParseInvoicePostResult(string httpresponsecontext)
+        private MyDataCancelationResponseDTO ParseInvoiceCancelResponseResult(string httpresponsecontext)
         {
-            var mydataresponse = new MyDataResponseDTO();
             try
             {
                 var xmlDoc = new XmlDocument();
                 xmlDoc.LoadXml(httpresponsecontext);
-                var responseDoc = xmlDoc.SelectSingleNode("ResponseDoc");
-                var response = responseDoc?.SelectSingleNode("response");
-                var indexNode = response?.SelectSingleNode("index");
-                var invoiceUidnode = response?.SelectSingleNode("invoiceUid");
-                var invoiceMarknode = response?.SelectSingleNode("invoiceMark");
-                var authenticationCodenode = response?.SelectSingleNode("authenticationCode");
-                var statusCodenode = response?.SelectSingleNode("statusCode");
-                var errorsnodelist = response?.SelectSingleNode("errors");
-                XmlNodeList errorsnode = null;
-                if (errorsnodelist != null)
-                    errorsnode = errorsnodelist.SelectNodes("error");
 
-                int? index = null;
-                if (indexNode != null)
+                XmlSerializer mySerializer = new XmlSerializer(typeof(ResponseDoc));
+
+                var myResponseData = new ResponseDoc();
+                using (TextReader reader = new StringReader(xmlDoc.InnerXml))
                 {
-                    index = Convert.ToInt32(indexNode.InnerText);
+                    myResponseData = (ResponseDoc)mySerializer.Deserialize(reader);
                 }
 
-                string invoiceUid = null;
-                if (invoiceUidnode != null)
-                {
-                    invoiceUid = invoiceUidnode.InnerText;
-                }
+                var mapperConfig = new MapperConfiguration(mc => { mc.AddProfile(new MappingProfiles()); });
+                var mapper = new AutoMapper.Mapper(mapperConfig);
+                var mydataresponse = mapper.Map<List<MyDataCancelationResponseDTO>>(myResponseData.response);
 
-                long? invoiceMark = null;
-                if (invoiceMarknode != null)
-                {
-                    invoiceMark = Convert.ToInt64(invoiceMarknode.InnerText);
-                }
-
-                string authenticationCode = null;
-                if (authenticationCodenode != null)
-                {
-                    authenticationCode = authenticationCodenode.InnerText;
-                }
-
-                string statusCode = null;
-                if (statusCodenode != null)
-                {
-                    statusCode = statusCodenode.InnerText;
-                }
-
-
-                mydataresponse.Id = Guid.NewGuid();
-                mydataresponse.Created = DateTime.UtcNow;
-                mydataresponse.Modified = DateTime.UtcNow;
-                mydataresponse.index = index;
-                mydataresponse.invoiceUid = invoiceUid;
-                mydataresponse.invoiceMark = invoiceMark;
-                mydataresponse.authenticationCode = authenticationCode;
-                mydataresponse.statusCode = statusCode;
-
-                if (errorsnode != null)
-                {
-                    foreach (XmlNode node in errorsnode)
-                    {
-                        var message = node.SelectSingleNode("message")?.InnerText;
-                        var code = Convert.ToInt32(node.SelectSingleNode("code")?.InnerText);
-                        var myDataError = new MyDataErrorDTO()
-                        {
-                            Id = Guid.NewGuid(),
-                            Created = DateTime.UtcNow,
-                            Modified = DateTime.UtcNow,
-                            Message = message,
-                            Code = code,
-                            MyDataResponseId = mydataresponse.Id
-                        };
-                        mydataresponse.Errors.Add(myDataError);
-                    }
-                }
-
-                return mydataresponse;
+                return mydataresponse.FirstOrDefault();
             }
             catch (Exception ex)
             {
+                var mydataresponse = new MyDataCancelationResponseDTO();
                 mydataresponse.statusCode = "Program Error";
-                mydataresponse.Errors.Add(
-                    new MyDataErrorDTO()
-                    {
-                        Id = Guid.NewGuid(),
-                        Created = DateTime.UtcNow,
-                        Modified = DateTime.UtcNow,
-                        Message = ex.ToString(),
-                        Code = 0
-                    });
-                return mydataresponse;
-            }
-        }
-
-        public MyDataCancelationResponseDTO ParseCancellationResponseResult(string httpResponseContext)
-        {
-            var myDataErrorResponse = new MyDataCancelationResponseDTO();
-            try
-            {
-                var xmlDoc = new XmlDocument();
-                xmlDoc.LoadXml(httpResponseContext);
-                var responseDoc = xmlDoc.SelectSingleNode("ResponseDoc");
-                var response = responseDoc?.SelectSingleNode("response");
-                var cancellationMarkNode = response?.SelectSingleNode("cancellationMark");
-                var statusCodeNode = response?.SelectSingleNode("statusCode");
-                var errorsNodeList = response?.SelectSingleNode("errors");
-                XmlNodeList errorsNode = null;
-                if (errorsNodeList != null)
-                    errorsNode = errorsNodeList.SelectNodes("error");
-
-
-                long? cancellationMark = null;
-                if (cancellationMarkNode != null)
-                {
-                    cancellationMark = Convert.ToInt64(cancellationMarkNode.InnerText);
-                }
-
-                string statusCode = null;
-                if (statusCodeNode != null)
-                {
-                    statusCode = statusCodeNode.InnerText;
-                }
-
-                myDataErrorResponse.Id = Guid.NewGuid();
-                myDataErrorResponse.Created = DateTime.UtcNow;
-                myDataErrorResponse.Modified = DateTime.UtcNow;
-                myDataErrorResponse.cancellationMark = cancellationMark;
-                myDataErrorResponse.statusCode = statusCode;
-
-                if (errorsNode != null)
-                {
-                    foreach (XmlNode node in errorsNode)
-                    {
-                        var message = node.SelectSingleNode("message")?.InnerText;
-                        var code = Convert.ToInt32(node.SelectSingleNode("code")?.InnerText);
-                        var myDataError = new MyDataCancelationErrorDTO()
-                        {
-                            Id = Guid.NewGuid(),
-                            Created = DateTime.UtcNow,
-                            Modified = DateTime.UtcNow,
-                            Message = message,
-                            Code = code,
-                            MyDataCancelationResponseId = myDataErrorResponse.Id
-                        };
-                        myDataErrorResponse.Errors.Add(myDataError);
-                    }
-                }
-
-                return myDataErrorResponse;
-            }
-            catch (Exception ex)
-            {
-                myDataErrorResponse.statusCode = "Program Error";
-                myDataErrorResponse.Errors.Add(
+                mydataresponse.errors.Add(
                     new MyDataCancelationErrorDTO()
                     {
                         Id = Guid.NewGuid(),
                         Created = DateTime.UtcNow,
                         Modified = DateTime.UtcNow,
-                        Message = ex.ToString(),
-                        Code = 0
+                        message = ex.ToString(),
+                        code = 0
                     });
-                return myDataErrorResponse;
+
+                return mydataresponse;
             }
+
+            return null;
         }
 
-        public async Task<MyDataInvoiceDTO> BuildInvoice(string filenamePath)
+        private List<MyDataResponseDTO> ParseInvoiceResponseResult(string httpresponsecontext)
         {
-
-            var filename = Path.GetFileName(filenamePath);
-            //format 20210204-0000124-INV0001-038644960-00000000001.xml
-            var provider = new CultureInfo("en-US");
-            var fileNameParts = filename.Split('-');
-            if (fileNameParts.Length < 5)
-                return null;
-            DateTime? datetime = null;
-            const string format = "yyyyMMdd";
-
+            var mydataresponses = new List<MyDataResponseDTO>();
             try
             {
-                datetime = DateTime.ParseExact(fileNameParts[0], format, provider);
-                Console.WriteLine("{0} converts to {1}.", fileNameParts[0], datetime.ToString());
-            }
-            catch (FormatException)
-            {
-                Console.WriteLine("{0} is not in the correct format.", fileNameParts[0]);
-            }
+                var xmlDoc = new XmlDocument();
+                xmlDoc.LoadXml(httpresponsecontext);
 
-            long? invoiceNumber = null;
-            try
-            {
-                invoiceNumber = long.Parse(fileNameParts[1]);
-                Console.WriteLine("{0} converts to {1}.", fileNameParts[1], invoiceNumber);
-            }
-            catch (FormatException)
-            {
-                Console.WriteLine("{0} is not in the correct format.", fileNameParts[1]);
-            }
+                XmlSerializer mySerializer = new XmlSerializer(typeof(ResponseDoc));
 
-            long? uid = null;
-            try
-            {
-                uid = Int64.Parse(fileNameParts[4].Replace(".xml", ""));
-                Console.WriteLine("{0} converts to {1}.", fileNameParts[4], uid);
-            }
-            catch (FormatException)
-            {
-                Console.WriteLine("{0} is not in the correct format.", fileNameParts[4]);
-            }
-
-            int type = 0;
-            var parseType = fileNameParts[2].Replace("INV", "");
-            try
-            {
-                type = Int32.Parse(parseType);
-                Console.WriteLine("{0} converts to {1}.", parseType, type);
-            }
-            catch (FormatException)
-            {
-                Console.WriteLine("{0} is not in the correct format.", parseType);
-            }
-
-            long? cancellationMark = null;
-            if (fileNameParts.Length == 6)
-            {
-                var parseCancellationMark = fileNameParts[5].Replace(".xml", "");
-                try
+                var myResponseData = new ResponseDoc();
+                using (TextReader reader = new StringReader(xmlDoc.InnerXml))
                 {
-                    cancellationMark = long.Parse(parseCancellationMark);
-                    Console.WriteLine("{0} converts to {1}.", parseCancellationMark, cancellationMark);
-                }
-                catch (FormatException)
-                {
-                    Console.WriteLine("{0} is not in the correct format.", parseCancellationMark);
-                }
-            }
-
-            MyDataInvoiceDTO myDataInvoiceDTO;
-            var exist = await _invoiceRepo.ExistedUid(uid);
-            if (exist)
-            {
-                myDataInvoiceDTO = await _invoiceRepo.GetByUid(uid);
-                myDataInvoiceDTO.InvoiceDate = datetime;
-                //MyDataInvoiceDTO.InvoiceType = null;
-                myDataInvoiceDTO.InvoiceTypeCode = type;
-                myDataInvoiceDTO.FileName = filename;
-                myDataInvoiceDTO.StoredXml = ""; //myDataInvoiceDTO.StoredXml;
-                myDataInvoiceDTO.InvoiceNumber = invoiceNumber;
-                myDataInvoiceDTO.Modified = DateTime.Now;
-                myDataInvoiceDTO.VAT = fileNameParts[3];
-                myDataInvoiceDTO.CancellationMark = cancellationMark;
-                myDataInvoiceDTO = await _invoiceRepo.Update(myDataInvoiceDTO);
-            }
-            else
-            {
-                myDataInvoiceDTO = new MyDataInvoiceDTO()
-                {
-                    Id = Guid.NewGuid(),
-                    Created = DateTime.UtcNow,
-                    Modified = DateTime.UtcNow,
-                    Uid = uid,
-                    FileName = filename,
-                    StoredXml = "",//AppSettings.Value.folderPath + "/Invoice/Stored/" + filename,
-                    InvoiceDate = datetime,
-                    InvoiceTypeCode = type,
-                    InvoiceNumber = invoiceNumber,
-                    VAT = fileNameParts[3],
-                    CancellationMark = cancellationMark
-                };
-                myDataInvoiceDTO = await _invoiceRepo.Insert(myDataInvoiceDTO);
-            }
-
-            return myDataInvoiceDTO;
-        }
-
-        public async Task<MyDataInvoiceDTO> BuildInvoiceBatchProcess(MyDataInvoiceDTO mydataInvoiceToCancelDTO)
-        {
-            var markToCancel = mydataInvoiceToCancelDTO.MyDataResponses
-                .Where(x => x.MyDataInvoiceId == mydataInvoiceToCancelDTO.Id && x.statusCode.Equals("Success"))
-                .OrderByDescending(x => x.Created != null).ThenBy(x => x.Created)
-                .FirstOrDefault();
-
-            //var markToCancel = mydataInvoiceToCancelDTO.MyDataResponses
-            //    .Where(x => x.MyDataInvoiceId == mydataInvoiceToCancelDTO.Id && x.statusCode.Equals("Success"))
-            //    .OrderBy(x => x.Created)
-            //    .FirstOrDefault();
-            //var markToCancel = mydataInvoiceToCancelDTO.MyDataResponses
-            //    .Where(x => x.MyDataInvoiceId == mydataInvoiceToCancelDTO.Id && x.statusCode.Equals("Success"))
-            //    .OrderByDescending(x => x.Created != null).ThenBy(x => x.Created)
-            //    .FirstOrDefault();
-
-
-            var date = DateTime.Now.Date;
-
-            var year = date.Year;
-            var dateString = "" + year;
-            var month = date.Month;
-            if (month < 10)
-            {
-                dateString += "0" + month;
-            }
-            else
-            {
-                dateString += month;
-            }
-            var day = date.Day;
-            if (day < 10)
-            {
-                dateString += "0" + day;
-            }
-            else
-            {
-                dateString += day;
-            }
-            //date = DateTime.ParseExact(date, format, provider);
-            var newUid = mydataInvoiceToCancelDTO.Uid * -1;
-            var invoiceNumber = mydataInvoiceToCancelDTO.InvoiceNumber * -1;
-            var invoiceType = "INV215";
-            var invoiceVAT = mydataInvoiceToCancelDTO.VAT;
-
-            long? cancellationMark;
-
-            var fileName = dateString + "-" + invoiceNumber + "-" + invoiceType + "-" + invoiceVAT + "-" + newUid;
-            if (markToCancel != null)
-            {
-                fileName += "-" + markToCancel.invoiceMark;
-                cancellationMark = markToCancel.invoiceMark;
-            }
-            else
-            {
-                cancellationMark = null;
-            }
-
-            MyDataInvoiceDTO myDataInvoiceDTO;
-            var exist = await _invoiceRepo.ExistedUid(newUid);
-            if (exist)
-            {
-                myDataInvoiceDTO = await _invoiceRepo.GetByUid(newUid);
-                myDataInvoiceDTO.InvoiceDate = DateTime.Now;
-                //MyDataInvoiceDTO.InvoiceType = null;
-                myDataInvoiceDTO.InvoiceTypeCode = 215;
-                myDataInvoiceDTO.FileName = fileName;
-                myDataInvoiceDTO.StoredXml = ""; //myDataInvoiceDTO.StoredXml;
-                myDataInvoiceDTO.InvoiceNumber = invoiceNumber;
-                myDataInvoiceDTO.Modified = DateTime.Now;
-                myDataInvoiceDTO.VAT = invoiceVAT;
-                myDataInvoiceDTO.CancellationMark = cancellationMark;
-                myDataInvoiceDTO = await _invoiceRepo.Update(myDataInvoiceDTO);
-            }
-            else
-            {
-                myDataInvoiceDTO = new MyDataInvoiceDTO()
-                {
-                    Id = Guid.NewGuid(),
-                    Created = DateTime.UtcNow,
-                    Modified = DateTime.UtcNow,
-                    Uid = newUid,
-                    FileName = fileName,
-                    StoredXml = "",//AppSettings.Value.folderPath + "/Invoice/Stored/" + filename,
-                    InvoiceDate = DateTime.UtcNow,
-                    InvoiceTypeCode = 215,
-                    InvoiceNumber = invoiceNumber,
-                    VAT = invoiceVAT,
-                    CancellationMark = cancellationMark
-                };
-                myDataInvoiceDTO = await _invoiceRepo.Insert(myDataInvoiceDTO);
-            }
-            return myDataInvoiceDTO;
-        }
-
-        public async Task<int> RequestDocs(string mark)
-        {
-            ContinuationToken continuationToken = null;
-            do
-            {
-                var url = _appSettings.Value.url;
-                var aadeUserId = _appSettings.Value.aade_user_id;
-                var ocpApimSubscriptionKey = _appSettings.Value.Ocp_Apim_Subscription_Key;
-                var client = new HttpClient();
-
-                var result = 0;
-                // Request headers
-                client.DefaultRequestHeaders.Add("aade-user-id", aadeUserId);
-                client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", ocpApimSubscriptionKey);
-                var nextPartitionKey = (continuationToken == null ? "" : continuationToken.nextPartitionKey);
-                var nextRowKey = (continuationToken == null ? "" : continuationToken.nextRowKey);
-                var uri = url + "/RequestDocs?mark=" + 0 + "&nextPartitionKey=" + nextPartitionKey + "&nextRowKey=" + nextRowKey;
-                //var uri = url + "/RequestDocs?mark=" + 0; // + queryString;
-                //var uri = url + "/RequestTransmittedDocs?mark=" + 0; // + queryString;
-                var byteData = new byte[0];
-                using var content = new ByteArrayContent(byteData);
-                //content.Headers.Add("mark", myDataInvoiceDTO.CancellationMark.ToString());
-
-                var httpResponse = await client.GetAsync(uri);
-                if (!httpResponse.IsSuccessStatusCode)
-                    return result;
-                var httpResponseContext = await httpResponse.Content.ReadAsStringAsync();
-                httpResponseContext = httpResponseContext.Replace("icls:", "");
-
-                XmlDocument doc = new XmlDocument();
-                doc.LoadXml(httpResponseContext);
-                var invoices = DeserializeXml(doc);
-
-                //this is to pass the values of the requestedDoc to the DTO in order for them to be saved
-                continuationToken = await ConvertRequestedDocsToDTO(invoices);
-            } while (continuationToken != null);
-
-            ////////if (continuationToken != null)
-            ////////{
-            ////////    uri = url +"/RequestDocs?mark=" + 0 + "&nextPartitionKey=" + continuationToken.nextPartitionKey + "&nextRowKey=" + continuationToken.nextRowKey;
-            ////////    result = 0;
-            ////////    client = new HttpClient();
-            ////////    client.DefaultRequestHeaders.Add("aade-user-id", aadeUserId);
-            ////////    client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", ocpApimSubscriptionKey);
-            ////////    byteData = new byte[0];
-            ////////    using var content2 = new ByteArrayContent(byteData);
-            ////////    httpResponse = await client.GetAsync(uri);
-            ////////    if (!httpResponse.IsSuccessStatusCode)
-            ////////        return result;
-            ////////    httpResponseContext = await httpResponse.Content.ReadAsStringAsync();
-            ////////    httpResponseContext = httpResponseContext.Replace("icls:", "");
-            ////////    doc = new XmlDocument();
-            ////////    doc.LoadXml(httpResponseContext);
-            ////////    invoices = DeserializeXml(doc);
-            ////////    continuationToken = await ConvertRequestedDocsToDTO(invoices);
-            ////////}
-            //XmlSerializer mySerializer = new XmlSerializer(typeof(MyDataDocInvoiceDTO));
-            //StreamReader myStreamReader = new StreamReader(@"C:\Users\Aris\Desktop\test.xml");
-            //var myResponseData = (RequestedDoc)mySerializer.Deserialize(myStreamReader);
-            return 1;
-        }
-
-        private async Task<ContinuationToken> ConvertRequestedDocsToDTO(RequestedDoc requestedDocs)
-        {
-            int cnt = 0;
-            List<MyDataTransmittedDocInvoiceDTO> transmittedDocs = new List<MyDataTransmittedDocInvoiceDTO>();
-            foreach (Invoice docInvoice in requestedDocs.invoicesDoc.invoice)
-            {
-                Debug.WriteLine(cnt);
-                cnt++;
-                MyDataTransmittedDocInvoiceDTO transmittedDoc = new MyDataTransmittedDocInvoiceDTO();
-                transmittedDoc.Id = docInvoice.Id;
-                transmittedDoc.Created = docInvoice.Created;
-                transmittedDoc.Modified = docInvoice.Modified;
-                transmittedDoc.Uid = docInvoice.Uid;
-                transmittedDoc.mark = docInvoice.mark;
-                transmittedDoc.authenticationCode = docInvoice.authenticationCode;
-
-                if (docInvoice.issuer.Count > 0)
-                {
-                    transmittedDoc.issuer = new List<MyDataPartyTypeDTO> {
-                    new MyDataPartyTypeDTO {
-                        branch = docInvoice.issuer[0].branch,
-                        country = docInvoice.issuer[0].country,
-                        vatNumber = docInvoice.issuer[0].vatNumber,
-                        Id = docInvoice.issuer[0].Id,
-                        Created = docInvoice.issuer[0].Created,
-                        Modified = docInvoice.issuer[0].Modified,
-                        MyDataDocIssuerInvoiceId = docInvoice.Id } };
+                    myResponseData = (ResponseDoc)mySerializer.Deserialize(reader);
                 }
 
-                if (docInvoice.counterpart.Count > 0)
+                foreach (var response in myResponseData.response)
                 {
-                    if (docInvoice.counterpart[0].address != null)
-                    {
-                        transmittedDoc.counterpart = new List<MyDataPartyTypeDTO> {
-                        new MyDataPartyTypeDTO {branch = docInvoice.counterpart[0].branch,
-                            country = docInvoice.counterpart[0].country,
-                            vatNumber = docInvoice.counterpart[0].vatNumber,
-                            address = new MyDataAddressTypeDTO {Id = docInvoice.counterpart[0].address.Id, Created = docInvoice.counterpart[0].address.Created, Modified = docInvoice.counterpart[0].address.Modified,
-                                postalCode = docInvoice.counterpart[0].address.postalCode,
-                                city = docInvoice.counterpart[0].address.city,
-                                street = docInvoice.counterpart[0].address.street,
-                                number = docInvoice.counterpart[0].address.number,
-                                MyDataPartyTypeId = docInvoice.counterpart[0].Id},
-                            Id = docInvoice.counterpart[0].Id,
-                            Created = docInvoice.counterpart[0].Created,
-                            Modified = docInvoice.counterpart[0].Modified,
-                            MyDataDocEncounterInvoiceId = docInvoice.Id} };
-                    }
-                    else
-                    {
-                        transmittedDoc.counterpart = new List<MyDataPartyTypeDTO> {
-                        new MyDataPartyTypeDTO {branch = docInvoice.counterpart[0].branch,
-                            country = docInvoice.counterpart[0].country,
-                            vatNumber = docInvoice.counterpart[0].vatNumber,
-                            Id = docInvoice.counterpart[0].Id,
-                            Created = docInvoice.counterpart[0].Created,
-                            Modified = docInvoice.counterpart[0].Modified,
-                            MyDataDocEncounterInvoiceId = docInvoice.Id} };
-                    }
-
+                    var mapperConfig = new MapperConfiguration(mc => { mc.AddProfile(new MappingProfiles()); });
+                    var mapper = new AutoMapper.Mapper(mapperConfig);
+                    var mydataresponse = mapper.Map<MyDataResponseDTO>(response);
+                    mydataresponses.Add(mydataresponse);
                 }
 
-                transmittedDoc.invoiceHeaderType = new MyDataInvoiceHeaderTypeDTO
-                {
-                    Id = docInvoice.invoiceHeader.Id,
-                    Created = docInvoice.invoiceHeader.Created,
-                    Modified = docInvoice.invoiceHeader.Modified,
-                    MyDataDocInvoiceId = docInvoice.Id,
-                    aa = docInvoice.invoiceHeader.aa,
-                    series = docInvoice.invoiceHeader.series,
-                    issueDate = docInvoice.invoiceHeader.issueDate,
-                    invoiceType = docInvoice.invoiceHeader.invoiceType,
-                    vatPaymentSuspension = docInvoice.invoiceHeader.vatPaymentSuspension,
-                    currency = docInvoice.invoiceHeader.currency,
-                    exchangeRate = docInvoice.invoiceHeader.exchangeRate,
-                    correlatedInvoices = docInvoice.invoiceHeader.correlatedInvoices,
-                    selfPricing = docInvoice.invoiceHeader.selfPricing,
-                    dispatchDate = docInvoice.invoiceHeader.dispatchDate,
-                    dispatchTime = docInvoice.invoiceHeader.dispatchTime,
-                    vehicleNumber = docInvoice.invoiceHeader.vehicleNumber,
-                    movePurpose = docInvoice.invoiceHeader.movePurpose
-                };
-
-                transmittedDoc.paymentMethodDetailType = new List<MyDataPaymentMethodDetailDTO>();
-                for (int i = 0; i < docInvoice.paymentMethods.paymentMethodDetails.Count; i++)
-                {
-                    transmittedDoc.paymentMethodDetailType.Add(new MyDataPaymentMethodDetailDTO
-                    {
-                        Id = docInvoice.paymentMethods.paymentMethodDetails[i].Id,
-                        Created = docInvoice.paymentMethods.paymentMethodDetails[i].Created,
-                        Modified = docInvoice.paymentMethods.paymentMethodDetails[i].Modified,
-                        MyDataDocInvoiceId = docInvoice.Id,
-                        amount = docInvoice.paymentMethods.paymentMethodDetails[i].amount,
-                        type = docInvoice.paymentMethods.paymentMethodDetails[i].type,
-                        paymentMethodInfo = docInvoice.paymentMethods.paymentMethodDetails[i].paymentMethodInfo
-                    });
-                }
-
-                transmittedDoc.invoiceDetails = new List<MyDataInvoiceRowTypeDTO>();
-                for (int i = 0; i < docInvoice.invoiceDetails.Count; i++)
-                {
-                    if (docInvoice.invoiceDetails[i].incomeClassification != null)
-                    {
-                        transmittedDoc.invoiceDetails.Add(new MyDataInvoiceRowTypeDTO
-                        {
-                            Id = docInvoice.invoiceDetails[i].Id,
-                            Created = docInvoice.invoiceDetails[i].Created,
-                            Modified = docInvoice.invoiceDetails[i].Modified,
-                            MyDataDocInvoiceId = docInvoice.Id,
-                            lineNumber = docInvoice.invoiceDetails[i].lineNumber,
-                            netValue = docInvoice.invoiceDetails[i].netValue,
-                            vatCategory = docInvoice.invoiceDetails[i].vatCategory,
-                            vatAmount = docInvoice.invoiceDetails[i].vatAmount,
-                            quantity = docInvoice.invoiceDetails[i].quantity,
-                            measurementUnit = docInvoice.invoiceDetails[i].measurementUnit,
-                            invoiceDetailType = docInvoice.invoiceDetails[i].invoiceDetailType,
-                            vatExemptionCategory = docInvoice.invoiceDetails[i].vatExemptionCategory,
-                            discountOption = docInvoice.invoiceDetails[i].discountOption,
-                            withheldAmount = docInvoice.invoiceDetails[i].withheldAmount,
-                            withheldPercentCategory = docInvoice.invoiceDetails[i].withheldPercentCategory,
-                            stampDutyAmount = docInvoice.invoiceDetails[i].stampDutyAmount,
-                            stampDutyPercentCategory = docInvoice.invoiceDetails[i].stampDutyPercentCategory,
-                            feesAmount = docInvoice.invoiceDetails[i].feesAmount,
-                            feesPercentCategory = docInvoice.invoiceDetails[i].feesPercentCategory,
-                            otherTaxesPercentCategory = docInvoice.invoiceDetails[i].otherTaxesPercentCategory,
-                            otherTaxesAmount = docInvoice.invoiceDetails[i].otherTaxesAmount,
-                            deductionsAmount = docInvoice.invoiceDetails[i].deductionsAmount,
-                            lineComments = docInvoice.invoiceDetails[i].lineComments,
-                            incomeClassification = new MyDataIncomeClassificationDTO
-                            {
-                                Id = docInvoice.invoiceDetails[i].incomeClassification.Id,
-                                Created = docInvoice.invoiceDetails[i].incomeClassification.Created,
-                                Modified = docInvoice.invoiceDetails[i].incomeClassification.Modified,
-                                MyDataInvoiceDetailsId = docInvoice.invoiceDetails[i].Id,
-                                amount = docInvoice.invoiceDetails[i].incomeClassification.amount,
-                                classificationCategory = docInvoice.invoiceDetails[i].incomeClassification.classificationCategory,
-                                classificationType = docInvoice.invoiceDetails[i].incomeClassification.classificationType,
-                                optionalId = docInvoice.invoiceDetails[i].incomeClassification.optionalId
-                            }
-                        });
-                    }
-                    else
-                    {
-                        transmittedDoc.invoiceDetails.Add(new MyDataInvoiceRowTypeDTO
-                        {
-                            Id = docInvoice.invoiceDetails[i].Id,
-                            Created = docInvoice.invoiceDetails[i].Created,
-                            Modified = docInvoice.invoiceDetails[i].Modified,
-                            MyDataDocInvoiceId = docInvoice.Id,
-                            lineNumber = docInvoice.invoiceDetails[i].lineNumber,
-                            netValue = docInvoice.invoiceDetails[i].netValue,
-                            vatCategory = docInvoice.invoiceDetails[i].vatCategory,
-                            vatAmount = docInvoice.invoiceDetails[i].vatAmount,
-                            quantity = docInvoice.invoiceDetails[i].quantity,
-                            measurementUnit = docInvoice.invoiceDetails[i].measurementUnit,
-                            invoiceDetailType = docInvoice.invoiceDetails[i].invoiceDetailType,
-                            vatExemptionCategory = docInvoice.invoiceDetails[i].vatExemptionCategory,
-                            discountOption = docInvoice.invoiceDetails[i].discountOption,
-                            withheldAmount = docInvoice.invoiceDetails[i].withheldAmount,
-                            withheldPercentCategory = docInvoice.invoiceDetails[i].withheldPercentCategory,
-                            stampDutyAmount = docInvoice.invoiceDetails[i].stampDutyAmount,
-                            stampDutyPercentCategory = docInvoice.invoiceDetails[i].stampDutyPercentCategory,
-                            feesAmount = docInvoice.invoiceDetails[i].feesAmount,
-                            feesPercentCategory = docInvoice.invoiceDetails[i].feesPercentCategory,
-                            otherTaxesPercentCategory = docInvoice.invoiceDetails[i].otherTaxesPercentCategory,
-                            otherTaxesAmount = docInvoice.invoiceDetails[i].otherTaxesAmount,
-                            deductionsAmount = docInvoice.invoiceDetails[i].deductionsAmount,
-                            lineComments = docInvoice.invoiceDetails[i].lineComments
-                        });
-                    }
-
-                }
-                //transsmittedDoc.invoiceDetails = new MyDataInvoiceRowTypeDTO { Id = docInvoice.invoiceHeader.Id, Created = docInvoice.invoiceHeader.Created, Modified = docInvoice.invoiceHeader.Modified, MyDataDocInvoiceId = docInvoice.Id, };
-
-                transmittedDoc.taxesTotals = new List<MyDataTaxesDTO>();
-                for (int i = 0; i < docInvoice.taxesTotals.Count; i++)
-                {
-                    transmittedDoc.taxesTotals.Add(new MyDataTaxesDTO
-                    {
-                        Id = docInvoice.taxesTotals[i].taxes.Id,
-                        Created = docInvoice.taxesTotals[i].taxes.Created,
-                        Modified = docInvoice.taxesTotals[i].taxes.Modified,
-                        MyDataDocInvoiceId = docInvoice.Id,
-                        taxAmount = docInvoice.taxesTotals[i].taxes.taxAmount,
-                        taxCategory = docInvoice.taxesTotals[i].taxes.taxCategory,
-                        taxType = docInvoice.taxesTotals[i].taxes.taxType,
-                        taxunderlyingValueType = docInvoice.taxesTotals[i].taxes.taxunderlyingValueType
-                    });
-                }
-
-                transmittedDoc.invoiceSummary = new MyDataInvoiceSummaryDTO
-                {
-                    Id = docInvoice.invoiceSummary.Id,
-                    Created = docInvoice.invoiceSummary.Created,
-                    Modified = docInvoice.invoiceSummary.Modified,
-                    MyDataDocInvoiceId = docInvoice.Id,
-                    totalNetValue = docInvoice.invoiceSummary.totalNetValue,
-                    totalVatAmount = docInvoice.invoiceSummary.totalVatAmount,
-                    totalWithheldAmounr = docInvoice.invoiceSummary.totalWithheldAmounr,
-                    totalFeesAmount = docInvoice.invoiceSummary.totalFeesAmount,
-                    totalStumpDutyAmount = docInvoice.invoiceSummary.totalStumpDutyAmount,
-                    totalOtherTaxesAmount = docInvoice.invoiceSummary.totalOtherTaxesAmount,
-                    totalDeductionsAmount = docInvoice.invoiceSummary.totalDeductionsAmount,
-                    totalGrossValue = docInvoice.invoiceSummary.totalGrossValue
-                };
-
-
-                await _transmittedDocRepo.Insert(transmittedDoc);
-
-                transmittedDocs.Add(transmittedDoc);
-
-            }
-            if (requestedDocs.cancelledInvoicesDoc != null)
-            {
-                foreach (CancelledInvoice cancelledInvoiceDoc in requestedDocs.cancelledInvoicesDoc.cancelledInvoice)
-                {
-                    MyDataCancelledInvoicesDocDTO cancelledInvoicesDocDTO = new MyDataCancelledInvoicesDocDTO();
-                    cancelledInvoicesDocDTO.Id = cancelledInvoiceDoc.Id;
-                    cancelledInvoicesDocDTO.Created = cancelledInvoiceDoc.Created;
-                    cancelledInvoicesDocDTO.Modified = cancelledInvoiceDoc.Modified;
-                    cancelledInvoicesDocDTO.invoiceMark = cancelledInvoiceDoc.invoiceMark;
-                    cancelledInvoicesDocDTO.cancellationMark = cancelledInvoiceDoc.cancellationMark;
-                    cancelledInvoicesDocDTO.cancellationDate = cancelledInvoiceDoc.cancellationDate;
-                }
-            }
-
-            return requestedDocs.continuationToken;
-
-        }
-
-        public static RequestedDoc DeserializeXml(XmlDocument doc)
-        {
-            RequestedDoc obj;
-            using (TextReader textReader = new StringReader(doc.OuterXml))
-            {
-                using (XmlTextReader reader = new XmlTextReader(textReader))
-                {
-                    reader.Namespaces = false;
-                    XmlSerializer serializer = new XmlSerializer(typeof(RequestedDoc));
-                    obj = (RequestedDoc)serializer.Deserialize(reader);
-                }
-            }
-            return obj;
-        }
-
-        
-        public async Task<int> CancelInvoiceBatchProcess(MyDataInvoiceDTO mydataInvoiceDTO)
-        {
-            //Using counters in order to keep track of invoices that are found, cancelled and write down the fileName of the ones that failed to be cancelled, for the batch cancellation process
-            //This information is written in Log File in the folder LogFiles inside the bin folder.
-            
-            _invoicesToCancelBatchCounter++;
-
-            Debug.WriteLine(_invoicesToCancelBatchCounter + ") Cancelling : " + mydataInvoiceDTO.invoiceMark);
-            var httpResponseContext = await CallCancelInvoiceMethod(mydataInvoiceDTO);
-            var result = 0;
-
-            //Code to give httpResponseContext the value of a pc stored xml (FOR TESTING PURPSES)
-            //XmlSerializer mySerializer = new XmlSerializer(typeof(RequestedDoc));
-            //StreamReader myStreamReader = new StreamReader(@"C:\Users\Aris\Desktop\Desktop TargetFolder\cancelresponse.xml");
-            //string readxml = myStreamReader.ReadToEnd();
-            //httpResponseContext = readxml;
-
-            //string invoiceFileName = CreateInvoiceFileName(mydataInvoiceDTO, markToCancel.invoiceMark);
-
-            var myDataCancelInvoice = await BuildInvoiceBatchProcess(mydataInvoiceDTO);
-
-            var myDataCancellationResponse = ParseCancellationResponseResult(httpResponseContext);
-            if (myDataCancellationResponse == null)
-            {
-                result = -1;
-                return result;
-            }
-
-            myDataCancellationResponse.MyDataInvoiceId = myDataCancelInvoice.Id;
-            await _myDataCancellationResponseRepo.Insert(myDataCancellationResponse);
-            myDataCancelInvoice.MyDataCancelationResponses.Add(myDataCancellationResponse);
-            //await _invoiceRepo.AddResponses(myDataInvoiceDTO);//, mydataresponse);
-
-            if (myDataCancellationResponse.statusCode.Equals("Success") && myDataCancelInvoice.CancellationMark != null)
-            {
-                _invoicesCancelledBatchCounter++;
-                var myDataInvoiceDTOThatCancelled =
-                    await _invoiceRepo.GetByMark(myDataCancelInvoice.CancellationMark.Value);
-                await _particleInform.UpdateCancellationParticle_FixName(myDataCancelInvoice, myDataInvoiceDTOThatCancelled, myDataCancellationResponse.cancellationMark);
-            }
-            else
-            {
-                _invoicesThatFailedBatch += "\n" + mydataInvoiceDTO.FileName;
-                result = -1;
-                return result;
-            }
-
-            result = 1;
-
-            return result;
-        }
-
-        public async Task<string> CallCancelInvoiceMethod(MyDataInvoiceDTO mydataInvoiceDTO)
-        {
-            var markToCancel = mydataInvoiceDTO.MyDataResponses
-                .Where(x => x.MyDataInvoiceId == mydataInvoiceDTO.Id && x.statusCode.Equals("Success"))
-                .OrderByDescending(x => x.Created != null).ThenBy(x => x.Created)
-                .FirstOrDefault();
-
-            var url = _appSettings.Value.url;
-            var aadeUserId = _appSettings.Value.aade_user_id;
-            var ocpApimSubscriptionKey = _appSettings.Value.Ocp_Apim_Subscription_Key;
-            var client = new HttpClient();
-
-            var result = "";
-            // Request headers
-            client.DefaultRequestHeaders.Add("aade-user-id", aadeUserId);
-            client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", ocpApimSubscriptionKey);
-
-            string invoiceToCancel = "";
-
-            if (markToCancel != null)
-            {
-                invoiceToCancel = markToCancel.invoiceMark.ToString();
-            }
-
-            var uri = url + "/CancelInvoice?mark=" + invoiceToCancel;
-            var byteData = new byte[0];
-            using var content = new ByteArrayContent(byteData);
-
-            var httpResponse = await client.PostAsync(uri, content);
-            if (!httpResponse.IsSuccessStatusCode)
-            {
-                return "" + result;
-            }
-
-            result = await httpResponse.Content.ReadAsStringAsync();
-
-            return result;
-        }
-
-        public bool CreateLogFileForBatchProcess(string selectedPath = "")
-        {
-            try
-            {
-                var projectExePath = Assembly.GetExecutingAssembly().CodeBase;
-
-                //after getting the path you get the directory with:
-                //var projectDirectory = Directory.GetParent(AppContext.BaseDirectory).FullName;//Path.GetDirectoryName(projectExePath);
-                var projectDirectory = _appSettings.Value.folderPath;//Path.GetDirectoryName(projectExePath);
-                if (!string.IsNullOrEmpty(selectedPath))
-                {
-                    projectDirectory = selectedPath;
-                }
-                projectDirectory = Path.Combine(projectDirectory, "LogFiles");
-                //projectDirectory = projectDirectory.Replace("file:\\", "");
-                Directory.CreateDirectory(projectDirectory);
-                var textFilePath = Path.Combine(projectDirectory, DateTime.Now.ToString("yyyy-MM-dd HHmmss") + ".txt");
-
-                var textContent = "FOUND : " + _invoicesToCancelBatchCounter;
-                textContent += "\nCANCELLED : " + _invoicesCancelledBatchCounter;
-                textContent += "\n_______________________________________________";
-                if (string.IsNullOrEmpty(_invoicesThatFailedBatch))
-                {
-                    _invoicesThatFailedBatch = "NONE";
-                }
-                textContent += "\nFAILED : \n" + _invoicesThatFailedBatch;
-                using (StreamWriter sw = File.CreateText(textFilePath))
-                {
-                    sw.WriteLine(textContent);
-                }
-                //clear to reuse
-                _invoicesToCancelBatchCounter = 0;
-                _invoicesCancelledBatchCounter = 0;
-                _invoicesThatFailedBatch = "";
-                return true;
+                return mydataresponses;
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("Error while creating LogFile : " + ex.Message);
-                return false;
+                var mydataresponse = new MyDataResponseDTO();
+                mydataresponse.statusCode = "Program Error";
+                mydataresponse.errors.Add(
+                    new MyDataErrorDTO()
+                    {
+                        Id = Guid.NewGuid(),
+                        Created = DateTime.UtcNow,
+                        Modified = DateTime.UtcNow,
+                        message = ex.ToString(),
+                        code = 0
+                    });
+                mydataresponses.Add(mydataresponse);
+                return mydataresponses;
             }
+
+            return null;
         }
-
     }
-
 }

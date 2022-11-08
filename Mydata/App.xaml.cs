@@ -57,30 +57,13 @@ namespace Mydata
         {
             services.Configure<AppSettings>(Configuration.GetSection(nameof(AppSettings)));
             services.Configure<ConnectionStrings>(Configuration.GetSection(nameof(ConnectionStrings)));
-            services.AddDbContext<ApplicationDbContext>
-            (options => options.UseSqlServer(
-                Configuration.GetConnectionString("Default")), 
-                ServiceLifetime.Transient);
-            services.AddScoped<IInvoiceRepo, InvoiceRepo>();
-            services.AddScoped<IInvoiceService, InvoiceService>();
-
-            services.AddScoped<IExpenseRepo, ExpenseRepo>();
-            services.AddScoped<IExpenseService, ExpenseService>();
-            services.AddScoped<IRequestTransmittedDocsService, RequestTransmittedDocsService>();
-
-            services.AddScoped<IIncomeRepo, IncomeRepo>();
-            services.AddScoped<IMyDataIncomeResponseRepo, MyDataIncomeResponseRepo>();
-            services.AddScoped<IIncomeService, IncomeService>();
-
-            services.AddScoped<IMyDataResponseRepo, MyDataResponseRepo>();
-            services.AddScoped<IMyDataCancellationResponseRepo, MyDataCancellationResponseRepo>();
-            services.AddScoped<IMyDataCancelInvoiceRepo, MyDataCancelInvoiceRepo>();
-            services.AddScoped<MainWindow>();
-            services.AddScoped<IParticleInform, ParticleInform>();
-
-            services.AddScoped<IMyDataTransmittedDocInvoicesRepo, MyDataTransmittedDocInvoicesRepo>();
-
-            services.AddAutoMapper(typeof(MappingProfiles));
+            //services.AddDbContext<ApplicationDbContext>
+            //(options => options.UseSqlServer(
+            //    Configuration.GetConnectionString("Default")), 
+            //    ServiceLifetime.Transient);
+            
+            //services.AddAutoMapper(typeof(MappingProfiles));
+            
 
         }
 
@@ -91,7 +74,7 @@ namespace Mydata
             //create the notifyicon (it's a resource declared in NotifyIconResources.xaml
             notifyIcon = (TaskbarIcon)FindResource("NotifyIcon");
 
-            MainWindow = ServiceProvider.GetService<MainWindow>();
+            MainWindow = new MainWindow(ServiceProvider);
             Application.Current.MainWindow.Show();
         }
 

@@ -5,11 +5,8 @@
           xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
           xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
           xmlns:syncfusion="http://schemas.syncfusion.com/wpf"
-          xmlns:syncfusion1="clr-namespace:Syncfusion.UI.Xaml.Grid;assembly=Syncfusion.SfGrid.WPF"
-          xmlns:syncfusion2="clr-namespace:Syncfusion.Windows.Controls.Input;assembly=Syncfusion.SfInput.Wpf"
-          xmlns:mydata="clr-namespace:Mydata"
-          mc:Ignorable="d" MouseLeftButtonDown="Window_MouseLeftButtonDown" WindowStyle="None"
-        Title="MainWindow" Height = "870" Width = "1600" AllowsTransparency="True"  ShowInTaskbar="False" ResizeMode="NoResize" Topmost="False"
+          mc:Ignorable="d" MouseLeftButtonDown="Window_MouseLeftButtonDown" WindowStyle="None" WindowStartupLocation="CenterOwner"
+          Title="MainWindow" Height = "950" Width = "1600" AllowsTransparency="True"  ShowInTaskbar="False" ResizeMode="NoResize" Topmost="False"
         FontFamily="{DynamicResource MaterialDesignFont}" Background="#b5c7da">
 
     <Window.Resources>

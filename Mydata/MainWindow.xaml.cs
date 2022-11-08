@@ -15,6 +15,7 @@ using System.Windows.Input;
 using System.Windows.Threading;
 using AutoMapper;
 using Mydata.UserControls;
+using Infrastructure.Database;
 
 namespace Mydata
 {
@@ -29,32 +30,19 @@ namespace Mydata
         {
             InitializeComponent();
 
-            var invoiceService = serviceProvider.GetService<IInvoiceService>();
-            var invoiceRepo = serviceProvider.GetService<IInvoiceRepo>();
-            var expenseRepo = serviceProvider.GetService<IExpenseRepo>();
-            var expenseService = serviceProvider.GetService<IExpenseService>();
-            var incomeRepo = serviceProvider.GetService<IIncomeRepo>();
-            var incomeService = serviceProvider.GetService<IIncomeService>();
-
-            var requestTransmittedDocsService = serviceProvider.GetService<IRequestTransmittedDocsService>();
-
             var appSettings = serviceProvider.GetService<IOptions<AppSettings>>();
-            var mapper = serviceProvider.GetService<IMapper>();
-
-            var mainVm = new MainWindowVM(invoiceRepo);
-            this.DataContext = mainVm;
-
+            var conenctionString = serviceProvider.GetService<IOptions<ConnectionStrings>>();
 
             this.ShowInTaskbar = true;
 
             
 
-            var invoiceTab = new InvoicesUserControl(invoiceRepo, mapper, appSettings, invoiceService, requestTransmittedDocsService);
+            var invoiceTab = new InvoicesUserControl(appSettings, conenctionString.Value.Default);
             //var invoiceTab = new InvoicesUserControl(invoiceRepo, mapper, appSettings, invoiceService);
             //var expenseTab = new ExpensesUserControl(expenseRepo, mapper, appSettings, invoiceService);
-            var incomeTab = new IncomesUserControl(incomeRepo,incomeService,mapper,appSettings);
+            //var incomeTab = new IncomesUserControl(incomeRepo,incomeService,mapper,appSettings);
             this.InvoiceTab.Content = invoiceTab;
-            this.IncomesTab.Content = incomeTab;
+            //this.IncomesTab.Content = incomeTab;
             //this.ExpensesTab.Content = expenseTab;
         }
 

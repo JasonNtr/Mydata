@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Text;
 
 namespace Domain.Model
 {
@@ -12,5 +11,7 @@ namespace Domain.Model
         public virtual long? Uid { get; set; }
         public virtual long? invoiceMark { get; set; }
         public virtual bool invoiceProcessed { get; set; }
+
+        public virtual ICollection<MyDataCancelationResponse> MyDataCancelationResponses { get; set; } = new List<MyDataCancelationResponse>();
     }
 }

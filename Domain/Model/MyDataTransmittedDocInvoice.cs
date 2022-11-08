@@ -7,7 +7,7 @@ namespace Domain.Model
 {
     public class MyDataTransmittedDocInvoice : MyDataEntity
     {
-        [StringLength(100)]
+        [StringLength(40)]
         public virtual string? Uid { get; set; }
         [StringLength(100)]
         public virtual string? authenticationCode { get; set; }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using AutoMapper;
+using Domain.AADE;
 using Domain.DTO;
 using Domain.Model;
 using Infrastructure.Database.RequestDocModels;
@@ -35,6 +36,7 @@ namespace Business.Mappings
             CreateMap<MyDataIncome,MyDataIncomeDTO>().ReverseMap();
             CreateMap<MyDataIncomeResponse, MyDataIncomeResponseDTO>().ReverseMap();
             CreateMap<MyDataIncomeError, MyDataIncomeErrorDTO>().ReverseMap();
+            CreateMap<TaxInvoice, TaxInvoiceDTO>().ReverseMap();
 
 
 
@@ -52,7 +54,23 @@ namespace Business.Mappings
             CreateMap<MyDataInvoiceSummaryDTO, MyDataInvoiceSummary>().ReverseMap();
             CreateMap<MyDataIncomeClassificationDTO, MyDataIncomeClassification>().ReverseMap();
             CreateMap<MyDataExpenseTypeDTO, MyDataExpenseType>().ReverseMap();
-            
+
+
+            CreateMap<City, CityDTO>().ReverseMap();
+            CreateMap<Branch, BranchDTO>().ReverseMap();
+            CreateMap<Particle, ParticleDTO>().ReverseMap();
+            CreateMap<Pmove, PmoveDTO>().ReverseMap();
+            CreateMap<Ptyppar, PtypparDTO>().ReverseMap();
+            CreateMap<Item, ItemDTO>().ReverseMap();
+            CreateMap<FPA, FPADTO>().ReverseMap();
+            CreateMap<Client, ClientDTO>().ReverseMap();
+
+
+
+            CreateMap<ResponseDocResponse, MyDataResponseDTO>();
+            CreateMap<ResponseDocResponse, MyDataCancelationResponseDTO>();
+            CreateMap<ResponseDocResponseError, MyDataErrorDTO>();
+            CreateMap<ResponseDocResponseError, MyDataCancelationErrorDTO>();
         }
 
        

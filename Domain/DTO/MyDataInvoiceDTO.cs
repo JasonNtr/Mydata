@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using Domain.Model;
 
 namespace Domain.DTO
 {
@@ -28,9 +26,9 @@ namespace Domain.DTO
             get
             {
                 if(CancellationMark == null)
-                    return MyDataResponses.Count > 0 ? MyDataResponses.Last().statusCode : "Error no status code";
+                    return MyDataResponses.Count > 0 ? MyDataResponses.OrderBy(x=>x.Created).Last().statusCode : "Error no status code";
                 else
-                    return MyDataCancelationResponses.Count > 0 ? MyDataCancelationResponses.Last().statusCode : "Error no status code";
+                    return MyDataCancelationResponses.Count > 0 ? MyDataCancelationResponses.OrderBy(x => x.Created).Last().statusCode : "Error no status code";
             }
         }
         public virtual string invoiceMark
@@ -51,9 +49,11 @@ namespace Domain.DTO
         }
         public virtual ICollection<MyDataResponseDTO> MyDataResponses { get; set; } = new List<MyDataResponseDTO>();
 
-
+        public virtual string FilePath { get; set; }
         public virtual long? CancellationMark { get; set; }
         public virtual ICollection<MyDataCancelationResponseDTO> MyDataCancelationResponses { get; set; } = new List<MyDataCancelationResponseDTO>();
+
+        public ParticleDTO Particle { get; set; }
 
     }
 }
