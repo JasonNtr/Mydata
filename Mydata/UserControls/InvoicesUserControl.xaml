@@ -67,9 +67,9 @@
                 </EventTrigger>
             </Button.Triggers>
         </Button>
-       
 
-         
+
+
 
         <syncfusion:SfDataGrid x:Name="sfGrid" ItemsSource="{Binding Path=MyDataInvoiceDTOs}" Grid.Row="1" Grid.ColumnSpan="2" 
                                HeaderStyle="{StaticResource headerStyle}" RowHeight="35" Margin="0,0,0,20"
@@ -86,7 +86,7 @@
                 <syncfusion:GridTemplateColumn syncfusion:FocusManagerHelper.WantsKeyInput="True" ColumnMemberType="Button" Width="70"  VerticalAlignment="Stretch">
                     <syncfusion:GridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <Button Click="ViewClicked" Content="View" syncfusion:FocusManagerHelper.FocusedElement="True" Height="45" VerticalAlignment="Stretch" Background="#42C0FB	" />
+                            <Button Click="ViewClicked" Content="View" syncfusion:FocusManagerHelper.FocusedElement="True" Height="38" Background="#42C0FB	" />
                         </DataTemplate>
                     </syncfusion:GridTemplateColumn.CellTemplate>
                 </syncfusion:GridTemplateColumn>

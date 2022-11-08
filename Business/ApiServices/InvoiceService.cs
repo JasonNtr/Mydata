@@ -3,6 +3,7 @@ using Business.Mappings;
 using Business.Services;
 using Domain.AADE;
 using Domain.DTO;
+using Domain.Model;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
@@ -88,9 +89,11 @@ namespace Business.ApiServices
             using var content = new ByteArrayContent(byteData);
 
             var httpResponseMessage = string.Empty;
-            foreach (var invoice in transferModel.MyDataInvoices)
+            var invoiceRepo = new InvoiceRepo(_connectionString);
+            var invoiceList = new List<MyDataInvoiceDTO>();
+            foreach (var invoice in transferModel.MyCancelDataInvoices)
             {
-                var uri = url + "/CancelInvoice?mark=" + invoice.CancellationMark.ToString();
+                var uri = url + "/CancelInvoice?mark=" + invoice.ParticleToBeCancelledMark;//+"1";
                 var httpResponse = await client.PostAsync(uri, content);
                 httpResponseMessage = await httpResponse.Content.ReadAsStringAsync();
 
@@ -99,24 +102,38 @@ namespace Business.ApiServices
                 var particleRepo = new ParticleRepo(_connectionString);
 
                 mydataresponse.MyDataInvoiceId = invoice.Id;
-                invoice.MyDataCancelationResponses.Add(mydataresponse);
+               
+                var particleToBeCancelled = await particleRepo.GetByMark(invoice.ParticleToBeCancelledMark);
+                var myDataInvoice = await ConvertParticleToMyDataInvoice(particleToBeCancelled);
+                myDataInvoice.MyDataCancellationResponses.Add(mydataresponse);
+                invoiceList.Add(myDataInvoice);
+
+
                 if (mydataresponse.statusCode.Equals("Success"))
                 {
+                    invoice.invoiceMark = mydataresponse.cancellationMark;
+                    invoice.invoiceProcessed = true;
                     invoice.Particle.Mark = mydataresponse.cancellationMark.ToString();
                     result = await particleRepo.Update(invoice.Particle);
 
-                    var particleToBeCancelled = await particleRepo.GetByMark(invoice.CancellationMark);
+                    
                     particleToBeCancelled.CancelMark = invoice.Particle.Mark;
                     result = await particleRepo.Update(particleToBeCancelled);
+
+                    
+                    result = await invoiceRepo.UpdateCancellationMark(myDataInvoice, invoice.Particle.Mark);
                 }
             }
 
-            var invoiceRepo = new InvoiceRepo(_connectionString);
+            
 
-            result = await invoiceRepo.InsertOrUpdateRangeForCancel(transferModel.MyDataInvoices);
+            result = await invoiceRepo.InsertOrUpdateRangeForCancel(transferModel.MyCancelDataInvoices);
+            result = await invoiceRepo.InsertCancelResponses(invoiceList);
 
-            return false;
+            return result;
         }
+
+        
 
         private MyDataCancelationResponseDTO ParseInvoiceCancelResponseResult(string httpresponsecontext)
         {
@@ -143,7 +160,7 @@ namespace Business.ApiServices
             {
                 var mydataresponse = new MyDataCancelationResponseDTO();
                 mydataresponse.statusCode = "Program Error";
-                mydataresponse.errors.Add(
+                mydataresponse.Errors.Add(
                     new MyDataCancelationErrorDTO()
                     {
                         Id = Guid.NewGuid(),
@@ -203,6 +220,21 @@ namespace Business.ApiServices
             }
 
             return null;
+        }
+
+        private async Task<MyDataInvoiceDTO> ConvertParticleToMyDataInvoice(ParticleDTO particleToBeCancelled)
+        {
+            var taxInvoiceRepo = new TaxInvoiceRepo(_connectionString);
+            var typeCode = await taxInvoiceRepo.GetTaxCode(particleToBeCancelled.Ptyppar?.Code);
+            var myDataInvoice = new MyDataInvoiceDTO();
+            myDataInvoice.Uid = (long?)particleToBeCancelled.Rec0;
+            myDataInvoice.InvoiceNumber = (long?)particleToBeCancelled.Number;
+            myDataInvoice.InvoiceDate = particleToBeCancelled.Date;
+            myDataInvoice.VAT = particleToBeCancelled.Client?.VatNumber.Trim();
+            myDataInvoice.InvoiceTypeCode = (int)typeCode;
+            myDataInvoice.Particle = particleToBeCancelled;
+
+            return myDataInvoice;
         }
     }
 }

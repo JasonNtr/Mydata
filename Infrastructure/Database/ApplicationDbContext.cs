@@ -1,7 +1,5 @@
-﻿using Domain.DTO;
-using Domain.Model;
+﻿using Domain.Model;
 using Microsoft.EntityFrameworkCore;
-using System.Reflection.Emit;
 
 namespace Infrastructure.Database
 {
@@ -9,13 +7,11 @@ namespace Infrastructure.Database
     {
         private readonly string _connectionString;
 
-       
-
-
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
             //Database.EnsureCreated();
         }
+
         public ApplicationDbContext(string connectionString)
         {
             _connectionString = connectionString;
@@ -30,17 +26,13 @@ namespace Infrastructure.Database
             //optionsBuilder?.c
         }
 
-        
-
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
             SetSystemEntityModels(builder);
-           
+
             SeedData(builder);
         }
-
-      
 
         private void SetSystemEntityModels(ModelBuilder builder)
         {
@@ -49,7 +41,11 @@ namespace Infrastructure.Database
                 .WithOne(p => p.MyDataInvoice)
                 .HasForeignKey(p => p.MyDataInvoiceId)
                 .OnDelete(DeleteBehavior.Cascade);
-            
+            builder.Entity<MyDataInvoice>()
+                .HasMany(p => p.MyDataCancellationResponses)
+                .WithOne(p => p.MyDataInvoice)
+                .HasForeignKey(p => p.MyDataInvoiceId)
+                .OnDelete(DeleteBehavior.Cascade);
             builder.Entity<MyDataInvoice>()
                 .HasOne(p => p.InvoiceType)
                 .WithMany()
@@ -65,20 +61,19 @@ namespace Infrastructure.Database
                 .WithOne(p => p.MyDataCancelationResponse)
                 .HasForeignKey(p => p.MyDataCancelationResponseId)
                 .OnDelete(DeleteBehavior.Cascade);
-            builder.Entity<MyDataCancelInvoice>().Property(x => x.Id).HasDefaultValueSql("NEWID()");
 
+            builder.Entity<MyDataCancelInvoice>().Property(x => x.Id).HasDefaultValueSql("NEWID()");
 
             builder.Entity<MyDataIncome>()
                 .HasMany(p => p.MyDataIncomeResponses)
                 .WithOne(p => p.MyDataIncome)
                 .HasForeignKey(p => p.MyDataIncomeId)
-                .OnDelete(DeleteBehavior.Cascade); 
+                .OnDelete(DeleteBehavior.Cascade);
             builder.Entity<MyDataIncomeResponse>()
                 .HasMany(p => p.Errors)
                 .WithOne(p => p.MyIncomeDataResponse)
                 .HasForeignKey(p => p.MyDataIncomeResponseId)
                 .OnDelete(DeleteBehavior.Cascade);
-
 
             //builder.Entity<MyDataTransmittedDocInvoice>()
             //    .HasMany(p => p.issuer)
@@ -91,7 +86,6 @@ namespace Infrastructure.Database
             //   .WithOne(p => p.MyDataDocEncounterInvoice)
             //   .HasForeignKey(p => p.MyDataDocEncounterInvoiceId)
             //   .OnDelete(DeleteBehavior.Cascade);
-
 
             builder.Entity<MyDataPartyType>()
                 .HasOne(p => p.MyDataDocIssuerInvoice)
@@ -110,7 +104,6 @@ namespace Infrastructure.Database
                 .WithOne(p => p.MyDataDocInvoice)
                 .HasForeignKey<MyDataInvoiceHeaderType>(p => p.MyDataDocInvoiceId)
                 .OnDelete(DeleteBehavior.Cascade);
-
 
             builder.Entity<MyDataTransmittedDocInvoice>()
                 .HasMany(p => p.paymentMethodDetailType)
@@ -156,7 +149,7 @@ namespace Infrastructure.Database
             builder.Entity<Ptyppar>().HasNoKey();
             builder.Entity<Branch>().HasNoKey();
             builder.Entity<TaxInvoice>().HasKey(c => new { c.TaxCode, c.PtyparCode, c.Module });
-            builder.Entity<Psxetika>().HasKey(c => new { c.COMPANY_CODE, c.BRANCH_CODE, c.YEAR_YEAR, c.CTYPKIN_CODE ,c.WTYPKIN_CODE , c.PTYPPAR_CODE , c.PSEIRA_SEIRA ,c.CUSTPROM_CODE ,c.CLIENT_ID, c.PARTL_HMNIA , c.PSX_PARTL_RECR });
+            builder.Entity<Psxetika>().HasKey(c => new { c.COMPANY_CODE, c.BRANCH_CODE, c.YEAR_YEAR, c.CTYPKIN_CODE, c.WTYPKIN_CODE, c.PTYPPAR_CODE, c.PSEIRA_SEIRA, c.CUSTPROM_CODE, c.CLIENT_ID, c.PARTL_HMNIA, c.PSX_PARTL_RECR });
         }
 
         private void SeedData(ModelBuilder builder)
@@ -281,8 +274,8 @@ namespace Infrastructure.Database
             });
         }
 
-
         #region DbSets
+
         public DbSet<MyDataInvoice> MyDataInvoices { get; set; }
         public DbSet<TaxInvoice> TaxInvoices { get; set; }
         public DbSet<MyDataResponse> MyDataResponses { get; set; }
@@ -302,7 +295,6 @@ namespace Infrastructure.Database
         public DbSet<Branch> Branches { get; set; }
         public DbSet<City> Cities { get; set; }
 
-
         public DbSet<MyDataIncomeError> MyDataIncomeErrors { get; set; }
         public DbSet<MyDataInvoiceHeaderType> MyDataInvoiceHeaderTypes { get; set; }
         public DbSet<MyDataPartyType> MyDataPartyTypes { get; set; }
@@ -320,6 +312,7 @@ namespace Infrastructure.Database
         public DbSet<MyDataError> MyDataErrors { get; set; }
         public DbSet<MyDataInvoiceType> MyDataInvoiceTypes { get; set; }
         public DbSet<MyDataCancelationError> MyDataCancellationErrors { get; set; }
-        #endregion
+
+        #endregion DbSets
     }
 }

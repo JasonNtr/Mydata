@@ -94,7 +94,7 @@ namespace Mydata.ViewModels
                 var type = decimal.Parse(particleDTO.Ptyppar.EID_PARAST, CultureInfo.InvariantCulture);
                 var issuer = new InvoicesDocInvoiceIssuer
                 {
-                    vatNumber = "157395112", //particleDTO.BranchDTO?.VatNumber,
+                    vatNumber = "157395112", //particleDTO.BranchDTO?.VatNumber,  
                     country = "GR",
                     branch = 0
                 };
@@ -298,20 +298,15 @@ namespace Mydata.ViewModels
             foreach (var item in cancelInvoices)
             {
                 var particleToBecancelled = await particleRepo.GetCancel(item.PARTL_RECR);
-
-                var typeCode = await taxInvoiceRepo.GetTaxCode(item.Ptyppar?.Code);
-                var myDataInvoice = new MyDataInvoiceDTO();
+                if (particleToBecancelled.Mark == null) break;
+                var myDataInvoice = new MyDataCancelInvoiceDTO();
                 myDataInvoice.Uid = (long?)item.Rec0;
-                myDataInvoice.InvoiceNumber = (long?)item.Number;
-                myDataInvoice.InvoiceDate = item.Date;
-                myDataInvoice.VAT = item.Client?.VatNumber.Trim();
-                myDataInvoice.InvoiceTypeCode = (int)typeCode;
+                myDataInvoice.ParticleToBeCancelledMark = long.Parse(particleToBecancelled.Mark);
                 myDataInvoice.Particle = item;
-                myDataInvoice.CancellationMark = long.Parse(particleToBecancelled.Mark);
-                cancelTransferModel.MyDataInvoices.Add(myDataInvoice);
+                cancelTransferModel.MyCancelDataInvoices.Add(myDataInvoice);
             }
 
-            if (cancelTransferModel.MyDataInvoices.Count > 0)
+            if (cancelTransferModel.MyCancelDataInvoices.Count > 0)
                 await invoiceService.CancelActionNew(cancelTransferModel);
             Reload();
             IsBusy = false;

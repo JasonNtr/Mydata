@@ -16,6 +16,7 @@ namespace Domain.DTO
             }
         }
         public virtual long? InvoiceNumber { get; set; }
+        public virtual long? CancellationMark { get; set; }
         public virtual string VAT { get; set; }
         public virtual int InvoiceTypeCode { get; set; }
         public virtual MyDataInvoiceTypeDTO InvoiceType { get; set; }
@@ -25,10 +26,16 @@ namespace Domain.DTO
         {
             get
             {
-                if(CancellationMark == null)
-                    return MyDataResponses.Count > 0 ? MyDataResponses.OrderBy(x=>x.Created).Last().statusCode : "Error no status code";
+                if (MyDataCancellationResponses.Count > 0)
+                {
+                    var statusCode = MyDataCancellationResponses.OrderBy(x => x.Created).Last().statusCode;
+                    return statusCode;
+                }
                 else
-                    return MyDataCancelationResponses.Count > 0 ? MyDataCancelationResponses.OrderBy(x => x.Created).Last().statusCode : "Error no status code";
+                {
+                    return MyDataResponses.Count > 0 ? MyDataResponses.OrderBy(x => x.Created).Last().statusCode : "Error no status code";
+                }
+               
             }
         }
         public virtual string invoiceMark
@@ -36,11 +43,7 @@ namespace Domain.DTO
             get
             {
                 var mark = "";
-                if (CancellationMark != null)
-                {
-                    mark = CancellationMark.ToString();
-                }
-                else if (MyDataResponses.Any(x => x.statusCode.Equals("Success")))
+                if (MyDataResponses.Any(x => x.statusCode.Equals("Success")))
                 {
                     mark = MyDataResponses.FirstOrDefault(x => x.statusCode.Equals("Success")).invoiceMark.ToString();
                 }
@@ -48,11 +51,11 @@ namespace Domain.DTO
             }
         }
         public virtual ICollection<MyDataResponseDTO> MyDataResponses { get; set; } = new List<MyDataResponseDTO>();
+        public virtual ICollection<MyDataCancelationResponseDTO> MyDataCancellationResponses { get; set; } = new List<MyDataCancelationResponseDTO>();
 
         public virtual string FilePath { get; set; }
-        public virtual long? CancellationMark { get; set; }
-        public virtual ICollection<MyDataCancelationResponseDTO> MyDataCancelationResponses { get; set; } = new List<MyDataCancelationResponseDTO>();
 
+        
         public ParticleDTO Particle { get; set; }
 
     }

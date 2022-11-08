@@ -1,6 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using Domain.Model;
+using System;
 
 namespace Domain.DTO
 {
@@ -8,7 +7,8 @@ namespace Domain.DTO
     {
         public virtual Guid MyDataCancelationResponseId { get; set; }
         public virtual MyDataCancelationResponseDTO MyDataCancelationResponse { get; set; }
+      
         public virtual string message { get; set; }
-        public virtual int code{ get; set; }
+        public virtual int code { get; set; }
     }
 }

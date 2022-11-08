@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-
+ 
 namespace Domain.DTO
 {
     public class MyDataCancelationResponseDTO : MyDataEntityDTO
@@ -10,7 +9,7 @@ namespace Domain.DTO
         public virtual MyDataCancelInvoiceDTO MyDataInvoice { get; set; }
         public virtual long? cancellationMark { get; set; }
         public virtual string statusCode { get; set; }
-        public virtual ICollection<MyDataCancelationErrorDTO> errors { get; set; } = new List<MyDataCancelationErrorDTO>();
+        public virtual ICollection<MyDataCancelationErrorDTO> Errors { get; set; } = new List<MyDataCancelationErrorDTO>();
 
 
     }

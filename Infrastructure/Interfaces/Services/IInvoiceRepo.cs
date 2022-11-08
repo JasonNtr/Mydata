@@ -10,7 +10,7 @@ namespace Infrastructure.Interfaces.Services
     {
         Task<int> AddIfNotExist(MyDataInvoiceDTO mydatainvoicedto);
         Task<MyDataInvoiceDTO> Insert(MyDataInvoiceDTO mydatainvoicedto);
-        Task<MyDataInvoiceDTO> Update(MyDataInvoiceDTO mydatainvoicedto);
+        Task<bool> Update(MyDataInvoiceDTO mydatainvoicedto);
         Task<int> AddResponses(MyDataInvoiceDTO mydatainvoicedto);
         Task<bool> ExistedUid(long? Uid);
         Task<MyDataInvoiceDTO> Get();

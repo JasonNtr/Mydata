@@ -28,17 +28,17 @@ namespace Business.Services
         {
             try
             {
-                var succesfullresponse = mydatainvoicedto.MyDataCancelationResponses.Where(x => x.statusCode.Equals("Success"))
-                    .OrderByDescending(x => x.Created).FirstOrDefault();
-                var order = "update [PARTICLE] set AADE_MARK='@aademark' where PARTL_REC0 = @uid";
-                order = order.Replace("@aademark", succesfullresponse.cancellationMark.ToString());
-                order = order.Replace("@uid", mydatainvoicedto.Uid.ToString());
-                await ctx.Database.ExecuteSqlRawAsync(order);
+                //var succesfullresponse = mydatainvoicedto.MyDataCancelationResponses.Where(x => x.statusCode.Equals("Success"))
+                //    .OrderByDescending(x => x.Created).FirstOrDefault();
+                //var order = "update [PARTICLE] set AADE_MARK='@aademark' where PARTL_REC0 = @uid";
+                //order = order.Replace("@aademark", succesfullresponse.cancellationMark.ToString());
+                //order = order.Replace("@uid", mydatainvoicedto.Uid.ToString());
+                //await ctx.Database.ExecuteSqlRawAsync(order);
 
-                var order2 = "update [PARTICLE] set SYSX_MARK='@aademark' where PARTL_REC0 = @uid";
-                order2 = order2.Replace("@aademark", succesfullresponse.cancellationMark.ToString());
-                order2 = order2.Replace("@uid", mydatainvoicedtobecancelled.Uid.ToString());
-                await ctx.Database.ExecuteSqlRawAsync(order2);
+                //var order2 = "update [PARTICLE] set SYSX_MARK='@aademark' where PARTL_REC0 = @uid";
+                //order2 = order2.Replace("@aademark", succesfullresponse.cancellationMark.ToString());
+                //order2 = order2.Replace("@uid", mydatainvoicedtobecancelled.Uid.ToString());
+                //await ctx.Database.ExecuteSqlRawAsync(order2);
             }
             catch (Exception ex)
             {

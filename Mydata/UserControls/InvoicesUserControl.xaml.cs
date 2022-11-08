@@ -1,28 +1,18 @@
-﻿using Domain.DTO;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Threading;
-using AutoMapper;
+﻿using Business.Services;
+using Domain.DTO;
 using Infrastructure.Interfaces.ApiServices;
 using Infrastructure.Interfaces.Services;
 using Microsoft.Extensions.Options;
+using Mydata.UiModels;
 using Mydata.ViewModels;
 using Syncfusion.UI.Xaml.Grid;
-using Path = System.IO.Path;
-using SelectionChangedEventArgs = System.Windows.Controls.SelectionChangedEventArgs;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
-using Infrastructure.Database;
-using Syncfusion.Windows.Tools.Controls;
-using Newtonsoft.Json.Linq;
-using Business.Services;
-using Mydata.UiModels;
 
 namespace Mydata
 {
@@ -33,10 +23,10 @@ namespace Mydata
     {
         private readonly IInvoiceRepo _invoiceRepo;
         private readonly IInvoiceService _invoiceService;
-      
+
         private double _autoHeight;
         private InvoicesViewModel _viewmodel;
-        
+
         private readonly GridRowSizingOptions _gridRowResizingOptions;
         private readonly IOptions<AppSettings> _appSettings;
         private readonly string _conenctionString;
@@ -51,28 +41,26 @@ namespace Mydata
             this.DataContext = _viewmodel;
         }
 
-
-
         private void ViewClicked(object sender, RoutedEventArgs e)
         {
             var rowDataContent = sfGrid.SelectedItem as MyDataInvoiceDTO;
 
-            if (rowDataContent.invoiceMark != null) return;
+            if (rowDataContent.invoiceMark.Length != 0 && rowDataContent.MyDataCancellationResponses.Count == 0) return;
 
             List<MyGenericErrorsDTO> errors;
             var myDataResponseRepo = new MyDataResponseRepo(_conenctionString);
-            if (rowDataContent.CancellationMark == null)
+
+            if (rowDataContent.MyDataCancellationResponses.Count == 0)
             {
-                errors = myDataResponseRepo.MapToGenericErrorDTO(rowDataContent.MyDataResponses.OrderBy(x=>x.Created).Last().errors);
+                errors = myDataResponseRepo.MapToGenericErrorDTO(rowDataContent.MyDataResponses.OrderBy(x => x.Created).Last().errors);
             }
             else
             {
-                errors = myDataResponseRepo.MapToGenericErrorDTOCancellation(rowDataContent.MyDataCancelationResponses.OrderBy(x => x.Created).Last().errors);
+                errors = myDataResponseRepo.MapToGenericErrorDTOCancellation(rowDataContent.MyDataCancellationResponses.OrderBy(x => x.Created).Last().Errors);
             }
 
             if (errors.Count > 0)
             {
-
                 _viewmodel.MyDataErrorDTOs.Clear();
                 foreach (var myDataErrorDTO in errors)
                 {
@@ -88,21 +76,14 @@ namespace Mydata
             MainGrid.Opacity = 0.2;
         }
 
-        
-
-
         private void PopupNewClosed(object sender, RoutedEventArgs e)
         {
             this.MainGrid.Opacity = 1;
         }
 
-      
-
-       
-
         private async void ButtonCancel2021_Click(object sender, RoutedEventArgs e)
         {
-            var result = MessageBox.Show("Θέλετε σίγουρα να προχωρήσετε σε ακύρωση των παραστατικών του 2021?", "Επιβεβαίωση", MessageBoxButton.YesNo,MessageBoxImage.Question);
+            var result = MessageBox.Show("Θέλετε σίγουρα να προχωρήσετε σε ακύρωση των παραστατικών του 2021?", "Επιβεβαίωση", MessageBoxButton.YesNo, MessageBoxImage.Question);
 
             if (result != MessageBoxResult.Yes)
             {
@@ -129,7 +110,6 @@ namespace Mydata
                     {
                         LabelCancelled.Content += " : OK";
                     }
-
                 }
             }
             catch (Exception)
@@ -145,17 +125,13 @@ namespace Mydata
             if (logFileResult)
             {
                 MessageBox.Show("Το αρχείο καταγραφής, δημιουργήθηκε στο path : \n" +
-                    _appSettings.Value.folderPath +"\\LogFiles", "Η Διαδικασία Ολοκληρώθηκε", MessageBoxButton.OK, MessageBoxImage.Information);
+                    _appSettings.Value.folderPath + "\\LogFiles", "Η Διαδικασία Ολοκληρώθηκε", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             else
             {
                 MessageBox.Show("Υπήρξε πρόβλημα κατά την δημιουργία αρχείου log.", "Η Διαδικασία Ολοκληρώθηκε", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-
-        
- 
-        
 
         private void ErrorGrid_OnQueryRowHeight(object sender, QueryRowHeightEventArgs e)
         {

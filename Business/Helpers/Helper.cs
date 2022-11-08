@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Business.Services;
+using Domain.DTO;
+using Domain.Model;
 
 namespace Business.Helpers
 {
@@ -19,7 +22,6 @@ namespace Business.Helpers
             var areEquals = (date1notnull.Year == date2notnull.Year && date1notnull.Month == date2notnull.Month && date1notnull.Day == date2notnull.Day);
             return areEquals;
         }
-
 
     }
 }

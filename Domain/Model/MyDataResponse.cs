@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Text;
 
 namespace Domain.Model
 {
@@ -9,6 +8,7 @@ namespace Domain.Model
     {
         [ForeignKey("MyDataInvoiceId")]
         public virtual Guid MyDataInvoiceId { get; set; }
+
         public virtual MyDataInvoice MyDataInvoice { get; set; }
         public virtual int? index { get; set; }
         public virtual string statusCode { get; set; }

@@ -86,7 +86,8 @@ namespace Business.Services
                                                                                 && x.Series.Equals(invoiceParticle
                                                                                     .Series) && x.Date ==
                                                                                 invoiceParticle.Date);
-            particle.Mark = invoiceParticle.Mark;
+            Mapper.Map(invoiceParticle, particle);
+            
             var result = await context.SaveChangesAsync();
             return result > 0;
 
@@ -106,7 +107,24 @@ namespace Business.Services
         {
             var context = GetContext();
             var particle = await context.Particles.FirstOrDefaultAsync(x => x.Mark.Equals(invoiceCancellationMark.ToString()));
-            return Mapper.Map<ParticleDTO>(particle);
+            var particleDTO= Mapper.Map<ParticleDTO>(particle);
+
+
+            var ptyppar = await context.Ptyppars.AsNoTracking().FirstOrDefaultAsync(x => x.PTYPPAR_RECR.Equals(particleDTO.PTYPPAR_RECR));
+            var ptypparDTO = Mapper.Map<PtypparDTO>(ptyppar);
+            particleDTO.Ptyppar = ptypparDTO;
+
+            var client = await context.Clients.AsNoTracking().FirstOrDefaultAsync(x => x.ClientId.Equals(particleDTO.ClientId));
+            if (client != null)
+            {
+                var city = await context.Cities.AsNoTracking().FirstOrDefaultAsync(x => x.CityId.Equals(client.CLIENT_CITY_ID));
+                var cityDTO = Mapper.Map<CityDTO>(city);
+                var clientDTO = Mapper.Map<ClientDTO>(client);
+                clientDTO.City = cityDTO;
+                particleDTO.Client = clientDTO;
+            }
+
+            return particleDTO;
         }
     }
 
