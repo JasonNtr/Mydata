@@ -49,7 +49,7 @@ namespace Business.Services
                     .AsNoTracking()
                     .Where(x => x.Modified.Date >= newFromDate && x.Modified.Date <= newToDate)
                     .Include(p => p.MyDataResponses).ThenInclude(p => p.Errors)
-                    .Include(p => p.MyDataCancellationResponses)//.ThenInclude(p => p.Errors)
+                    .Include(p => p.MyDataCancellationResponses).ThenInclude(p => p.Errors)
                     .Include(p => p.InvoiceType)
                     .OrderByDescending(x => x.Modified)
                     .ToListAsync();
