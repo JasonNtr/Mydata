@@ -1,43 +1,32 @@
-﻿using System;
+﻿using Domain.DTO;
+using Domain.Model;
+using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Domain.DTO;
-using Domain.Model;
-using Infrastructure.Database.RequestDocModels;
-using Infrastructure.Interfaces.Services;
-using Microsoft.EntityFrameworkCore;
 
 namespace Business.Services
 {
-    public class InvoiceRepo : Repo 
+    public class InvoiceRepo : Repo
     {
-         
         public InvoiceRepo(string connectionString) : base(connectionString)
         {
-
         }
-        
 
-         
-        
         public async Task<MyDataInvoiceDTO> Get()
         {
             var context = GetContext();
-            var mydatainvoice = 
+            var mydatainvoice =
                 await context.MyDataInvoices
                     .Where(x => x.MyDataResponses.Any(y => y.statusCode.Equals("Success")))
                     .Include(p => p.MyDataResponses).ThenInclude(p => p.Errors)
                     .Include(p => p.InvoiceType)
                     .FirstOrDefaultAsync();
-            
+
             var mydatainvoicedto = Mapper.Map<MyDataInvoiceDTO>(mydatainvoice);
             return mydatainvoicedto;
         }
-
-       
- 
- 
 
         public async Task<List<MyDataInvoiceDTO>> GetList(DateTime fromDate, DateTime toDate)
         {
@@ -71,7 +60,6 @@ namespace Business.Services
             return mydatainvoicedto;
         }
 
-      
         public async Task<bool> InsertOrUpdateRangeForPost(List<MyDataInvoiceDTO> transferModelMyDataInvoices)
         {
             var context = GetContext();
@@ -90,12 +78,12 @@ namespace Business.Services
                     var myInvoice = await context.MyDataInvoices.FirstOrDefaultAsync(x =>
                         x.InvoiceDate == invoice.InvoiceDate && x.Uid == invoice.Uid &&
                         x.InvoiceNumber == invoice.InvoiceNumber && x.VAT.Equals(invoice.VAT));
-                     
+
                     foreach (var response in invoice.MyDataResponses)
                     {
                         response.MyDataInvoiceId = myInvoice.Id;
                     }
-                    
+
                     await context.AddRangeAsync(invoice.MyDataResponses);
                 }
                 else
@@ -103,8 +91,7 @@ namespace Business.Services
                     await context.AddAsync(invoice);
                 }
             }
-            
-            
+
             var result = await context.SaveChangesAsync();
             return result > 0;
         }
@@ -124,16 +111,14 @@ namespace Business.Services
                 {
                     var myInvoice = await context.MyDataCancelInvoices.FirstOrDefaultAsync(x => x.Uid == invoice.Uid);
                     myInvoice.invoiceMark = invoice.invoiceMark;
-                    myInvoice.invoiceProcessed= invoice.invoiceProcessed; 
+                    myInvoice.invoiceProcessed = invoice.invoiceProcessed;
                     context.Update(myInvoice);
-
                 }
                 else
                 {
                     await context.AddAsync(invoice);
                 }
             }
-
 
             var result = await context.SaveChangesAsync();
             return result > 0;
@@ -170,7 +155,6 @@ namespace Business.Services
                 }
 
                 await context.AddRangeAsync(invoice.MyDataCancellationResponses);
-               
             }
 
             var result = await context.SaveChangesAsync();
