@@ -21,10 +21,11 @@ namespace Business.Services
             startDate = startDate.AddDays(-1).Date;
             endDate= endDate.AddDays(1).Date;
 
+            
             var ptyppars = await context.Ptyppars.AsNoTracking().Where(x => x.UpdateMyData == 1).Select(x => x.PTYPPAR_RECR).ToListAsync();
 
             var particles = await context.Particles.AsNoTracking().Where(x=>x.Date > startDate.Date && x.Date < endDate
-                && ptyppars.Contains(x.PTYPPAR_RECR) && x.Mark == null && x.Closed.Equals("1") && x.Printed.Equals("1")).ToListAsync();
+                && ptyppars.Contains(x.PTYPPAR_RECR) && x.Mark == null && x.Closed.Equals("1") && x.Printed.Equals("1") && x.Number>0).ToListAsync();
 
             var particlesDTO = Mapper.Map<List<ParticleDTO>>(particles);
 
@@ -37,6 +38,8 @@ namespace Business.Services
             
             return particlesDTO;
         }
+
+         
 
         private async Task<ParticleDTO> Get(ParticleDTO particleDTO)
         {
@@ -82,10 +85,13 @@ namespace Business.Services
         {
             var context = GetContext();
             var particle = await context.Particles.FirstOrDefaultAsync(x => x.Number == invoiceParticle.Number &&
+                                                                            x.CTYPKIN_CODE.Equals(invoiceParticle.CTYPKIN_CODE) &&
+                                                                            x.PTYPPAR_CODE.Equals(invoiceParticle.PTYPPAR_CODE) &&
                                                                             x.ClientId.Equals(invoiceParticle.ClientId)
                                                                                 && x.Series.Equals(invoiceParticle
                                                                                     .Series) && x.Date ==
                                                                                 invoiceParticle.Date);
+           
             Mapper.Map(invoiceParticle, particle);
             
             var result = await context.SaveChangesAsync();
@@ -125,6 +131,23 @@ namespace Business.Services
             }
 
             return particleDTO;
+        }
+
+
+        public async Task<ParticleDTO> GetParticleByRec0(long? invoiceUid)
+        {
+            var context = GetContext();
+            var particle = await context.Particles.FirstOrDefaultAsync(x => x.Rec0 == invoiceUid);
+            var particleDTO = Mapper.Map<ParticleDTO>(particle);
+            var fullParticle = await Get(particleDTO);
+            return fullParticle;
+        }
+
+        public async Task<List<string>> GetTypes()
+        {
+            var context = GetContext();
+            var types = await context.Ptyppars.Select(x => x.TYPOS_XARAKTHR).Where(x => x != null).Distinct().OrderBy(x => x).ToListAsync();
+            return types;
         }
     }
 

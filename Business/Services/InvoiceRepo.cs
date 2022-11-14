@@ -43,18 +43,6 @@ namespace Business.Services
                     .OrderByDescending(x => x.Modified)
                     .ToListAsync();
 
-            var list2 = list.Where(x => x.MyDataCancellationResponses.Count > 0).ToList();
-
-            foreach (var item in list2)
-            {
-                list.Remove(item);
-
-                foreach (var response in item.MyDataCancellationResponses)
-                {
-                    response.MyDataInvoice = null;
-                }
-                list.Add(item);
-            }
 
             var mydatainvoicedto = Mapper.Map<List<MyDataInvoiceDTO>>(list);
             return mydatainvoicedto;
@@ -67,6 +55,7 @@ namespace Business.Services
             var invoices = new List<MyDataInvoice>();
             Mapper.Map(transferModelMyDataInvoices, invoices);
 
+            
             foreach (var invoice in invoices)
             {
                 var exists = await context.MyDataInvoices.AnyAsync(x =>
@@ -160,5 +149,16 @@ namespace Business.Services
             var result = await context.SaveChangesAsync();
             return result > 0;
         }
+
+        public async Task<bool> InsertResponse(MyDataResponseDTO responseDTO)
+        {
+            var context = GetContext();
+            var response = Mapper.Map<MyDataResponse>(responseDTO);
+            context.MyDataResponses.Add(response);
+            var result = await context.SaveChangesAsync();
+            return result > 0;
+        }
+
+
     }
 }

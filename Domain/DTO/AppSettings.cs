@@ -10,7 +10,7 @@ namespace Domain.DTO
         public string url { get; set; }
         public string aade_user_id { get; set; }
         public string Ocp_Apim_Subscription_Key { get; set; }
-        public double timerSeconds { get; set; }
+        public double timerMsSeconds { get; set; }
         public int startupDelayMSeconds { get; set; }
         public string folderPath { get; set; }
         public bool Auto { get; set; }

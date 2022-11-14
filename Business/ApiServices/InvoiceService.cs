@@ -4,6 +4,8 @@ using Business.Services;
 using Domain.AADE;
 using Domain.DTO;
 using Domain.Model;
+using Infrastructure.Database.RequestDocModels;
+using Infrastructure.Interfaces.Services;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
@@ -31,6 +33,10 @@ namespace Business.ApiServices
 
         public async Task<bool> PostActionNew(MyDataInvoiceTransferModel transferModel)
         {
+            var particleRepo = new ParticleRepo(_connectionString);
+            var invoiceRepo = new InvoiceRepo(_connectionString);
+            var result = false;
+
             var url = _appSettings.Value.url;
             var aadeUserId = _appSettings.Value.aade_user_id;
             var ocpApimSubscriptionKey = _appSettings.Value.Ocp_Apim_Subscription_Key;
@@ -50,11 +56,15 @@ namespace Business.ApiServices
                 httpResponseMessage = await client.PostAsync(uri, content);
             }
             var httpresponsecontext = await httpResponseMessage.Content.ReadAsStringAsync();
+             
             var mydataresponse = ParseInvoiceResponseResult(httpresponsecontext);
 
+            if (mydataresponse.Count == 1 && transferModel.MyDataInvoices.Count >1)
+            {
+                result = await PostActionPerIvoice(transferModel);
+                return result;
+            }
             var i = 0;
-            var particleRepo = new ParticleRepo(_connectionString);
-            var result = false;
             foreach (var invoice in transferModel.MyDataInvoices)
             {
                 mydataresponse[i].MyDataInvoiceId = invoice.Id;
@@ -66,13 +76,87 @@ namespace Business.ApiServices
                 }
                 i++;
             }
+            result = await invoiceRepo.InsertOrUpdateRangeForPost(transferModel.MyDataInvoices);
+            return result;
+        }
 
+        private async Task<bool> PostActionPerIvoice(MyDataInvoiceTransferModel transferModel)
+        {
+            var particleRepo = new ParticleRepo(_connectionString);
             var invoiceRepo = new InvoiceRepo(_connectionString);
+            var result = false;
+
+            var url = _appSettings.Value.url;
+            var aadeUserId = _appSettings.Value.aade_user_id;
+            var ocpApimSubscriptionKey = _appSettings.Value.Ocp_Apim_Subscription_Key;
+
+            var uri = url + "/SendInvoices"; // + queryString;
+
+            var client = new HttpClient();
+            client.DefaultRequestHeaders.Add("aade-user-id", aadeUserId);
+            client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", ocpApimSubscriptionKey);
+            HttpResponseMessage httpResponseMessage;
+
+            var i = 0;
+            foreach (var xml in transferModel.XmlPerInvoice)
+            {
+                var invoice = transferModel.MyDataInvoices[i];
+                byte[] byteData = Encoding.UTF8.GetBytes(xml);
+                using (var content = new ByteArrayContent(byteData))
+                {
+                    content.Headers.ContentType = new MediaTypeHeaderValue("text/xml");
+                    httpResponseMessage = await client.PostAsync(uri, content);
+                }
+                var httpresponsecontext = await httpResponseMessage.Content.ReadAsStringAsync();
+
+                var mydataresponse = ParseInvoiceResponseResult(httpresponsecontext);
+
+                mydataresponse[0].MyDataInvoiceId = invoice.Id;
+                invoice.MyDataResponses.Add(mydataresponse[0]);
+                if (mydataresponse[0].statusCode.Equals("Success"))
+                {
+                    invoice.Particle.Mark = mydataresponse[0].invoiceMark.ToString();
+                    result = await particleRepo.Update(invoice.Particle);
+                }
+
+                i++;
+            }
 
             result = await invoiceRepo.InsertOrUpdateRangeForPost(transferModel.MyDataInvoices);
 
             return result;
         }
+
+        public async Task<bool> PostIncomeClassification(string xml)
+        {
+            var result = false;
+            var invoiceRepo = new InvoiceRepo(_connectionString);
+            var url = _appSettings.Value.url;
+            var aadeUserId = _appSettings.Value.aade_user_id;
+            var ocpApimSubscriptionKey = _appSettings.Value.Ocp_Apim_Subscription_Key;
+
+            var uri = url + "/SendIncomeClassification?"; // + queryString;
+
+            var client = new HttpClient();
+            client.DefaultRequestHeaders.Add("aade-user-id", aadeUserId);
+            client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", ocpApimSubscriptionKey);
+            HttpResponseMessage httpResponseMessage;
+
+            byte[] byteData = Encoding.UTF8.GetBytes(xml);
+            using (var content = new ByteArrayContent(byteData))
+            {
+                content.Headers.ContentType = new MediaTypeHeaderValue("text/xml");
+                httpResponseMessage = await client.PostAsync(uri, content);
+            }
+            var httpresponsecontext = await httpResponseMessage.Content.ReadAsStringAsync();
+
+            var mydataresponse = ParseInvoiceResponseResult(httpresponsecontext);
+
+            result = await invoiceRepo.InsertResponse(mydataresponse.FirstOrDefault());
+
+            return result;
+        }
+        
 
         public async Task<bool> CancelActionNew(MyDataInvoiceTransferModel transferModel)
         {
@@ -124,9 +208,7 @@ namespace Business.ApiServices
                     result = await invoiceRepo.UpdateCancellationMark(myDataInvoice, invoice.Particle.Mark);
                 }
             }
-
             
-
             result = await invoiceRepo.InsertOrUpdateRangeForCancel(transferModel.MyCancelDataInvoices);
             result = await invoiceRepo.InsertCancelResponses(invoiceList);
 
@@ -218,8 +300,6 @@ namespace Business.ApiServices
                 mydataresponses.Add(mydataresponse);
                 return mydataresponses;
             }
-
-            return null;
         }
 
         private async Task<MyDataInvoiceDTO> ConvertParticleToMyDataInvoice(ParticleDTO particleToBeCancelled)
@@ -236,5 +316,7 @@ namespace Business.ApiServices
 
             return myDataInvoice;
         }
+
+        
     }
 }

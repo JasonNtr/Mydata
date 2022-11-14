@@ -31,13 +31,11 @@ namespace Domain.AADE
 
         private bool selfPricingField;
 
-        private System.DateTime dispatchDateField;
-
-        private System.DateTime dispatchTimeField;
+         
 
         private string vehicleNumberField;
 
-        private byte movePurposeField;
+      
 
         private bool fuelInvoiceField;
 
@@ -164,33 +162,7 @@ namespace Domain.AADE
             }
         }
 
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(DataType = "date")]
-        public System.DateTime dispatchDate
-        {
-            get
-            {
-                return this.dispatchDateField;
-            }
-            set
-            {
-                this.dispatchDateField = value;
-            }
-        }
-
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(DataType = "time")]
-        public System.DateTime dispatchTime
-        {
-            get
-            {
-                return this.dispatchTimeField;
-            }
-            set
-            {
-                this.dispatchTimeField = value;
-            }
-        }
+        
 
         /// <remarks/>
         public string vehicleNumber
@@ -205,18 +177,7 @@ namespace Domain.AADE
             }
         }
 
-        /// <remarks/>
-        public byte movePurpose
-        {
-            get
-            {
-                return this.movePurposeField;
-            }
-            set
-            {
-                this.movePurposeField = value;
-            }
-        }
+     
 
         [XmlIgnore]
         public bool fuelInvoice

@@ -11,7 +11,7 @@ namespace Domain.DTO
         public string Company { get; set; }
 
         public string Branch { get; set; }
-
+        public string PTYPPAR_CODE { get; set; }
         public decimal Year { get; set; }
 
         public string CTYPKIN_CODE { get; set; }
@@ -64,5 +64,24 @@ namespace Domain.DTO
         public virtual BranchDTO BranchDTO { get; set; }
 
         public Guid DataGridId { get; set; }
+
+        public override bool Equals(object obj)
+        {
+            if (!(obj is ParticleDTO other))
+                return false;
+
+            return Company.Equals(other.Company) &&
+                   Branch.Equals(other.Branch) &&
+                   CTYPKIN_CODE.Equals(other.CTYPKIN_CODE) &&
+                   WTYPKIN_CODE.Equals(other.WTYPKIN_CODE) &&
+                   PTYPPAR_CODE.Equals(other.PTYPPAR_CODE) &&
+                   Series.Equals(other.Series) &&
+                   CUSTPROM_CODE.Equals(other.CUSTPROM_CODE) &&
+                   ClientId.Equals(other.ClientId) &&
+                   Year == other.Year &&
+                   Number == other.Number &&
+                   Date == other.Date;
+
+        }
     }
 }

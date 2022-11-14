@@ -19,7 +19,7 @@ namespace Domain.AADE
 
         private decimal quantityField;
 
-        private byte measurementUnitField;
+        
 
         private byte invoiceDetailTypeField;
 
@@ -126,19 +126,7 @@ namespace Domain.AADE
                 this.quantityField = Convert.ToDecimal(value);
             }
         }
-
-        /// <remarks/>
-        public byte measurementUnit
-        {
-            get
-            {
-                return this.measurementUnitField;
-            }
-            set
-            {
-                this.measurementUnitField = value;
-            }
-        }
+ 
 
         [XmlIgnore]
         public byte invoiceDetailType

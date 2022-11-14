@@ -1,4 +1,5 @@
 ﻿using Business.Services;
+using Domain.AADE;
 using Domain.DTO;
 using Infrastructure.Interfaces.ApiServices;
 using Infrastructure.Interfaces.Services;
@@ -6,6 +7,7 @@ using Microsoft.Extensions.Options;
 using Mydata.UiModels;
 using Mydata.ViewModels;
 using Syncfusion.UI.Xaml.Grid;
+using Syncfusion.UI.Xaml.ScrollAxis;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -13,6 +15,8 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Mydata.Renderers;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.ListView;
 
 namespace Mydata
 {
@@ -23,7 +27,7 @@ namespace Mydata
     {
         private readonly IInvoiceRepo _invoiceRepo;
         private readonly IInvoiceService _invoiceService;
-
+        private readonly string _connectionString;
         private double _autoHeight;
         private InvoicesViewModel _viewmodel;
 
@@ -37,15 +41,32 @@ namespace Mydata
         public InvoicesUserControl(IOptions<AppSettings> appSettings, string conenctionString)
         {
             InitializeComponent();
+            _connectionString = conenctionString;
             _viewmodel = new InvoicesViewModel(appSettings, conenctionString);
             this.DataContext = _viewmodel;
+
+            
+            this.editGrid.CellRenderers.Remove("ComboBox");
+            //Customized combobox cell renderer is added.
+            this.editGrid.CellRenderers.Add("ComboBox", new ComboBoxRenderer());
+            _viewmodel.TypesAndCategoriesLoaded += _viewmodel_TypesAndCategoriesLoaded;
         }
 
+        private void _viewmodel_TypesAndCategoriesLoaded(object sender, bool e)
+        {
+            GridComboBoxColumn2.ItemsSource = _viewmodel.Categories;
+        }
+
+       
         private void ViewClicked(object sender, RoutedEventArgs e)
         {
             var rowDataContent = sfGrid.SelectedItem as MyDataInvoiceDTO;
 
-            if (rowDataContent.invoiceMark.Length != 0 && rowDataContent.MyDataCancellationResponses.Count == 0) return;
+            if (rowDataContent.invoiceMark.Length != 0 && rowDataContent.MyDataCancellationResponses.Count == 0)
+            {
+                ShowInvoiceLinesToEdit(rowDataContent);
+                return;
+            } 
 
             List<MyGenericErrorsDTO> errors;
             var myDataResponseRepo = new MyDataResponseRepo(_conenctionString);
@@ -70,9 +91,37 @@ namespace Mydata
                 var maxLength = errors.Max(x => x.Message.Length);
                 var lines = maxLength / 10;
                 _rowHeight = 5 * lines;
+
+                if (_rowHeight < 25) _rowHeight = 30;
             }
 
             Popupnew.IsPopupOpen = true;
+            MainGrid.Opacity = 0.2;
+        }
+
+        private async void ShowInvoiceLinesToEdit(MyDataInvoiceDTO invoice)
+        {
+            var particleRepo = new ParticleRepo(_connectionString);
+            var particleDTO = await particleRepo.GetParticleByRec0(invoice.Uid);
+            _viewmodel.SelectedInvoice = invoice;
+
+
+            if (particleDTO.Pmoves.Count == 0) return;
+            _viewmodel.IncomeClassificationsForEdit.Clear();
+           
+            foreach (var item in particleDTO.Pmoves)
+            {
+                var incomeClassificationForEdit = new IncomeClassificationForEditInvoice
+                {
+                    ItemDescription = item.Item.ITEM_DESCR,
+                    CharacterizationType = particleDTO.Ptyppar.TYPOS_XARAKTHR,
+                    CharacterizationCategory = item.Item.KATHG_XARAKTHR,
+                    Amount = item.PMS_AMAFTDISC
+                };
+                _viewmodel.IncomeClassificationsForEdit.Add(incomeClassificationForEdit);
+            }
+
+            PopupEdit.IsPopupOpen = true;
             MainGrid.Opacity = 0.2;
         }
 
@@ -80,59 +129,9 @@ namespace Mydata
         {
             this.MainGrid.Opacity = 1;
         }
+      
 
-        private async void ButtonCancel2021_Click(object sender, RoutedEventArgs e)
-        {
-            var result = MessageBox.Show("Θέλετε σίγουρα να προχωρήσετε σε ακύρωση των παραστατικών του 2021?", "Επιβεβαίωση", MessageBoxButton.YesNo, MessageBoxImage.Question);
-
-            if (result != MessageBoxResult.Yes)
-            {
-                return;
-            }
-
-            Mouse.OverrideCursor = Cursors.Wait;
-
-            var successfullInvoices = await _invoiceRepo.GetInvoicesWithSuccessStatusCodeFor2021();
-            var counter = 0;
-
-            try
-            {
-                foreach (var invoice in successfullInvoices)
-                {
-                    counter++;
-                    LabelCancelled.Content = "(" + counter + ") " + invoice.FileName;
-                    var cancellationResult = await _invoiceService.CancelInvoiceBatchProcess(invoice);
-                    if (cancellationResult == -1)
-                    {
-                        LabelCancelled.Content += " : FAILED";
-                    }
-                    else
-                    {
-                        LabelCancelled.Content += " : OK";
-                    }
-                }
-            }
-            catch (Exception)
-            {
-                Mouse.OverrideCursor = null;
-                MessageBox.Show("Υπήρξε πρόβλημα κατά την διαδικασία ακύρωσης. Δεν ήταν δυνατή η δημιουργία Log File", "Η Διαδικασία απέτυχε", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-
-            Mouse.OverrideCursor = null;
-
-            var logFileResult = _invoiceService.CreateLogFileForBatchProcess();
-
-            if (logFileResult)
-            {
-                MessageBox.Show("Το αρχείο καταγραφής, δημιουργήθηκε στο path : \n" +
-                    _appSettings.Value.folderPath + "\\LogFiles", "Η Διαδικασία Ολοκληρώθηκε", MessageBoxButton.OK, MessageBoxImage.Information);
-            }
-            else
-            {
-                MessageBox.Show("Υπήρξε πρόβλημα κατά την δημιουργία αρχείου log.", "Η Διαδικασία Ολοκληρώθηκε", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
+      
         private void ErrorGrid_OnQueryRowHeight(object sender, QueryRowHeightEventArgs e)
         {
             if (e.RowIndex == 0) return;
@@ -150,6 +149,35 @@ namespace Mydata
                 list.Add(myItem);
             }
             _viewmodel.SelectedParticles = new ObservableCollection<DataGridParticle>(list);
+        }
+
+        private void SfGrid_OnSelectionChanged(object sender, GridSelectionChangedEventArgs e)
+        {
+            var item = (MyDataInvoiceDTO)sfGrid.SelectedItem;
+            var particles = (ObservableCollection<DataGridParticle>)sfGrid2.ItemsSource;
+            var particle = particles.FirstOrDefault(x => x.Rec0 == item.Uid);
+            var rowindex = this.sfGrid2.ResolveToRowIndex(particle);
+            if (particle == null) return;
+            var columnindex = this.sfGrid2.ResolveToStartColumnIndex();
+             
+            if (rowindex == particles.Count) rowindex--;
+            this.sfGrid2.ScrollInView(new RowColumnIndex(rowindex, columnindex));
+           
+            this.sfGrid2.View.MoveCurrentTo(particle);
+            sfGrid2.SelectedItems.Clear();
+            if (rowindex == 0) rowindex++;
+            sfGrid2.SelectedIndex = rowindex-1;
+        }
+
+        private void ButtonBase_OnClick(object sender, RoutedEventArgs e)
+        {
+            PopupEdit.IsPopupOpen = false;
+            MainGrid.Opacity = 1;
+        }
+
+        private void EditGrid_OnSelectionChanged(object sender, GridSelectionChangedEventArgs e)
+        {
+            var item = (MyDataInvoiceDTO)sfGrid.SelectedItem;
         }
     }
 }

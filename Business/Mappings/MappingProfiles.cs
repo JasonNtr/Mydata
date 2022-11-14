@@ -3,7 +3,6 @@ using Domain.AADE;
 using Domain.DTO;
 using Domain.Model;
 
-
 namespace Business.Mappings
 {
     public class MappingProfiles : Profile
@@ -24,9 +23,7 @@ namespace Business.Mappings
 
             CreateMap<MyDataError, MyDataErrorDTO>().ReverseMap()
                 .ForMember(d => d.MyDataResponse, opt => opt.Ignore());
-
             
-
 
             CreateMap<MyDataEntity, MyDataEntityDTO>().ReverseMap();
             CreateMap<MyDataInvoiceType, MyDataInvoiceTypeDTO>().ReverseMap();
@@ -56,7 +53,7 @@ namespace Business.Mappings
             CreateMap<FPA, FPADTO>().ReverseMap();
             CreateMap<Client, ClientDTO>().ReverseMap();
             CreateMap<ResponseDocResponse, MyDataResponseDTO>();
-            //CreateMap<ResponseDocResponse, MyDataCancelationResponseDTO>();
+            CreateMap<ResponseDocResponse, MyDataCancelationResponseDTO>();
             CreateMap<ResponseDocResponseError, MyDataErrorDTO>();
             CreateMap<ResponseDocResponseError, MyDataCancelationErrorDTO>();
         }

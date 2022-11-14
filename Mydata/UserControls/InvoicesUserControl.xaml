@@ -14,6 +14,158 @@
             <Setter Property="FontSize" Value="14" />
             <Setter Property="Foreground" Value="Black" />
         </Style>
+
+        <Style x:Key="ButtonFocusVisual">
+            <Setter Property="Control.Template">
+                <Setter.Value>
+                    <ControlTemplate>
+                        <Rectangle Margin="2" SnapsToDevicePixels="true" Stroke="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" StrokeThickness="1" StrokeDashArray="1 2"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <LinearGradientBrush x:Key="ButtonNormalBackground" EndPoint="0,1" StartPoint="0,0">
+            <GradientStop Color="#F3F3F3" Offset="0"/>
+            <GradientStop Color="#EBEBEB" Offset="0.5"/>
+            <GradientStop Color="#DDDDDD" Offset="0.5"/>
+            <GradientStop Color="#CDCDCD" Offset="1"/>
+        </LinearGradientBrush>
+        <SolidColorBrush x:Key="ButtonNormalBorder" Color="#FF707070"/>
+        <Style x:Key="ToggleButtonStyle1" TargetType="{x:Type ToggleButton}">
+            <Setter Property="FocusVisualStyle" Value="{StaticResource ButtonFocusVisual}"/>
+            <Setter Property="Background" Value="{StaticResource ButtonNormalBackground}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource ButtonNormalBorder}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="1"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ToggleButton}">
+                        <StackPanel Orientation="Horizontal">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                            <Border x:Name="on" Width="35" Height="35" Background="LightGray" CornerRadius="2,0,0,4" Margin="10,0,0,0">
+                                <TextBlock x:Name="onText" Text="On" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <Border x:Name="off" Width="35" Height="35" Background="LightGray" CornerRadius="0,2,4,0">
+                                <TextBlock x:Name="offText" Text="Off" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </StackPanel>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsEnabled" Value="false">
+                                <Setter Property="Foreground" Value="#ADADAD"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="true">
+                                <Setter TargetName="on" Property="Background" Value="#3366ff"/>
+                                <Setter TargetName="onText" Property="Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="False">
+                                <Setter TargetName="off" Property="Background" Value="Red"/>
+                                <Setter TargetName="offText" Property="Foreground" Value="White"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ButtonAdvStyle1" TargetType="{x:Type syncfusion:ButtonAdv}">
+            <Setter Property="Foreground" Value="#FF1B293E"/>
+             
+            <Setter Property="Label" Value="Button"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="Background">
+                <Setter.Value>
+                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                        <GradientStop Color="#3366ff" Offset="0.469"/>
+                        <GradientStop Color="#3366ff" Offset="0.531"/>
+                        <GradientStop Color="#3366ff" Offset="0.954"/>
+                    </LinearGradientBrush>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="BorderBrush" Value="#FF707070"/>
+            <Setter Property="Padding" Value="2,0,4,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type syncfusion:ButtonAdv}">
+                        <Border x:Name="ItemBorder" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" CornerRadius="3" MinHeight="22" SnapsToDevicePixels="True">
+                            <Border.Resources>
+                                <syncfusion:HorizontalContentToTextAlignmentConverter x:Key="TextAlignmentConverter"/>
+                            </Border.Resources>
+                            <Border x:Name="InnerBorder" BorderThickness="{TemplateBinding BorderThickness}" Background="Transparent" CornerRadius="3">
+                                <Border.BorderBrush>
+                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                        <GradientStop Color="White" Offset="0"/>
+                                        <GradientStop Color="#FFE8E8E8" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Border.BorderBrush>
+                                <Grid HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition/>
+                                    </Grid.ColumnDefinitions>
+                                    <Border x:Name="PART_ImageBorder" Grid.Column="0">
+                                        <ContentPresenter x:Name="SmallIconContent" ContentTemplate="{TemplateBinding IconTemplate}" Content="{Binding}" Margin="2"/>
+                                    </Border>
+                                    <AccessText x:Name="PART_NormalText" Grid.Column="1" Foreground="{TemplateBinding Foreground}" FontSize="{TemplateBinding FontSize}" FontFamily="{TemplateBinding FontFamily}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="2,0" Text="{TemplateBinding Label}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
+                                        <AccessText.TextAlignment>
+                                            <Binding Path="HorizontalContentAlignment" RelativeSource="{RelativeSource TemplatedParent}">
+                                                <Binding.Converter>
+                                                    <syncfusion:HorizontalContentToTextAlignmentConverter/>
+                                                </Binding.Converter>
+                                            </Binding>
+                                        </AccessText.TextAlignment>
+                                    </AccessText>
+                                </Grid>
+                            </Border>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="syncfusion:SkinStorage.EnableTouch" Value="True">
+                                <Setter Property="MinHeight" Value="30"/>
+                                <Setter Property="MinWidth" Value="30"/>
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsMouseOver" Value="True"/>
+                                    <Condition Property="syncfusion:SkinStorage.EnableTouch" Value="False"/>
+                                </MultiTrigger.Conditions>
+                                <Setter Property="Background" TargetName="ItemBorder" Value="#42C0FB"/>
+                                <Setter Property="BorderBrush" TargetName="ItemBorder" Value="#FF3C7FB1"/>
+                                <Setter Property="Foreground" TargetName="PART_NormalText" Value="White"/>
+                                <Setter Property="BorderBrush" TargetName="InnerBorder">
+                                    <Setter.Value>
+                                        <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                            <GradientStop Color="#FFFEFFFF" Offset="0"/>
+                                            <GradientStop Color="#FFD6EDFA" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Setter.Value>
+                                </Setter>
+                            </MultiTrigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsMouseOver" Value="True"/>
+                                    <Condition Property="syncfusion:SkinStorage.EnableTouch" Value="False"/>
+                                </MultiTrigger.Conditions>
+                            </MultiTrigger>
+                            <Trigger Property="IsMultiLine" Value="True">
+                                <Setter Property="TextWrapping" TargetName="PART_NormalText" Value="Wrap"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" TargetName="ItemBorder" Value="#42C0FB"/>
+                                <Setter Property="BorderBrush" TargetName="ItemBorder" Value="#FF2C628B"/>
+                                <Setter Property="Foreground" TargetName="PART_NormalText" Value="Black"/>
+                                
+                            </Trigger>
+                            
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            
+        </Style>
     </UserControl.Resources>
 
     <Grid Margin="10" x:Name="MainGrid" IsEnabled="{Binding GridEnabled}">
@@ -68,21 +220,18 @@
             </Button.Triggers>
         </Button>
 
-
-
-
         <syncfusion:SfDataGrid x:Name="sfGrid" ItemsSource="{Binding Path=MyDataInvoiceDTOs}" Grid.Row="1" Grid.ColumnSpan="2" 
                                HeaderStyle="{StaticResource headerStyle}" RowHeight="35" Margin="0,0,0,20"
-                                  AutoGenerateColumns="False"  ColumnSizer="Star" NavigationMode="Row"  >
+                                  AutoGenerateColumns="False"  ColumnSizer="Star" NavigationMode="Row"  SelectionChanged ="SfGrid_OnSelectionChanged">
             <syncfusion:SfDataGrid.Columns>
                 <syncfusion:GridTextColumn MappingName="ModifiedToString" HeaderText="Τελευταία τροποποίηση" TextAlignment="Center"/>
                 <syncfusion:GridTextColumn MappingName="Uid" Width="100" HeaderText="UID" TextAlignment="Center"/>
-                <syncfusion:GridTextColumn MappingName="InvoiceNumber" AllowFiltering="True" HeaderText="ΑΡ. ΠΑΡ." Width="150" TextAlignment="Center"/>
-                <syncfusion:GridTextColumn MappingName="InvoiceDateToString" HeaderText="ΗΜ. ΠΑΡ." Width="150" TextAlignment="Center"/>
+                <syncfusion:GridTextColumn MappingName="InvoiceNumber"  HeaderText="ΑΡ. ΠΑΡ." Width="150" TextAlignment="Center"/>
+                <syncfusion:GridTextColumn MappingName="InvoiceDateToString" HeaderText="ΗΜ. ΠΑΡ." AllowFiltering="True" Width="150" TextAlignment="Center"/>
                 <syncfusion:GridTextColumn MappingName="InvoiceType.Title" HeaderText="ΠΑΡΑΣΤΑΤΙΚΟ" AllowFiltering="True" TextAlignment="Center"/>
-                <syncfusion:GridTextColumn MappingName="VAT"  HeaderText="ΑΦΜ ΠΕΛΑΤΗ" AllowFiltering="True" TextAlignment="Center"/>
+                <syncfusion:GridTextColumn MappingName="VAT"  HeaderText="ΑΦΜ ΠΕΛΑΤΗ"  TextAlignment="Center"/>
                 <syncfusion:GridTextColumn MappingName="LastestStatus"  HeaderText="Τελευταία κατάσταση" AllowFiltering="True" TextAlignment="Center"/>
-                <syncfusion:GridTextColumn MappingName="invoiceMark"  HeaderText="Mark" AllowFiltering="True" Width="150" TextAlignment="Center"/>
+                <syncfusion:GridTextColumn MappingName="invoiceMark"  HeaderText="Mark"  Width="150" TextAlignment="Center"/>
                 <syncfusion:GridTemplateColumn syncfusion:FocusManagerHelper.WantsKeyInput="True" ColumnMemberType="Button" Width="70"  VerticalAlignment="Stretch">
                     <syncfusion:GridTemplateColumn.CellTemplate>
                         <DataTemplate>
@@ -99,10 +248,10 @@
                                   AutoGenerateColumns="False" SelectionMode="Multiple" HorizontalAlignment="Left" SelectionUnit="Row" NavigationMode="Row"
                                RowSelectionBrush="	#42C0FB" SelectionChanged="SfGrid2_OnSelectionChanged">
             <syncfusion:SfDataGrid.Columns>
-                <syncfusion:GridTextColumn MappingName="Date" HeaderText="Ημερομηνία" Width="150" TextAlignment="Center"/>
-                <syncfusion:GridTextColumn MappingName="Branch" Width="200" HeaderText="Υποκατάστημα" TextAlignment="Center"/>
-                <syncfusion:GridTextColumn MappingName="Series"  HeaderText="Σειρά" Width="100" TextAlignment="Center"/>
-                <syncfusion:GridTextColumn MappingName="Client" HeaderText="Πελάτης" Width="350" TextAlignment="Center"/>
+                <syncfusion:GridTextColumn MappingName="Date" HeaderText="Ημερομηνία" Width="150" TextAlignment="Center" AllowFiltering="True"/>
+                <syncfusion:GridTextColumn MappingName="Branch" Width="200" HeaderText="Υποκατάστημα" TextAlignment="Center" AllowFiltering="True"/>
+                <syncfusion:GridTextColumn MappingName="Series"  HeaderText="Σειρά" Width="100" TextAlignment="Center" AllowFiltering="True"/>
+                <syncfusion:GridTextColumn MappingName="Client" HeaderText="Πελάτης" Width="350" TextAlignment="Center" AllowFiltering="True"/>
                 <syncfusion:GridTextColumn MappingName="PtyParDescription" HeaderText="Παραστατικό" Width="250" TextAlignment="Center" AllowFiltering="True"/>
                 <syncfusion:GridTextColumn MappingName="Amount"  HeaderText="Ποσό"   TextAlignment="Center"/>
                  
@@ -111,17 +260,16 @@
         </syncfusion:SfDataGrid>
 
 
-        <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Vertical" HorizontalAlignment="Right"  Margin="0,40,80,0" >
-            <Button  Content="ΑΠΟΣΤΟΛΗ"  FontSize="15" BorderBrush="#FFBAF5FB" Background="#42C0FB" IsEnabled="{Binding SendEnabled}" Command="{Binding SendParticlesCommand}"/>
-            <Separator Opacity="0" Height="50"/>
-            <Button  Content="ΜΑΖΙΚΗ ΑΠΟΣΤΟΛΗ"  FontSize="15" BorderBrush="#FFBAF5FB" Background="#42C0FB" Command="{Binding SendBatchParticlesCommand}"/>
-        </StackPanel>
+        <Button Grid.Row="3" Grid.Column="1" Content="ΑΠΟΣΤΟΛΗ" Width="200" FontSize="15" BorderBrush="#FFBAF5FB" Background="#42C0FB" HorizontalAlignment="Center"
+                IsEnabled="{Binding SendEnabled}" Command="{Binding SendParticlesCommand}" Margin="430,0,0,0"/>
+
+     
 
 
       
             <materialDesign:PopupBox x:Name="Popupnew"  Visibility="Hidden" StaysOpen="False" Grid.Row="0" Grid.Column="1" PlacementMode="BottomAndAlignCentres" Closed="PopupNewClosed">
-            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Width="850" Height="460">
-                <Grid  Margin="10">
+            
+                <Grid  Margin="10" Width="850" Height="460">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="400" />
                         <RowDefinition Height="40" />
@@ -142,23 +290,57 @@
                             <syncfusion:GridTextColumn MappingName="Message" HeaderText="Μήνυμα" TextWrapping="Wrap"  Padding="5" />
                         </syncfusion:SfDataGrid.Columns>
                     </syncfusion:SfDataGrid>
-                    <Button Grid.Row="1" Grid.Column="1" HorizontalAlignment="Right">
-                        <Button.Content>
-                            <Label Content="Exit " FontWeight="DemiBold" />
-                        </Button.Content>
-                    </Button>
+
+
+                    <syncfusion:ButtonAdv Content="Έξοδος" Background="#42C0FB" IconHeight="0"   Grid.Row="1" Grid.Column="1" HorizontalAlignment="Right"
+                                          Style="{StaticResource ButtonAdvStyle1}"/>
+                    
                 </Grid>
-            </StackPanel>
+            
         </materialDesign:PopupBox>
 
-       
-        
-        
-        <Button  Content="ΜΑΖΙΚΗ ΑΚΥΡΩΣΗ 2021" Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center" Click="ButtonCancel2021_Click" Margin="2,0,0,0" Padding="5" Width="157" FontSize="13" BorderBrush="#FFBAF5FB" Background="#FFE29090"/>
-        <Button Content="RequestDocs" Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center"  Margin="164,0,0,0" Padding="5" FontSize="14" Visibility="Hidden" Width="94" BorderBrush="#FFBAF5FB"/>
-        <Button Content="TransmittedDocs" Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center"   Margin="263,0,0,0" Padding="5" FontSize="14" Visibility="Hidden"  Width="117" BorderBrush="#FFBAF5FB" Background="#FF6EC37D"/>
-        <Label Name="LabelCancelled" Content="" Grid.Column="1" HorizontalAlignment="Left" Margin="5,0,0,0" VerticalAlignment="Top" Width="335"/>
+        <materialDesign:PopupBox x:Name="PopupEdit"  Visibility="Hidden" StaysOpen="True" Grid.Row="0" Grid.Column="1" 
+                                 PlacementMode="BottomAndAlignCentres" Closed="PopupNewClosed">
+            <Grid x:Name="dataGrid" Margin="10" Width="850" Height="460">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="400" />
+                        <RowDefinition Height="40" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <syncfusion:SfDataGrid x:Name="editGrid" HeaderRowHeight="30" RowHeight="40" FontSize="14"  SelectionUnit="Cell" CurrentCellBorderThickness="1" 
+                                           ItemsSource="{Binding Path=IncomeClassificationsForEdit}" Grid.ColumnSpan="3" RowSelectionBrush="WhiteSmoke" SelectionChanged="EditGrid_OnSelectionChanged"
+                                           HeaderStyle="{StaticResource headerStyle}" Margin="0,0,0,20" EditTrigger="OnDoubleTap"
+                                           AutoGenerateColumns="False"
+                                           HorizontalContentAlignment="Center" ColumnSizer="Star">
+                        <syncfusion:SfDataGrid.Columns>
+                            <syncfusion:GridTextColumn MappingName="ItemDescription" HeaderText="Εμπόρευμα" />
+                        <syncfusion:GridTextColumn  MappingName="CharacterizationType" />
+                        <syncfusion:GridComboBoxColumn x:Name="GridComboBoxColumn2" MappingName="CharacterizationCategory" StaysOpenOnEdit="True" AllowEditing="True"/>
 
+                        </syncfusion:SfDataGrid.Columns>
+                    </syncfusion:SfDataGrid>
+ 
+
+                    <syncfusion:ButtonAdv x:Name="SfButton2" Label="Επαναποστολή" Background="#42C0FB" FontSize="15" Width="180" Command ="{Binding ResentCommand}"
+                                         IconWidth="0" IconHeight="0"  Grid.Row="1"  Grid.ColumnSpan="3" HorizontalAlignment="Center" Style="{StaticResource ButtonAdvStyle1}"/>
+
+                    <syncfusion:ButtonAdv Label="Έξοδος" Background="#42C0FB" IconHeight="0" IconWidth="0"  FontSize="15" Click="ButtonBase_OnClick"
+                                          Grid.Row="1" Grid.ColumnSpan="3" HorizontalAlignment="Right" Width="100"
+                                          Style="{StaticResource ButtonAdvStyle1}"/>
+
+                </Grid>
+            
+        </materialDesign:PopupBox>
+
+
+
+        <ToggleButton x:Name = "tb" Content = "AUTO"   Grid.Column="1"  Style="{StaticResource ToggleButtonStyle1}"
+                    HorizontalAlignment = "Center" FontSize="16" IsChecked="{Binding AutoProcedure}"/>
+   
         <syncfusion:SfBusyIndicator Grid.Row="1"  Grid.ColumnSpan="2" IsBusy="{Binding IsBusy}" AnimationSpeed="200" AnimationType="GPS"
                                     ViewboxWidth="150" ViewboxHeight="150" Foreground="DodgerBlue"/>
 
