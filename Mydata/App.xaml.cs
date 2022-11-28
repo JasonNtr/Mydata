@@ -1,24 +1,13 @@
-﻿using System.ComponentModel;
-using System.IO;
-using Infrastructure.Database;
-using Infrastructure.Interfaces;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Configuration;
-using System.Windows;
-using System.Windows.Forms;
-using System.Windows.Threading;
-using Business.ApiServices;
-using Business.Mappings;
-using Business.Services;
+﻿using Business.Services;
 using Domain.DTO;
-using Infrastructure.Interfaces.ApiServices;
-using Infrastructure.Interfaces.Services;
-using Microsoft.EntityFrameworkCore;
-using Mydata.ViewModels;
-using Application = System.Windows.Application;
-using System;
 using Hardcodet.Wpf.TaskbarNotification;
-using System.Diagnostics;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.IO;
+using System.Windows;
+using System.Windows.Threading;
+using Application = System.Windows.Application;
 
 namespace Mydata
 {
@@ -29,18 +18,17 @@ namespace Mydata
     {
         private ServiceProvider ServiceProvider { get; set; }
         public IConfiguration Configuration { get; private set; }
-        
 
         private TaskbarIcon notifyIcon;
+
         public App()
         {
             Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense("Mzg1MjUyQDMxMzgyZTM0MmUzMFNHSUlDTlNGMW4vUTRtZ1hGUDVuWGUrSWVzdHBTa2JZcnFEMUhhK2RnQWs9");
 
-            // Global exception handling  
+            // Global exception handling
             Current.DispatcherUnhandledException += new DispatcherUnhandledExceptionEventHandler(Current_DispatcherUnhandledException);
             DispatcherUnhandledException += new DispatcherUnhandledExceptionEventHandler(App_DispatcherUnhandledException);
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
-
 
             var builder = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
             Configuration = builder.Build();
@@ -48,9 +36,6 @@ namespace Mydata
             var serviceCollection = new ServiceCollection();
             ConfigureServices(serviceCollection);
             ServiceProvider = serviceCollection.BuildServiceProvider();
-
-           
-         
         }
 
         public void ConfigureServices(IServiceCollection services)
@@ -59,12 +44,10 @@ namespace Mydata
             services.Configure<ConnectionStrings>(Configuration.GetSection(nameof(ConnectionStrings)));
             //services.AddDbContext<ApplicationDbContext>
             //(options => options.UseSqlServer(
-            //    Configuration.GetConnectionString("Default")), 
+            //    Configuration.GetConnectionString("Default")),
             //    ServiceLifetime.Transient);
-            
-            //services.AddAutoMapper(typeof(MappingProfiles));
-            
 
+            //services.AddAutoMapper(typeof(MappingProfiles));
         }
 
         protected override void OnStartup(StartupEventArgs e)
@@ -84,16 +67,14 @@ namespace Mydata
             base.OnExit(e);
         }
 
-
-
         private void Current_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e) => e.Handled = false;
 
         private void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e) => e.Handled = false;
 
         private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
-            // we cannot handle this, but not to worry, I have not encountered this exception yet.  
-            // However, you can show/log the exception message and show a message that if the application is terminating or not.  
+            // we cannot handle this, but not to worry, I have not encountered this exception yet.
+            // However, you can show/log the exception message and show a message that if the application is terminating or not.
             LogUnhandledException(e);
         }
 
@@ -111,10 +92,6 @@ namespace Mydata
             {
                 // do nothing to silently swallow error, or try something else...
             }
-
-
-
-
         }
     }
 }

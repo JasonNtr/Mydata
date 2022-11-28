@@ -160,6 +160,8 @@ namespace Domain.DTO
 
         public decimal? DIAKIN { get; set; }
 
+        public string CountryCodeISO { get; set; }
+
         public CityDTO City { get; set; }
  
 

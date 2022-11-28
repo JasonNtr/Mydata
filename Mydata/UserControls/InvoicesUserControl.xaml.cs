@@ -1,9 +1,9 @@
 ﻿using Business.Services;
-using Domain.AADE;
 using Domain.DTO;
 using Infrastructure.Interfaces.ApiServices;
 using Infrastructure.Interfaces.Services;
 using Microsoft.Extensions.Options;
+using Mydata.Renderers;
 using Mydata.UiModels;
 using Mydata.ViewModels;
 using Syncfusion.UI.Xaml.Grid;
@@ -14,9 +14,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
-using Mydata.Renderers;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.ListView;
+using static Domain.Enums.Enums;
 
 namespace Mydata
 {
@@ -25,17 +23,15 @@ namespace Mydata
     /// </summary>
     public partial class InvoicesUserControl : UserControl
     {
-        private readonly IInvoiceRepo _invoiceRepo;
-        private readonly IInvoiceService _invoiceService;
+        
         private readonly string _connectionString;
-        private double _autoHeight;
+       
         private InvoicesViewModel _viewmodel;
 
-        private readonly GridRowSizingOptions _gridRowResizingOptions;
-        private readonly IOptions<AppSettings> _appSettings;
-        private readonly string _conenctionString;
+    
+         
 
-        private readonly IRequestTransmittedDocsService _requestTransmittedDataService;
+        
         private int _rowHeight = 30;
 
         public InvoicesUserControl(IOptions<AppSettings> appSettings, string conenctionString)
@@ -45,19 +41,18 @@ namespace Mydata
             _viewmodel = new InvoicesViewModel(appSettings, conenctionString);
             this.DataContext = _viewmodel;
 
-            
             this.editGrid.CellRenderers.Remove("ComboBox");
             //Customized combobox cell renderer is added.
             this.editGrid.CellRenderers.Add("ComboBox", new ComboBoxRenderer());
-            _viewmodel.TypesAndCategoriesLoaded += _viewmodel_TypesAndCategoriesLoaded;
+
+            FillSources();
         }
 
-        private void _viewmodel_TypesAndCategoriesLoaded(object sender, bool e)
+        private void FillSources()
         {
-            GridComboBoxColumn2.ItemsSource = _viewmodel.Categories;
+            GridComboBoxColumn2.ItemsSource = Enum.GetValues(typeof(Domain.Enums.Enums.IncomeClassificationCategoryType)).Cast<IncomeClassificationCategoryType>().ToList();
         }
 
-       
         private void ViewClicked(object sender, RoutedEventArgs e)
         {
             var rowDataContent = sfGrid.SelectedItem as MyDataInvoiceDTO;
@@ -66,10 +61,10 @@ namespace Mydata
             {
                 ShowInvoiceLinesToEdit(rowDataContent);
                 return;
-            } 
+            }
 
             List<MyGenericErrorsDTO> errors;
-            var myDataResponseRepo = new MyDataResponseRepo(_conenctionString);
+            var myDataResponseRepo = new MyDataResponseRepo(_connectionString);
 
             if (rowDataContent.MyDataCancellationResponses.Count == 0)
             {
@@ -105,17 +100,18 @@ namespace Mydata
             var particleDTO = await particleRepo.GetParticleByRec0(invoice.Uid);
             _viewmodel.SelectedInvoice = invoice;
 
-
             if (particleDTO.Pmoves.Count == 0) return;
             _viewmodel.IncomeClassificationsForEdit.Clear();
-           
+
             foreach (var item in particleDTO.Pmoves)
             {
+                var type = (IncomeClassificationValueType)System.Enum.Parse(typeof(IncomeClassificationValueType), particleDTO.Ptyppar.TYPOS_XARAKTHR);
+                var category = (IncomeClassificationCategoryType)System.Enum.Parse(typeof(IncomeClassificationCategoryType), item.Item.KATHG_XARAKTHR);
                 var incomeClassificationForEdit = new IncomeClassificationForEditInvoice
                 {
                     ItemDescription = item.Item.ITEM_DESCR,
-                    CharacterizationType = particleDTO.Ptyppar.TYPOS_XARAKTHR,
-                    CharacterizationCategory = item.Item.KATHG_XARAKTHR,
+                    CharacterizationType = type,
+                    CharacterizationCategory = category,
                     Amount = item.PMS_AMAFTDISC
                 };
                 _viewmodel.IncomeClassificationsForEdit.Add(incomeClassificationForEdit);
@@ -129,9 +125,7 @@ namespace Mydata
         {
             this.MainGrid.Opacity = 1;
         }
-      
 
-      
         private void ErrorGrid_OnQueryRowHeight(object sender, QueryRowHeightEventArgs e)
         {
             if (e.RowIndex == 0) return;
@@ -159,14 +153,14 @@ namespace Mydata
             var rowindex = this.sfGrid2.ResolveToRowIndex(particle);
             if (particle == null) return;
             var columnindex = this.sfGrid2.ResolveToStartColumnIndex();
-             
+
             if (rowindex == particles.Count) rowindex--;
             this.sfGrid2.ScrollInView(new RowColumnIndex(rowindex, columnindex));
-           
+
             this.sfGrid2.View.MoveCurrentTo(particle);
             sfGrid2.SelectedItems.Clear();
             if (rowindex == 0) rowindex++;
-            sfGrid2.SelectedIndex = rowindex-1;
+            sfGrid2.SelectedIndex = rowindex - 1;
         }
 
         private void ButtonBase_OnClick(object sender, RoutedEventArgs e)

@@ -1,33 +1,39 @@
-﻿namespace Domain.AADE
+﻿using static Domain.Enums.Enums;
+
+namespace Domain.AADE
 {
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.8.3928.0")]
     [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "https://www.aade.gr/myDATA/incomeClassificaton/v1.0")]
-    [System.Xml.Serialization.XmlRootAttribute(Namespace = "https://www.aade.gr/myDATA/incomeClassificaton/v1.0", IsNullable = false)]
-    public partial class IncomeClassificationsDoc
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "https://www.aade.gr/myDATA/expensesClassificaton/v1.0")]
+    [System.Xml.Serialization.XmlRootAttribute(Namespace = "https://www.aade.gr/myDATA/expensesClassificaton/v1.0", IsNullable = false)]
+    public partial class ExpensesClassificationsDoc
     {
-       
-        private InvoiceIncomeClassificationType[] incomeInvoiceClassificationField;
+        private InvoiceExpensesClassificationType[] expensesInvoiceClassificationField;
 
         /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute("incomeInvoiceClassification")]
-        public InvoiceIncomeClassificationType[] incomeInvoiceClassification
+        [System.Xml.Serialization.XmlElementAttribute("expensesInvoiceClassification")]
+        public InvoiceExpensesClassificationType[] expensesInvoiceClassification
         {
             get
             {
-                return this.incomeInvoiceClassificationField;
+                return this.expensesInvoiceClassificationField;
             }
             set
             {
-                this.incomeInvoiceClassificationField = value;
+                this.expensesInvoiceClassificationField = value;
             }
         }
     }
 
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.8.3928.0")]
     [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "https://www.aade.gr/myDATA/incomeClassificaton/v1.0")]
-    public partial class InvoiceIncomeClassificationType
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace = "https://www.aade.gr/myDATA/expensesClassificaton/v1.0")]
+    public partial class InvoiceExpensesClassificationType
     {
         private long invoiceMarkField;
 
@@ -36,11 +42,10 @@
         private bool classificationMarkFieldSpecified;
 
         private string entityVatNumberField;
-        private byte transactionModeField;
-        private bool transactionModeFieldSpecified;
 
-        private InvoicesIncomeClassificationDetailType[] itemsField;
+        private object[] itemsField;
 
+        /// <remarks/>
         public long invoiceMark
         {
             get
@@ -53,6 +58,7 @@
             }
         }
 
+        /// <remarks/>
         public long classificationMark
         {
             get
@@ -65,6 +71,7 @@
             }
         }
 
+        /// <remarks/>
         [System.Xml.Serialization.XmlIgnoreAttribute()]
         public bool classificationMarkSpecified
         {
@@ -78,6 +85,7 @@
             }
         }
 
+        /// <remarks/>
         public string entityVatNumber
         {
             get
@@ -90,34 +98,10 @@
             }
         }
 
-        public byte transactionMode
-        {
-            get
-            {
-                return this.transactionModeField;
-            }
-            set
-            {
-                this.transactionModeField = value;
-            }
-        }
-
         /// <remarks/>
-        [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public bool transactionModeSpecified
-        {
-            get
-            {
-                return this.transactionModeFieldSpecified;
-            }
-            set
-            {
-                this.transactionModeFieldSpecified = value;
-            }
-        }
-
-        [System.Xml.Serialization.XmlElementAttribute("invoicesIncomeClassificationDetails")]
-        public InvoicesIncomeClassificationDetailType[] invoicesIncomeClassificationDetails
+        [System.Xml.Serialization.XmlElementAttribute("invoicesExpensesClassificationDetails", typeof(InvoicesExpensesClassificationDetailType))]
+        [System.Xml.Serialization.XmlElementAttribute("transactionMode", typeof(int))]
+        public object[] Items
         {
             get
             {
@@ -130,15 +114,19 @@
         }
     }
 
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.8.3928.0")]
     [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "https://www.aade.gr/myDATA/incomeClassificaton/v1.0")]
-    public partial class InvoicesIncomeClassificationDetailType
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace = "https://www.aade.gr/myDATA/expensesClassificaton/v1.0")]
+    public partial class InvoicesExpensesClassificationDetailType
     {
         private int lineNumberField;
 
-        private IncomeClassificationType[] incomeClassificationDetailDataField;
+        private ExpensesClassificationType[] expensesClassificationDetailDataField;
 
+        /// <remarks/>
         public int lineNumber
         {
             get
@@ -151,31 +139,36 @@
             }
         }
 
-        [System.Xml.Serialization.XmlElementAttribute("incomeClassificationDetailData")]
-        public IncomeClassificationType[] incomeClassificationDetailData
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute("expensesClassificationDetailData")]
+        public ExpensesClassificationType[] expensesClassificationDetailData
         {
             get
             {
-                return this.incomeClassificationDetailDataField;
+                return this.expensesClassificationDetailDataField;
             }
             set
             {
-                this.incomeClassificationDetailDataField = value;
+                this.expensesClassificationDetailDataField = value;
             }
         }
     }
 
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.8.3928.0")]
     [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "https://www.aade.gr/myDATA/incomeClassificaton/v1.0")]
-    
-    public partial class IncomeClassificationType
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace = "https://www.aade.gr/myDATA/expensesClassificaton/v1.0")]
+    public partial class ExpensesClassificationType
     {
-        private Enums.Enums.IncomeClassificationValueType classificationTypeField;
+        private ExpensesClassificationTypeClassificationType classificationTypeField;
 
         private bool classificationTypeFieldSpecified;
 
-        private Enums.Enums.IncomeClassificationCategoryType classificationCategoryField;
+        private ExpensesClassificationCategoryType classificationCategoryField;
+
+        private bool classificationCategoryFieldSpecified;
 
         private decimal amountField;
 
@@ -183,7 +176,8 @@
 
         private bool idFieldSpecified;
 
-        public Enums.Enums.IncomeClassificationValueType classificationType
+        /// <remarks/>
+        public ExpensesClassificationTypeClassificationType classificationType
         {
             get
             {
@@ -195,6 +189,7 @@
             }
         }
 
+        /// <remarks/>
         [System.Xml.Serialization.XmlIgnoreAttribute()]
         public bool classificationTypeSpecified
         {
@@ -208,7 +203,8 @@
             }
         }
 
-        public Enums.Enums.IncomeClassificationCategoryType classificationCategory
+        /// <remarks/>
+        public ExpensesClassificationCategoryType classificationCategory
         {
             get
             {
@@ -220,6 +216,21 @@
             }
         }
 
+        /// <remarks/>
+        [System.Xml.Serialization.XmlIgnoreAttribute()]
+        public bool classificationCategorySpecified
+        {
+            get
+            {
+                return this.classificationCategoryFieldSpecified;
+            }
+            set
+            {
+                this.classificationCategoryFieldSpecified = value;
+            }
+        }
+
+        /// <remarks/>
         public decimal amount
         {
             get
@@ -232,6 +243,7 @@
             }
         }
 
+        /// <remarks/>
         public sbyte id
         {
             get
@@ -244,6 +256,7 @@
             }
         }
 
+        /// <remarks/>
         [System.Xml.Serialization.XmlIgnoreAttribute()]
         public bool idSpecified
         {

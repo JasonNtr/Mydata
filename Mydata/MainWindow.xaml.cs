@@ -1,21 +1,9 @@
 ﻿using Domain.DTO;
-using Infrastructure.Interfaces.ApiServices;
-using Infrastructure.Interfaces.Services;
-using Microsoft.Extensions.Options;
 using Microsoft.Extensions.DependencyInjection;
-using Mydata.ViewModels;
+using Microsoft.Extensions.Options;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
-using System.Windows.Threading;
-using AutoMapper;
-using Mydata.UserControls;
-using Infrastructure.Database;
 
 namespace Mydata
 {
@@ -24,8 +12,6 @@ namespace Mydata
     /// </summary>
     public partial class MainWindow
     {
-
-
         public MainWindow(IServiceProvider serviceProvider)
         {
             InitializeComponent();
@@ -35,18 +21,13 @@ namespace Mydata
 
             this.ShowInTaskbar = true;
 
-            
-
             var invoiceTab = new InvoicesUserControl(appSettings, conenctionString.Value.Default);
-            //var invoiceTab = new InvoicesUserControl(invoiceRepo, mapper, appSettings, invoiceService);
-            //var expenseTab = new ExpensesUserControl(expenseRepo, mapper, appSettings, invoiceService);
-            //var incomeTab = new IncomesUserControl(incomeRepo,incomeService,mapper,appSettings);
+            var expensesTab = new ExpensesUserControl(appSettings, conenctionString.Value.Default);
+
             this.InvoiceTab.Content = invoiceTab;
-            //this.IncomesTab.Content = incomeTab;
-            //this.ExpensesTab.Content = expenseTab;
+            this.ExpensesTab.Content = expensesTab;
         }
 
-        
         private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             this.DragMove();
@@ -59,7 +40,6 @@ namespace Mydata
             if (Application.Current.MainWindow != null)
                 Application.Current.MainWindow.Hide();
         }
-
 
         private void MinimizeSelected(object sender, RoutedEventArgs e)
         {

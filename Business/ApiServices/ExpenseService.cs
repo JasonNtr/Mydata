@@ -1,45 +1,97 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Domain.AADE;
 using Domain.DTO;
-using Infrastructure.Interfaces;
-using Infrastructure.Interfaces.ApiServices;
-using Infrastructure.Interfaces.Services;
 using Microsoft.Extensions.Options;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Net.Http;
+using System.Threading.Tasks;
+using System.Web;
+using System.Xml;
+using System.Xml.Serialization;
 
 namespace Business.ApiServices
 {
-    public class ExpenseService : IExpenseService
+    public class ExpenseService
     {
         private readonly IOptions<AppSettings> _appSettings;
-        private readonly IInvoiceRepo _invoiceRepo;
-        private readonly IMyDataResponseRepo _myDataResponseRepo;
-        private readonly IMyDataCancellationResponseRepo _myDataCancellationResponseRepo;
-        private readonly IParticleInform _particleInform;
-        public Task<int> PostAction(string filePath)
+        private readonly string _connectionString;
+
+        public ExpenseService(IOptions<AppSettings> appSettings, string connectionString)
         {
-            throw new NotImplementedException();
+            _appSettings = appSettings;
+            _connectionString = connectionString;
         }
 
-        public Task<int> PostInvoice(MyDataInvoiceDTO myDataInvoiceDTO, string invoiceFilePath)
+        public async Task GetExpenses(DateTime dateFrom, DateTime dateTo)
         {
-            throw new NotImplementedException();
+            var client = new HttpClient();
+            var queryString = HttpUtility.ParseQueryString(string.Empty);
+
+            var aadeUserId = _appSettings.Value.aade_user_id;
+            var ocpApimSubscriptionKey = _appSettings.Value.Ocp_Apim_Subscription_Key;
+
+            client.DefaultRequestHeaders.Add("aade-user-id", aadeUserId);
+            client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", ocpApimSubscriptionKey);
+
+            // Request parameters
+            queryString["dateFrom"] = dateFrom.ToString();
+            queryString["dateTo"] = dateTo.ToString();
+            queryString["entityVatNumber"] = "{string}";
+            queryString["counterVatNumber"] = "{string}";
+            queryString["invType"] = "{string}";
+            queryString["maxMark"] = "{string}";
+            var uri = "https://mydata-dev.azure-api.net/RequestDocs?mark=1";// + queryString;
+
+            var response = await client.GetAsync(uri);
+
+            var responseMessage = await response.Content.ReadAsStringAsync();
+
+            var list = ParseExpensesResponseResult(responseMessage);
         }
 
-        public Task<int> CancelInvoice(MyDataInvoiceDTO myDataInvoiceDTO)
+        private List<InvoicesDoc> ParseExpensesResponseResult(string httpresponsecontext)
         {
-            throw new NotImplementedException();
-        }
+            var invoices = new List<InvoicesDoc>();
+            try
+            {
+                var xmlDoc = new XmlDocument();
+                xmlDoc.LoadXml(httpresponsecontext);
 
-        public MyDataResponseDTO ParseInvoicePostResult(string httpResponseContext)
-        {
-            throw new NotImplementedException();
-        }
+                var mySerializer = new XmlSerializer(typeof(List<InvoicesDoc>));
 
-        public Task<MyDataInvoiceDTO> BuildInvoice(string filenamePath)
-        {
-            throw new NotImplementedException();
+                var myResponseData = new List<InvoicesDoc>();
+                using (TextReader reader = new StringReader(xmlDoc.InnerXml))
+                {
+                    myResponseData = (List<InvoicesDoc>)mySerializer.Deserialize(reader);
+                }
+
+                //foreach (var response in myResponseData.response)
+                //{
+                //    var mapperConfig = new MapperConfiguration(mc => { mc.AddProfile(new MappingProfiles()); });
+                //    var mapper = new AutoMapper.Mapper(mapperConfig);
+                //    var mydataresponse = mapper.Map<MyDataResponseDTO>(response);
+                //    mydataresponses.Add(mydataresponse);
+                //}
+
+                return myResponseData;
+            }
+            catch (Exception ex)
+            {
+                var mydataresponse = new MyDataResponseDTO();
+                mydataresponse.statusCode = "Program Error";
+                mydataresponse.errors.Add(
+                    new MyDataErrorDTO()
+                    {
+                        Id = Guid.NewGuid(),
+                        Created = DateTime.UtcNow,
+                        Modified = DateTime.UtcNow,
+                        message = ex.ToString(),
+                        code = 0
+                    });
+                //mydataresponses.Add(mydataresponse);
+                return null;
+            }
         }
     }
 }

@@ -15,6 +15,8 @@ using System.Threading.Tasks;
 using System.Timers;
 using System.Windows.Input;
 using System.Xml.Serialization;
+using Domain;
+using Domain.Model;
 
 namespace Mydata.ViewModels
 {
@@ -30,7 +32,7 @@ namespace Mydata.ViewModels
         private readonly IOptions<AppSettings> _appSettings;
         private bool _reloadNeeded;
 
-        public event EventHandler<bool> TypesAndCategoriesLoaded;
+      
 
         public InvoicesViewModel(IOptions<AppSettings> appSettings, string connectionString)
         {
@@ -48,24 +50,16 @@ namespace Mydata.ViewModels
 
         private async Task Init()
         {
-            await FillTypesAndCategories();
             await LoadInvoices();
             StartEmptyBroker();
         }
 
-        private async Task FillTypesAndCategories()
-        {
-            var itemRepo = new ItemRepo(_connectionString);
-            var categories = await itemRepo.GetCategories();
-            Categories = new ObservableCollection<string>(categories);
-
-            TypesAndCategoriesLoaded?.Invoke(this, true);
-        }
+        
 
         private void StartBroker(List<ParticleDTO> particleDTOs)
         {
             _broker = new ParticleBroker(_connectionString, DateFrom, DateTo, particleDTOs);
-            _broker.Start();
+
             _broker.ProductionChangeHappened += ParticleChange;
             _reloadNeeded = false;
         }
@@ -73,7 +67,7 @@ namespace Mydata.ViewModels
         private void StartEmptyBroker()
         {
             _broker = new ParticleBroker(_connectionString, DateFrom, DateTo);
-            _broker.Start();
+
             _broker.ProductionChangeHappened += ParticleChange;
             _reloadNeeded = false;
         }
@@ -87,6 +81,7 @@ namespace Mydata.ViewModels
             var particles = await particleRepo.GetParticlesBetweenDates(DateFrom, DateTo);
             _listOfIParticles = particles;
             if (_listOfIParticles.Count > 0) CreateDataGridParticles();
+            else Particles = new ObservableCollection<DataGridParticle>();
             if (_reloadNeeded)
             {
                 _broker.Stop();
@@ -102,6 +97,7 @@ namespace Mydata.ViewModels
             GridEnabled = false;
             _listOfIParticles = _broker.Particles;
             if (_listOfIParticles.Count > 0) CreateDataGridParticles();
+            else Particles = new ObservableCollection<DataGridParticle>();
             IsBusy = false;
             GridEnabled = true;
         }
@@ -121,6 +117,7 @@ namespace Mydata.ViewModels
         {
             AutoProcedureExecute();
             _timer.Start();
+            _broker.Start();
             SendEnabled = false;
         }
 
@@ -128,6 +125,7 @@ namespace Mydata.ViewModels
         {
             _timer.Stop();
             _timer.Dispose();
+            _broker.Stop();
         }
 
         private void DoAutoProcedure(object sender, ElapsedEventArgs e)
@@ -242,9 +240,13 @@ namespace Mydata.ViewModels
                 {
                     var counterPart = new InvoicesDocInvoiceCounterpart
                     {
-                        vatNumber = particleDTO.Client?.VatNumber?.Trim(),
-                        country = "GR",
+                        vatNumber =  particleDTO.Client?.VatNumber?.Trim(),
+                        country = particleDTO.Client?.CountryCodeISO,
                         branch = 0
+                    };
+                    if ((bool)!particleDTO.Client?.CountryCodeISO.Equals("GR"))
+                    {
+                        counterPart.name = particleDTO.Client?.Name;
                     };
                     var counterPartAddress = new InvoicesDocInvoiceCounterpartAddress
                     {
@@ -345,14 +347,14 @@ namespace Mydata.ViewModels
                     totalGrossValue = particleDTO.TotalNetAmount + particleDTO.TotalVatAmount,
                     incomeClassification = incomeClassificationSummary.ToArray()
                 };
-                 
+
                 invoice.invoiceSummary = invoicesDocInvoiceInvoiceSummary;
                 list.Add(invoice);
                 AddToPostXmlPerUnit(invoice);
             }
 
             doc.invoice = list.ToArray();
- 
+
             using var stringWriter = new System.IO.StringWriter();
             var serializer = new XmlSerializer(doc.GetType());
             serializer.Serialize(stringWriter, doc);
@@ -447,7 +449,7 @@ namespace Mydata.ViewModels
         private async Task InsertErrorInvoices()
         {
             if (_errorParticles.Count == 0) return;
- 
+
             var taxInvoiceRepo = new TaxInvoiceRepo(_connectionString);
             var invoices = new List<MyDataInvoiceDTO>();
 
@@ -485,12 +487,15 @@ namespace Mydata.ViewModels
                 if (!isValid)
                     message = "Invalid Greek VAT number: " + item.Client?.VatNumber?.Trim();
 
-              
                 foreach (var pMove in item.Pmoves)
                 {
                     var hasCategory = pMove.Item.KATHG_XARAKTHR != null;
                     if (!hasCategory)
                         message = "Enter correct classification Category for: " + pMove.Item.ITEM_DESCR + " Code: " + pMove.Item.ITEM_CODE;
+                }
+                if(typeCode == null)
+                {
+                    message = "Fix parforol for Code:" + item.Ptyppar?.Code;
                 }
                 error.message = message;
 
@@ -511,7 +516,11 @@ namespace Mydata.ViewModels
             var list = new List<ParticleDTO>();
             foreach (var particleDTO in postInvoices)
             {
-                var isValid = Business.Helpers.VatValidator.Validate(particleDTO.Client?.VatNumber?.Trim());
+                var isValid = true;
+                if ((bool)particleDTO.Client?.CountryCodeISO.Equals("GR"))
+                {
+                    isValid = Business.Helpers.VatValidator.Validate(particleDTO.Client?.VatNumber?.Trim());
+                }   
                 var hasCategory = true;
                 foreach (var item in particleDTO.Pmoves)
                 {
@@ -533,38 +542,41 @@ namespace Mydata.ViewModels
 
             var invoiceService = new InvoiceService(_appSettings, _connectionString);
             var incomeClassificationsDoc = new IncomeClassificationsDoc();
-            var list = new List<IncomeClassificationsDocIncomeInvoiceClassification>();
-            var invoiceIncomeClassificationsDocIncomeInvoiceClassification = new IncomeClassificationsDocIncomeInvoiceClassification
-                {
-                    invoiceMark = long.Parse(SelectedInvoice.invoiceMark),
-                    entityVatNumber = "157395112" //particleDTO.BranchDTO?.VatNumber,
-                };
-             
+            var list = new List<InvoiceIncomeClassificationType>();
+            var invoiceIncomeClassificationType = new InvoiceIncomeClassificationType
+            {
+                invoiceMark = long.Parse(SelectedInvoice.invoiceMark),
+                entityVatNumber = "157395112" //particleDTO.BranchDTO?.VatNumber,
+            };
 
-            var detailList = new List<IncomeClassificationsDocIncomeInvoiceClassificationInvoicesIncomeClassificationDetails>();
+            var detailList = new List<InvoicesIncomeClassificationDetailType>();
 
             var i = 1;
             foreach (var classification in IncomeClassificationsForEdit)
             {
-                var incomeClassificationDetails = new IncomeClassificationsDocIncomeInvoiceClassificationInvoicesIncomeClassificationDetails
-                    {
-                        lineNumber = (short)i
-                    };
+                var incomeClassificationList = new List<IncomeClassificationType>();
+                var incomeClassificationDetails = new InvoicesIncomeClassificationDetailType
+                {
+                    lineNumber = (short)i
+                };
 
-                var incomeClassificationDetailsData = new IncomeClassificationsDocIncomeInvoiceClassificationInvoicesIncomeClassificationDetailsIncomeClassificationDetailData
-                    {
-                        classificationCategory = classification.CharacterizationCategory,
-                        amount = classification.Amount
-                    };
+                var incomeClassificationDetailsData = new IncomeClassificationType
+                {
+                    classificationCategory = classification.CharacterizationCategory,
+                    classificationType = classification.CharacterizationType,
+                    amount = classification.Amount,
+                    classificationTypeSpecified = true
+                };
 
-                incomeClassificationDetails.incomeClassificationDetailData = incomeClassificationDetailsData;
+                incomeClassificationList.Add(incomeClassificationDetailsData);
+                incomeClassificationDetails.incomeClassificationDetailData = incomeClassificationList.ToArray();
                 detailList.Add(incomeClassificationDetails);
                 i++;
             }
 
-            invoiceIncomeClassificationsDocIncomeInvoiceClassification.invoicesIncomeClassificationDetails = detailList.ToArray();
+            invoiceIncomeClassificationType.invoicesIncomeClassificationDetails = detailList.ToArray();
 
-            list.Add(invoiceIncomeClassificationsDocIncomeInvoiceClassification);
+            list.Add(invoiceIncomeClassificationType);
             incomeClassificationsDoc.incomeInvoiceClassification = list.ToArray();
 
             string xml;
@@ -574,7 +586,6 @@ namespace Mydata.ViewModels
                 serializer.Serialize(stringWriter, incomeClassificationsDoc);
                 xml = stringWriter.ToString();
             }
-
             await invoiceService.PostIncomeClassification(xml);
         }
 
@@ -614,7 +625,7 @@ namespace Mydata.ViewModels
 
         #region Properties
 
-        private bool _autoProcedure ;
+        private bool _autoProcedure;
 
         public bool AutoProcedure
         {
@@ -732,17 +743,7 @@ namespace Mydata.ViewModels
             }
         }
 
-        private ObservableCollection<String> _categories = new ObservableCollection<String>();
-
-        public ObservableCollection<String> Categories
-        {
-            get => _categories;
-            set
-            {
-                _categories = value;
-                OnPropertyChanged();
-            }
-        }
+        
 
         private DateTime _dateFrom = DateTime.UtcNow.ToLocalTime();
 

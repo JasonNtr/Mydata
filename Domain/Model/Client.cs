@@ -213,5 +213,8 @@ namespace Domain.Model
         public string ENDOOMIL { get; set; }
         [StringLength(1)]
         public string NPDD { get; set; }
+
+        [StringLength(2)]
+        public string CountryCodeISO { get; set; }
     }
 }

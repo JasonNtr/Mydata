@@ -292,7 +292,8 @@
                     </syncfusion:SfDataGrid>
 
 
-                    <syncfusion:ButtonAdv Content="Έξοδος" Background="#42C0FB" IconHeight="0"   Grid.Row="1" Grid.Column="1" HorizontalAlignment="Right"
+                <syncfusion:ButtonAdv Label="Έξοδος" Background="#42C0FB" IconHeight="0" IconWidth="0"  FontSize="15" Click="ButtonBase_OnClick"
+                                          Grid.Row="1" Grid.ColumnSpan="3" HorizontalAlignment="Right" Width="100"
                                           Style="{StaticResource ButtonAdvStyle1}"/>
                     
                 </Grid>
