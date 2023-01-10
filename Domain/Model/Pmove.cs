@@ -106,6 +106,9 @@ namespace Domain.Model
 
         [Column("PMS_VATPCT")]
         public decimal? PMS_VATPCT { get; set; }
+        
+        [Column("PMS_PAYABLE")]
+        public decimal? GrossValue { get; set; }
 
     }
 }

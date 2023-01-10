@@ -51,6 +51,7 @@ namespace Domain.DTO
 
         public string ITEM_CODE { get; set; }
 
+        public decimal? GrossValue { get; set; }
         public virtual ItemDTO Item { get; set; }
     }
 }

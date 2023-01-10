@@ -15,8 +15,6 @@ using System.Threading.Tasks;
 using System.Timers;
 using System.Windows.Input;
 using System.Xml.Serialization;
-using Domain;
-using Domain.Model;
 
 namespace Mydata.ViewModels
 {
@@ -225,7 +223,7 @@ namespace Mydata.ViewModels
                 var type = decimal.Parse(particleDTO.Ptyppar.EID_PARAST, CultureInfo.InvariantCulture);
                 var issuer = new InvoicesDocInvoiceIssuer
                 {
-                    vatNumber = "157395112", //particleDTO.BranchDTO?.VatNumber,
+                    vatNumber = particleDTO.BranchDTO?.VatNumber.Trim(),
                     country = "GR",
                     branch = 0
                 };
@@ -288,8 +286,15 @@ namespace Mydata.ViewModels
                 var details = new List<InvoicesDocInvoiceInvoiceDetails>();
                 var i = 1;
                 if (particleDTO.Pmoves.Count == 0) continue;
+                decimal? amount = 0;
+                decimal? vatAmount = 0;
+                decimal? deductionAmount = 0;
+                decimal? grossAmount = 0;
                 foreach (var item in particleDTO.Pmoves)
                 {
+                    amount += item.GrossValue;
+                    vatAmount += item.PMS_VATAM;
+                    deductionAmount += item.PMS_DISCAM;
                     var incomeClassifications = new List<InvoicesDocInvoiceInvoiceDetailsIncomeClassification>();
                     var incomeClassification = new InvoicesDocInvoiceInvoiceDetailsIncomeClassification
                     {
@@ -324,9 +329,13 @@ namespace Mydata.ViewModels
                         vatCategory = (int)item.Item.FPA.FpaCategory,
                         vatAmount = item.PMS_VATAM,
                         stampDutyAmount = item.POSO_XARTOSH,
-                        incomeClassification = incomeClassifications.ToArray()
+                        incomeClassification = incomeClassifications.ToArray(),
+                        withheldAmount =item.POSO_PARAKRAT,
+                        deductionsAmount = item.PMS_DISCAM
                     };
 
+                    var rowGrossAmount = item.PMS_AMAFTDISC + item.PMS_VATAM + item.POSO_XARTOSH;
+                    grossAmount += rowGrossAmount;
                     details.Add(detail);
                     totalWithheldAmount += item.POSO_PARAKRAT;
                     totalStampDutyAmount += item.POSO_XARTOSH;
@@ -347,6 +356,23 @@ namespace Mydata.ViewModels
                     totalGrossValue = particleDTO.TotalNetAmount + particleDTO.TotalVatAmount,
                     incomeClassification = incomeClassificationSummary.ToArray()
                 };
+
+                if(amount != invoicesDocInvoiceInvoiceSummary.totalGrossValue)
+                {
+                    invoicesDocInvoiceInvoiceSummary.totalGrossValue = (decimal)amount;
+                }
+                if (vatAmount != invoicesDocInvoiceInvoiceSummary.totalVatAmount)
+                {
+                    invoicesDocInvoiceInvoiceSummary.totalVatAmount = (decimal)vatAmount;
+                }
+                if (deductionAmount != invoicesDocInvoiceInvoiceSummary.totalDeductionsAmount)
+                {
+                    invoicesDocInvoiceInvoiceSummary.totalDeductionsAmount = (decimal)deductionAmount;
+                }
+                if (grossAmount != invoicesDocInvoiceInvoiceSummary.totalGrossValue)
+                {
+                    invoicesDocInvoiceInvoiceSummary.totalGrossValue = (decimal)grossAmount;
+                }
 
                 invoice.invoiceSummary = invoicesDocInvoiceInvoiceSummary;
                 list.Add(invoice);
