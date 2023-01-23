@@ -24,8 +24,8 @@ namespace Business.Services
             
             var ptyppars = await context.Ptyppars.AsNoTracking().Where(x => x.UpdateMyData == 1).Select(x => x.PTYPPAR_RECR).ToListAsync();
 
-            var particles = await context.Particles.AsNoTracking().Where(x=>x.Date > startDate.Date && x.Date < endDate
-                && ptyppars.Contains(x.PTYPPAR_RECR) && x.Mark == null && x.Closed.Equals("1") && x.Printed.Equals("1") && x.Number>0).ToListAsync();
+            var particles = await context.Particles.AsNoTracking().Where(x=>x.Date > startDate.Date && x.Date < endDate && x.Module.Equals("01")
+                && ptyppars.Contains(x.PTYPPAR_RECR) && x.Mark == null && x.Closed.Equals("1")  && x.Number>0).ToListAsync();
 
             var particlesDTO = Mapper.Map<List<ParticleDTO>>(particles);
 

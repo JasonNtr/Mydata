@@ -26,6 +26,9 @@ namespace Domain.DTO
         {
             get
             {
+                if(MyDataResponses.Any(x => x.statusCode.Equals("Success"))){
+                    return "Success";
+                }
                 if (MyDataCancellationResponses.Count > 0)
                 {
                     var statusCode = MyDataCancellationResponses.OrderBy(x => x.Created).Last().statusCode;

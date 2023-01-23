@@ -27,7 +27,7 @@ namespace Domain.DTO
         public string ClientId { get; set; }
 
         public decimal Number { get; set; }
-
+        public string Module { get; set; }
         public DateTime Date { get; set; }
 
         public string PARTL_RECR { get; set; }

@@ -80,6 +80,10 @@ namespace Domain.Model
         [Column("NOMISMA_CODE")]
         [StringLength(4)]
         public string CurrencyCode { get; set; }
+        
+        [Column("PARTL_MODULE")]
+        [StringLength(4)]
+        public string Module { get; set; }
 
         [Column("PARTL_PAYAM")]
         public decimal? Amount { get; set; }

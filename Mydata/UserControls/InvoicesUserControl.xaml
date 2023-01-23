@@ -229,9 +229,9 @@
                 <syncfusion:GridTextColumn MappingName="InvoiceNumber"  HeaderText="ΑΡ. ΠΑΡ." Width="150" TextAlignment="Center"/>
                 <syncfusion:GridTextColumn MappingName="InvoiceDateToString" HeaderText="ΗΜ. ΠΑΡ." AllowFiltering="True" Width="150" TextAlignment="Center"/>
                 <syncfusion:GridTextColumn MappingName="InvoiceType.Title" HeaderText="ΠΑΡΑΣΤΑΤΙΚΟ" AllowFiltering="True" TextAlignment="Center"/>
-                <syncfusion:GridTextColumn MappingName="VAT"  HeaderText="ΑΦΜ ΠΕΛΑΤΗ"  TextAlignment="Center"/>
+                <syncfusion:GridTextColumn MappingName="VAT"  HeaderText="ΑΦΜ ΠΕΛΑΤΗ"  TextAlignment="Center" AllowFiltering="True"/>
                 <syncfusion:GridTextColumn MappingName="LastestStatus"  HeaderText="Τελευταία κατάσταση" AllowFiltering="True" TextAlignment="Center"/>
-                <syncfusion:GridTextColumn MappingName="invoiceMark"  HeaderText="Mark"  Width="150" TextAlignment="Center"/>
+                <syncfusion:GridTextColumn MappingName="invoiceMark"  HeaderText="Mark"  Width="150" TextAlignment="Center" />
                 <syncfusion:GridTemplateColumn syncfusion:FocusManagerHelper.WantsKeyInput="True" ColumnMemberType="Button" Width="70"  VerticalAlignment="Stretch">
                     <syncfusion:GridTemplateColumn.CellTemplate>
                         <DataTemplate>
@@ -242,7 +242,11 @@
             </syncfusion:SfDataGrid.Columns>
         </syncfusion:SfDataGrid>
 
-        <Label Content="Προς Αποστολή" Grid.Row="2" FontSize="15" Foreground="#3366ff"></Label>
+        <StackPanel  Grid.Row="2" Orientation="Horizontal">
+            <Label Content="Προς Αποστολή"  FontSize="15" Foreground="#3366ff"></Label>
+            <Label Content="{Binding ParticleNo}"  FontSize="15" Foreground="#3366ff"></Label>
+        </StackPanel>
+        
         <syncfusion:SfDataGrid x:Name="sfGrid2" ItemsSource="{Binding Path=Particles}" Grid.Row="3" Grid.ColumnSpan="2"
                                HeaderStyle="{StaticResource headerStyle}" RowHeight="35" Margin="0,0,0,20"
                                   AutoGenerateColumns="False" SelectionMode="Multiple" HorizontalAlignment="Left" SelectionUnit="Row" NavigationMode="Row"
@@ -251,6 +255,7 @@
                 <syncfusion:GridTextColumn MappingName="Date" HeaderText="Ημερομηνία" Width="150" TextAlignment="Center" AllowFiltering="True"/>
                 <syncfusion:GridTextColumn MappingName="Branch" Width="200" HeaderText="Υποκατάστημα" TextAlignment="Center" AllowFiltering="True"/>
                 <syncfusion:GridTextColumn MappingName="Series"  HeaderText="Σειρά" Width="100" TextAlignment="Center" AllowFiltering="True"/>
+                <syncfusion:GridTextColumn MappingName="Number"  HeaderText="Αριθμός" Width="100" TextAlignment="Center" AllowFiltering="True"/>
                 <syncfusion:GridTextColumn MappingName="Client" HeaderText="Πελάτης" Width="350" TextAlignment="Center" AllowFiltering="True"/>
                 <syncfusion:GridTextColumn MappingName="PtyParDescription" HeaderText="Παραστατικό" Width="250" TextAlignment="Center" AllowFiltering="True"/>
                 <syncfusion:GridTextColumn MappingName="Amount"  HeaderText="Ποσό"   TextAlignment="Center"/>
@@ -261,7 +266,7 @@
 
 
         <Button Grid.Row="3" Grid.Column="1" Content="ΑΠΟΣΤΟΛΗ" Width="200" FontSize="15" BorderBrush="#FFBAF5FB" Background="#42C0FB" HorizontalAlignment="Center"
-                IsEnabled="{Binding SendEnabled}" Command="{Binding SendParticlesCommand}" Margin="430,0,0,0"/>
+                IsEnabled="{Binding SendEnabled}" Command="{Binding SendParticlesCommand}" Margin="530,0,0,0"/>
 
      
 

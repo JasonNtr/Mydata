@@ -110,5 +110,10 @@ namespace Domain.Model
         [Column("PMS_PAYABLE")]
         public decimal? GrossValue { get; set; }
 
+        [Column("PMS_QTY")]
+        public decimal? Quantity { get; set; }
+
+        [Column("PMS_UNITPRICE")]
+        public decimal? UnitPrice { get; set; }
     }
 }

@@ -52,6 +52,35 @@ namespace Domain.DTO
         public string ITEM_CODE { get; set; }
 
         public decimal? GrossValue { get; set; }
+        public decimal? Quantity { get; set; }
+
+        
+        public decimal? UnitPrice { get; set; }
+
         public virtual ItemDTO Item { get; set; }
+
+        public decimal? Net1
+        {
+            get
+            {
+                return Quantity * UnitPrice;
+            }
+        }
+
+        public decimal? Net2
+        {
+            get
+            {
+                return Net1-PMS_DISCAM;
+            }
+        }
+
+        public decimal? CalculatedGross
+        {
+            get
+            {
+                return Net2 + PMS_VATAM + POSO_XARTOSH;
+            }
+        }
     }
 }

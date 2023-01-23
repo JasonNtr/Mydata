@@ -44,6 +44,8 @@ namespace Mydata.ViewModels
             _timer = new Timer();
             _timer.Elapsed += DoAutoProcedure;
             _timer.Interval = 10000;// _appSettings.Value.timerMsSeconds;
+
+            ParticleNo = "(0)";
         }
 
         private async Task Init()
@@ -79,7 +81,11 @@ namespace Mydata.ViewModels
             var particles = await particleRepo.GetParticlesBetweenDates(DateFrom, DateTo);
             _listOfIParticles = particles;
             if (_listOfIParticles.Count > 0) CreateDataGridParticles();
-            else Particles = new ObservableCollection<DataGridParticle>();
+            else
+            {
+                Particles = new ObservableCollection<DataGridParticle>();
+                ParticleNo = "(0)";
+            }
             if (_reloadNeeded)
             {
                 _broker.Stop();
@@ -95,7 +101,11 @@ namespace Mydata.ViewModels
             GridEnabled = false;
             _listOfIParticles = _broker.Particles;
             if (_listOfIParticles.Count > 0) CreateDataGridParticles();
-            else Particles = new ObservableCollection<DataGridParticle>();
+            else
+            {
+                Particles = new ObservableCollection<DataGridParticle>();
+                ParticleNo = "(0)";
+            }
             IsBusy = false;
             GridEnabled = true;
         }
@@ -207,9 +217,12 @@ namespace Mydata.ViewModels
                 particle.Client = invoice.Client.Name;
                 particle.PtyParDescription = invoice.Ptyppar.Code + " - " + invoice.Ptyppar.Description;
                 particle.Amount = invoice.Amount.ToString("c");
+                particle.Number = invoice.Number;
 
                 Particles.Add(particle);
             }
+            var count = Particles.Count;
+            ParticleNo = "(" + count + ")";
         }
 
         private string CreateInvoiceDocXml(List<ParticleDTO> particlesDTO)
@@ -286,15 +299,15 @@ namespace Mydata.ViewModels
                 var details = new List<InvoicesDocInvoiceInvoiceDetails>();
                 var i = 1;
                 if (particleDTO.Pmoves.Count == 0) continue;
-                decimal? amount = 0;
+
+                decimal? netAmount = 0;
                 decimal? vatAmount = 0;
-                decimal? deductionAmount = 0;
+                decimal? withheldAmount = 0;
+                decimal? stampDutyAmount = 0;
                 decimal? grossAmount = 0;
+
                 foreach (var item in particleDTO.Pmoves)
-                {
-                    amount += item.GrossValue;
-                    vatAmount += item.PMS_VATAM;
-                    deductionAmount += item.PMS_DISCAM;
+                {                    
                     var incomeClassifications = new List<InvoicesDocInvoiceInvoiceDetailsIncomeClassification>();
                     var incomeClassification = new InvoicesDocInvoiceInvoiceDetailsIncomeClassification
                     {
@@ -325,20 +338,23 @@ namespace Mydata.ViewModels
                     var detail = new InvoicesDocInvoiceInvoiceDetails
                     {
                         lineNumber = (uint)i,
-                        netValue = item.PMS_AMAFTDISC,
+                        netValue = (decimal)item.Net2,
                         vatCategory = (int)item.Item.FPA.FpaCategory,
                         vatAmount = item.PMS_VATAM,
                         stampDutyAmount = item.POSO_XARTOSH,
                         incomeClassification = incomeClassifications.ToArray(),
                         withheldAmount =item.POSO_PARAKRAT,
-                        deductionsAmount = item.PMS_DISCAM
+                        deductionsAmount = 0
                     };
 
-                    var rowGrossAmount = item.PMS_AMAFTDISC + item.PMS_VATAM + item.POSO_XARTOSH;
-                    grossAmount += rowGrossAmount;
+                    netAmount += item.Net2;
+                    vatAmount += item.PMS_VATAM;
+                    withheldAmount += item.POSO_PARAKRAT;
+                    stampDutyAmount += item.POSO_XARTOSH;
+                    grossAmount += item.CalculatedGross;
+
                     details.Add(detail);
-                    totalWithheldAmount += item.POSO_PARAKRAT;
-                    totalStampDutyAmount += item.POSO_XARTOSH;
+                    
                     i++;
                 }
 
@@ -346,33 +362,18 @@ namespace Mydata.ViewModels
 
                 var invoicesDocInvoiceInvoiceSummary = new InvoicesDocInvoiceInvoiceSummary
                 {
-                    totalNetValue = particleDTO.TotalNetAmount,
-                    totalVatAmount = particleDTO.TotalVatAmount,
-                    totalWithheldAmount = totalWithheldAmount,
-                    totalFeesAmount = (long)particleDTO.TotalOtherTaxesAmount,
-                    totalStampDutyAmount = (long)totalStampDutyAmount,
-                    totalOtherTaxesAmount = (long)particleDTO.TotalOtherTaxesAmount,
-                    totalDeductionsAmount = (long)particleDTO.TotalDeductionsAmount,
-                    totalGrossValue = particleDTO.TotalNetAmount + particleDTO.TotalVatAmount,
+                    totalNetValue = (decimal)netAmount,
+                    totalVatAmount = (decimal)vatAmount,
+                    totalWithheldAmount = (decimal)withheldAmount,
+                    totalFeesAmount = 0,
+                    totalStampDutyAmount = (long)stampDutyAmount,
+                    totalOtherTaxesAmount = 0,
+                    totalDeductionsAmount = 0,
+                    totalGrossValue = (decimal)grossAmount,
                     incomeClassification = incomeClassificationSummary.ToArray()
                 };
 
-                if(amount != invoicesDocInvoiceInvoiceSummary.totalGrossValue)
-                {
-                    invoicesDocInvoiceInvoiceSummary.totalGrossValue = (decimal)amount;
-                }
-                if (vatAmount != invoicesDocInvoiceInvoiceSummary.totalVatAmount)
-                {
-                    invoicesDocInvoiceInvoiceSummary.totalVatAmount = (decimal)vatAmount;
-                }
-                if (deductionAmount != invoicesDocInvoiceInvoiceSummary.totalDeductionsAmount)
-                {
-                    invoicesDocInvoiceInvoiceSummary.totalDeductionsAmount = (decimal)deductionAmount;
-                }
-                if (grossAmount != invoicesDocInvoiceInvoiceSummary.totalGrossValue)
-                {
-                    invoicesDocInvoiceInvoiceSummary.totalGrossValue = (decimal)grossAmount;
-                }
+                 
 
                 invoice.invoiceSummary = invoicesDocInvoiceInvoiceSummary;
                 list.Add(invoice);
@@ -542,8 +543,9 @@ namespace Mydata.ViewModels
             var list = new List<ParticleDTO>();
             foreach (var particleDTO in postInvoices)
             {
+                var type = decimal.Parse(particleDTO.Ptyppar.EID_PARAST, CultureInfo.InvariantCulture);
                 var isValid = true;
-                if ((bool)particleDTO.Client?.CountryCodeISO.Equals("GR"))
+                if ((bool)particleDTO.Client?.CountryCodeISO.Equals("GR") && type is < 11 or > 12)
                 {
                     isValid = Business.Helpers.VatValidator.Validate(particleDTO.Client?.VatNumber?.Trim());
                 }   
@@ -552,6 +554,7 @@ namespace Mydata.ViewModels
                 {
                     hasCategory = item.Item.KATHG_XARAKTHR != null;
                 }
+
                 if (isValid && hasCategory)
                     list.Add(particleDTO);
                 else
@@ -769,7 +772,20 @@ namespace Mydata.ViewModels
             }
         }
 
-        
+        private string _particleNo;
+
+        public string ParticleNo
+        {
+            get
+            {
+                return _particleNo;
+            }
+            set
+            {
+                _particleNo = value;
+                OnPropertyChanged();
+            }
+        }
 
         private DateTime _dateFrom = DateTime.UtcNow.ToLocalTime();
 
