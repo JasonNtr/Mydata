@@ -25,6 +25,7 @@ namespace Business.Mappings
                 .ForMember(d => d.MyDataResponse, opt => opt.Ignore());
             
 
+            CreateMap<Company, CompanyDTO>().ReverseMap();
             CreateMap<MyDataEntity, MyDataEntityDTO>().ReverseMap();
             CreateMap<MyDataInvoiceType, MyDataInvoiceTypeDTO>().ReverseMap();
             CreateMap<MyDataIncome,MyDataIncomeDTO>().ReverseMap();

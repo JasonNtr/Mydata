@@ -285,6 +285,7 @@ namespace Infrastructure.Database
         public DbSet<MyDataIncome> MyDataIncomes { get; set; }
         public DbSet<MyDataIncomeResponse> MyDataIncomeResponses { get; set; }
 
+        public DbSet<Company> Companies { get; set; }
         public DbSet<Particle> Particles { get; set; }
         public DbSet<Client> Clients { get; set; }
         public DbSet<Ptyppar> Ptyppars { get; set; }

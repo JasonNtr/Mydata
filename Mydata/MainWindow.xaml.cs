@@ -1,15 +1,14 @@
-﻿using Domain.DTO;
+﻿using Business.Services;
+using Domain.DTO;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using System;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 
 namespace Mydata
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow
     {
         public MainWindow(IServiceProvider serviceProvider)
@@ -26,7 +25,18 @@ namespace Mydata
 
             this.InvoiceTab.Content = invoiceTab;
             this.ExpensesTab.Content = expensesTab;
+            GetCompany(conenctionString.Value.Default);
         }
+
+        private async Task GetCompany(string connectionString)
+        {
+            var companyrepo = new CompanyRepo(connectionString);
+            var company = await companyrepo.Get();
+            VersionLabel.Content = "Betolink MyData Connector v2.11" +" " + company?.Name;
+
+        }
+
+       
 
         private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {

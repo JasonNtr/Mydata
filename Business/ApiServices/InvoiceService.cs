@@ -3,9 +3,6 @@ using Business.Mappings;
 using Business.Services;
 using Domain.AADE;
 using Domain.DTO;
-using Domain.Model;
-using Infrastructure.Database.RequestDocModels;
-using Infrastructure.Interfaces.Services;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
@@ -56,10 +53,10 @@ namespace Business.ApiServices
                 httpResponseMessage = await client.PostAsync(uri, content);
             }
             var httpresponsecontext = await httpResponseMessage.Content.ReadAsStringAsync();
-             
+
             var mydataresponse = ParseInvoiceResponseResult(httpresponsecontext);
 
-            if (mydataresponse.Count == 1 && transferModel.MyDataInvoices.Count >1)
+            if (mydataresponse.Count == 1 && transferModel.MyDataInvoices.Count > 1)
             {
                 result = await PostActionPerIvoice(transferModel);
                 return result;
@@ -156,7 +153,6 @@ namespace Business.ApiServices
 
             return result;
         }
-        
 
         public async Task<bool> CancelActionNew(MyDataInvoiceTransferModel transferModel)
         {
@@ -186,12 +182,11 @@ namespace Business.ApiServices
                 var particleRepo = new ParticleRepo(_connectionString);
 
                 mydataresponse.MyDataInvoiceId = invoice.Id;
-               
+
                 var particleToBeCancelled = await particleRepo.GetByMark(invoice.ParticleToBeCancelledMark);
                 var myDataInvoice = await ConvertParticleToMyDataInvoice(particleToBeCancelled);
                 myDataInvoice.MyDataCancellationResponses.Add(mydataresponse);
                 invoiceList.Add(myDataInvoice);
-
 
                 if (mydataresponse.statusCode.Equals("Success"))
                 {
@@ -200,22 +195,18 @@ namespace Business.ApiServices
                     invoice.Particle.Mark = mydataresponse.cancellationMark.ToString();
                     result = await particleRepo.Update(invoice.Particle);
 
-                    
                     particleToBeCancelled.CancelMark = invoice.Particle.Mark;
                     result = await particleRepo.Update(particleToBeCancelled);
 
-                    
                     result = await invoiceRepo.UpdateCancellationMark(myDataInvoice, invoice.Particle.Mark);
                 }
             }
-            
+
             result = await invoiceRepo.InsertOrUpdateRangeForCancel(transferModel.MyCancelDataInvoices);
             result = await invoiceRepo.InsertCancelResponses(invoiceList);
 
             return result;
         }
-
-        
 
         private MyDataCancelationResponseDTO ParseInvoiceCancelResponseResult(string httpresponsecontext)
         {
@@ -316,7 +307,5 @@ namespace Business.ApiServices
 
             return myDataInvoice;
         }
-
-        
     }
 }

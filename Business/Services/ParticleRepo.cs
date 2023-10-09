@@ -39,8 +39,6 @@ namespace Business.Services
             return particlesDTO;
         }
 
-         
-
         private async Task<ParticleDTO> Get(ParticleDTO particleDTO)
         {
             var context = GetContext();

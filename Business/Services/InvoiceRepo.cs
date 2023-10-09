@@ -36,7 +36,7 @@ namespace Business.Services
             var list =
                 await context.MyDataInvoices
                     .AsNoTracking()
-                    .Where(x => x.Modified.Date >= newFromDate && x.Modified.Date <= newToDate)
+                    .Where(x =>  x.InvoiceDate.Date >= newFromDate && x.InvoiceDate.Date <= newToDate)
                     .Include(p => p.MyDataResponses).ThenInclude(p => p.Errors)
                     .Include(p => p.MyDataCancellationResponses).ThenInclude(p => p.Errors)
                     .Include(p => p.InvoiceType)

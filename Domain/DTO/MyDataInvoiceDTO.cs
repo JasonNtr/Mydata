@@ -7,12 +7,12 @@ namespace Domain.DTO
     public class MyDataInvoiceDTO : MyDataEntityDTO
     {
         public virtual long? Uid { get; set; }
-        public virtual DateTime? InvoiceDate { get; set; }
+        public virtual DateTime InvoiceDate { get; set; }
         public virtual string InvoiceDateToString
         {
             get
             {
-                return InvoiceDate?.ToString("dd/MM/yyyy");
+                return InvoiceDate.ToString("dd/MM/yyyy");
             }
         }
         public virtual long? InvoiceNumber { get; set; }
@@ -26,9 +26,16 @@ namespace Domain.DTO
         {
             get
             {
-                if(MyDataResponses.Any(x => x.statusCode.Equals("Success"))){
+                if(MyDataResponses.Any(x => x.statusCode.Equals("Success")) && MyDataCancellationResponses.Count==0)
+                {
                     return "Success";
                 }
+                else if (MyDataResponses.Any(x => x.statusCode.Equals("Success")) && MyDataCancellationResponses.Count > 0)
+                {
+                    var statusCode = MyDataCancellationResponses.OrderBy(x => x.Created).Last().statusCode;
+                    return "Success - " + statusCode;
+                }
+
                 if (MyDataCancellationResponses.Count > 0)
                 {
                     var statusCode = MyDataCancellationResponses.OrderBy(x => x.Created).Last().statusCode;
@@ -38,7 +45,6 @@ namespace Domain.DTO
                 {
                     return MyDataResponses.Count > 0 ? MyDataResponses.OrderBy(x => x.Created).Last().statusCode : "Error no status code";
                 }
-               
             }
         }
         public virtual string invoiceMark

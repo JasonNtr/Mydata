@@ -6,7 +6,7 @@ namespace Domain.Model
     public class MyDataInvoice : MyDataEntity
     {
         public virtual long? Uid { get; set; }
-        public virtual DateTime? InvoiceDate { get; set; }
+        public virtual DateTime InvoiceDate { get; set; }
         public virtual long? InvoiceNumber { get; set; }
         public virtual long? CancellationMark { get; set; }
         public virtual string VAT { get; set; }

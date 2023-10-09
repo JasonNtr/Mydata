@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Domain.Model;
+using System;
 
 namespace Domain.DTO
 {
@@ -63,7 +64,8 @@ namespace Domain.DTO
         {
             get
             {
-                return Quantity * UnitPrice;
+                var returnValue = Quantity * UnitPrice;
+                return Math.Round((decimal)returnValue, 2, MidpointRounding.AwayFromZero); ;
             }
         }
 

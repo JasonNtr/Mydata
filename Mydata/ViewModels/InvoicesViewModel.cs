@@ -6,6 +6,7 @@ using Domain.DTO;
 using Microsoft.Extensions.Options;
 using Mydata.Helpers;
 using Mydata.UiModels;
+using Syncfusion.Windows.Shared;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -30,8 +31,6 @@ namespace Mydata.ViewModels
         private readonly IOptions<AppSettings> _appSettings;
         private bool _reloadNeeded;
 
-      
-
         public InvoicesViewModel(IOptions<AppSettings> appSettings, string connectionString)
         {
             _appSettings = appSettings;
@@ -53,8 +52,6 @@ namespace Mydata.ViewModels
             await LoadInvoices();
             StartEmptyBroker();
         }
-
-        
 
         private void StartBroker(List<ParticleDTO> particleDTOs)
         {
@@ -117,6 +114,10 @@ namespace Mydata.ViewModels
             var listOfInvoice = await invoiceRepo.GetList(DateFrom, DateTo);
             foreach (var myDataInvoiceDto in listOfInvoice)
             {
+                //if(myDataInvoiceDto.Id == Guid.Parse("8FDF1A30-1B5B-46D9-99D9-2289AB64FBCF")){
+                //    var x = 5;
+                //    MyDataInvoiceDTOs.Add(myDataInvoiceDto);
+                //}
                 MyDataInvoiceDTOs.Add(myDataInvoiceDto);
             }
         }
@@ -251,11 +252,12 @@ namespace Mydata.ViewModels
                 {
                     var counterPart = new InvoicesDocInvoiceCounterpart
                     {
-                        vatNumber =  particleDTO.Client?.VatNumber?.Trim(),
+                        vatNumber = particleDTO.Client?.VatNumber?.Trim(),
                         country = particleDTO.Client?.CountryCodeISO,
                         branch = 0
                     };
-                    if ((bool)!particleDTO.Client?.CountryCodeISO.Equals("GR"))
+                    particleDTO.Client.CountryCodeISO = null;
+                    if (!(bool)particleDTO.Client?.CountryCodeISO.IsNullOrWhiteSpace() && (bool)!particleDTO.Client?.CountryCodeISO.Equals("GR"))
                     {
                         counterPart.name = particleDTO.Client?.Name;
                     };
@@ -307,7 +309,7 @@ namespace Mydata.ViewModels
                 decimal? grossAmount = 0;
 
                 foreach (var item in particleDTO.Pmoves)
-                {                    
+                {
                     var incomeClassifications = new List<InvoicesDocInvoiceInvoiceDetailsIncomeClassification>();
                     var incomeClassification = new InvoicesDocInvoiceInvoiceDetailsIncomeClassification
                     {
@@ -335,26 +337,28 @@ namespace Mydata.ViewModels
                         if (sum != null) sum.amount += incomeClassification.amount;
                     }
                     incomeClassifications.Add(incomeClassification);
+                    var rounded = Math.Round((decimal)item.Net2, 2);
                     var detail = new InvoicesDocInvoiceInvoiceDetails
                     {
                         lineNumber = (uint)i,
-                        netValue = (decimal)item.Net2,
+                        netValue = (decimal)rounded,
                         vatCategory = (int)item.Item.FPA.FpaCategory,
                         vatAmount = item.PMS_VATAM,
                         stampDutyAmount = item.POSO_XARTOSH,
                         incomeClassification = incomeClassifications.ToArray(),
-                        withheldAmount =item.POSO_PARAKRAT,
+                        withheldAmount = item.POSO_PARAKRAT,
                         deductionsAmount = 0
                     };
 
-                    netAmount += item.Net2;
+                    netAmount += rounded;
                     vatAmount += item.PMS_VATAM;
                     withheldAmount += item.POSO_PARAKRAT;
                     stampDutyAmount += item.POSO_XARTOSH;
-                    grossAmount += item.CalculatedGross;
+                    var grossRounded = Math.Round((decimal)item.CalculatedGross, 2, MidpointRounding.AwayFromZero);
+                    grossAmount += grossRounded;
 
                     details.Add(detail);
-                    
+
                     i++;
                 }
 
@@ -372,8 +376,6 @@ namespace Mydata.ViewModels
                     totalGrossValue = (decimal)grossAmount,
                     incomeClassification = incomeClassificationSummary.ToArray()
                 };
-
-                 
 
                 invoice.invoiceSummary = invoicesDocInvoiceInvoiceSummary;
                 list.Add(invoice);
@@ -402,13 +404,20 @@ namespace Mydata.ViewModels
             _postsPerUnit.Add(xml);
         }
 
-        private void SendParticles()
+        private async void SendParticles()
         {
             var particleIds = SelectedParticles.Select(x => x.DataGridId).ToList();
 
             var invoices = _listOfIParticles.Where(x => particleIds.Contains(x.DataGridId)).ToList();
 
+            UpdateClients();
             DoTransferConversion(invoices);
+        }
+
+        private async void UpdateClients()
+        {
+            var clientRepo = new ClientRepo(_connectionString);
+            await clientRepo.UpdateSpecific();
         }
 
         private async void DoTransferConversion(IReadOnlyCollection<ParticleDTO> invoices)
@@ -520,7 +529,7 @@ namespace Mydata.ViewModels
                     if (!hasCategory)
                         message = "Enter correct classification Category for: " + pMove.Item.ITEM_DESCR + " Code: " + pMove.Item.ITEM_CODE;
                 }
-                if(typeCode == null)
+                if (typeCode == null)
                 {
                     message = "Fix parforol for Code:" + item.Ptyppar?.Code;
                 }
@@ -545,10 +554,10 @@ namespace Mydata.ViewModels
             {
                 var type = decimal.Parse(particleDTO.Ptyppar.EID_PARAST, CultureInfo.InvariantCulture);
                 var isValid = true;
-                if ((bool)particleDTO.Client?.CountryCodeISO.Equals("GR") && type is < 11 or > 12)
+                if (!(bool)particleDTO.Client?.CountryCodeISO.IsNullOrWhiteSpace() && (bool)!particleDTO.Client?.CountryCodeISO.Equals("GR") && type is < 11 or > 12)
                 {
                     isValid = Business.Helpers.VatValidator.Validate(particleDTO.Client?.VatNumber?.Trim());
-                }   
+                }
                 var hasCategory = true;
                 foreach (var item in particleDTO.Pmoves)
                 {
@@ -787,7 +796,7 @@ namespace Mydata.ViewModels
             }
         }
 
-        private DateTime _dateFrom = DateTime.UtcNow.ToLocalTime();
+        private DateTime _dateFrom = DateTime.UtcNow.AddDays(-1).ToLocalTime();
 
         public DateTime DateFrom
         {
