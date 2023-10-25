@@ -283,6 +283,8 @@ namespace Mydata.ViewModels
                 };
                 invoice.paymentMethods = paymentMethods.ToArray();
 
+                var bExeiApallaghFPA = particleDTO.Ptyppar.APALLAGH_FPA;
+
                 var header = new InvoicesDocInvoiceInvoiceHeader
                 {
                     series = particleDTO.Series,
@@ -291,7 +293,7 @@ namespace Mydata.ViewModels
                     invoiceType = type,
                     currency = "EUR"
                 };
-
+                if(bExeiApallaghFPA ==1) header.vatPaymentSuspension = true;
                 if (header.series.Equals(".") || header.series.Trim().Length == 0) header.series = "0";
                 invoice.invoiceHeader = header;
 
@@ -349,6 +351,14 @@ namespace Mydata.ViewModels
                         withheldAmount = item.POSO_PARAKRAT,
                         deductionsAmount = 0
                     };
+                    if (bExeiApallaghFPA == 1)
+                    {
+                        var category = particleDTO.Ptyppar.EXAIRFPA;
+                         
+                        detail.vatCategory = 7;
+                        detail.vatAmount = 0;
+                        detail.vatExemptionCategory = (byte?)category;
+                    }
 
                     netAmount += rounded;
                     vatAmount += item.PMS_VATAM;
@@ -376,8 +386,12 @@ namespace Mydata.ViewModels
                     totalGrossValue = (decimal)grossAmount,
                     incomeClassification = incomeClassificationSummary.ToArray()
                 };
+                if (bExeiApallaghFPA == 1)
+                {
+                    invoicesDocInvoiceInvoiceSummary.totalVatAmount = 0;
+                }
 
-                invoice.invoiceSummary = invoicesDocInvoiceInvoiceSummary;
+                    invoice.invoiceSummary = invoicesDocInvoiceInvoiceSummary;
                 list.Add(invoice);
                 AddToPostXmlPerUnit(invoice);
             }

@@ -44,7 +44,7 @@
                 </Button.Content>
             </Button>
             <Image Source="/Mydata;component/Resources/TrayIcon.ico" Height="20" Margin="5,0,5,0" />
-            <Label x:Name="VersionLabel" Content="Betolink MyData Connector v2.10"  FontWeight="SemiBold"  FontSize="18" />
+            <Label x:Name="VersionLabel" FontWeight="SemiBold"  FontSize="18" />
         </DockPanel>
 
         <syncfusion:TabControlExt x:Name="tabControlExt" HorizontalAlignment="Stretch" CloseButtonType="Hide"  VerticalAlignment="Stretch" ShowTabListContextMenu="false" 

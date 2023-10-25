@@ -180,7 +180,7 @@ namespace Domain.AADE
             }
         }
 
-        [XmlIgnore]
+        
         public byte? vatExemptionCategory
         {
             get
