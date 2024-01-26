@@ -22,10 +22,10 @@ namespace Business.Services
             endDate= endDate.AddDays(1).Date;
 
             
-            var ptyppars = await context.Ptyppars.AsNoTracking().Where(x => x.UpdateMyData == 1).Select(x => x.PTYPPAR_RECR).ToListAsync();
+            var ptyppars = await context.InvoiceTypes.AsNoTracking().Where(x => x.UpdateMyData == 1).Select(x => x.Code).ToListAsync();
 
-            var particles = await context.Particles.AsNoTracking().Where(x=>x.Date > startDate.Date && x.Date < endDate && x.Module.Equals("01")
-                && ptyppars.Contains(x.PTYPPAR_RECR) && x.Mark == null && x.Closed.Equals("1")  && x.Number>0).ToListAsync();
+            var particles = await context.Particles.AsNoTracking().Where(x=>x.Date > startDate.Date && x.Date < endDate
+                && ptyppars.Contains(x.InvoiceType) && x.Mark == null && x.Closed.Equals("1")  && x.Number>0).ToListAsync();
 
             var particlesDTO = Mapper.Map<List<ParticleDTO>>(particles);
 
@@ -43,36 +43,33 @@ namespace Business.Services
         {
             var context = GetContext();
 
-            var branch = await context.Branches.AsNoTracking().FirstOrDefaultAsync(x => x.Code.Equals(particleDTO.Branch));
-            var branchDTO = Mapper.Map<BranchDTO>(branch);
-            particleDTO.BranchDTO = branchDTO;
-
-            var ptyppar = await context.Ptyppars.AsNoTracking().FirstOrDefaultAsync(x => x.PTYPPAR_RECR.Equals(particleDTO.PTYPPAR_RECR));
-            var ptypparDTO = Mapper.Map<PtypparDTO>(ptyppar);
+            var ptyppar = await context.InvoiceTypes.AsNoTracking().FirstOrDefaultAsync(x => x.Code.Equals(particleDTO.InvoiceType));
+            var ptypparDTO = Mapper.Map<InvoiceTypeDTO>(ptyppar);
             particleDTO.Ptyppar = ptypparDTO;
 
-            var client = await context.Clients.AsNoTracking().FirstOrDefaultAsync(x => x.ClientId.Equals(particleDTO.ClientId));
+            var client = await context.Clients.AsNoTracking().FirstOrDefaultAsync(x => x.Code.Equals(particleDTO.ClientCode));
             if (client != null)
             {
-                var city = await context.Cities.AsNoTracking().FirstOrDefaultAsync(x => x.CityId.Equals(client.CLIENT_CITY_ID));
-                var cityDTO = Mapper.Map<CityDTO>(city);
+                var ship = await context.Ships.AsNoTracking().FirstOrDefaultAsync(x=>x.Code == particleDTO.ShipCode);
+                var shipDTO = Mapper.Map<ShipDTO>(ship);
+
                 var clientDTO = Mapper.Map<ClientDTO>(client);
-                clientDTO.City = cityDTO;
+                clientDTO.Ship = shipDTO;
                 particleDTO.Client = clientDTO;
             }
             
 
-            var pmoves = await context.Pmoves.AsNoTracking().Where(x => x.PARTL_RECR.Equals(particleDTO.PARTL_RECR)).ToListAsync();
-            var pmovesDTO = Mapper.Map<List<PmoveDTO>>(pmoves);
+            var pmoves = await context.Pmoves.AsNoTracking().Where(x => x.Particle.Equals(particleDTO.Code)).ToListAsync();
+            var pmovesDTO = Mapper.Map<List<PMoveDTO>>(pmoves);
 
             foreach (var pmove in pmovesDTO)
             {
-                var item = await context.Item.AsNoTracking().FirstOrDefaultAsync(x => x.ITEM_CODE.Equals(pmove.ITEM_CODE));
+                var item = await context.Item.AsNoTracking().FirstOrDefaultAsync(x => x.ITEM_CODE.Equals(pmove.Item));
                 var itemDTO = Mapper.Map<ItemDTO>(item);
-                var fpa = await context.FPA.AsNoTracking().FirstOrDefaultAsync(x => x.Percentage.Equals(itemDTO.FPA_POSOSTO));
-                var fpaDTO = Mapper.Map<FPADTO>(fpa);
+                var fpa = await context.FPA.AsNoTracking().FirstOrDefaultAsync(x => x.Percentage.Equals(itemDTO.Vat));
+                var fpaDTO = Mapper.Map<FpaDTO>(fpa);
                 itemDTO.FPA = fpaDTO;
-                pmove.Item = itemDTO;
+                pmove.ItemDTO = itemDTO;
             }
             
             particleDTO.Pmoves = pmovesDTO;
@@ -82,13 +79,7 @@ namespace Business.Services
         public async Task<bool> Update(ParticleDTO invoiceParticle)
         {
             var context = GetContext();
-            var particle = await context.Particles.FirstOrDefaultAsync(x => x.Number == invoiceParticle.Number &&
-                                                                            x.CTYPKIN_CODE.Equals(invoiceParticle.CTYPKIN_CODE) &&
-                                                                            x.PTYPPAR_CODE.Equals(invoiceParticle.PTYPPAR_CODE) &&
-                                                                            x.ClientId.Equals(invoiceParticle.ClientId)
-                                                                                && x.Series.Equals(invoiceParticle
-                                                                                    .Series) && x.Date ==
-                                                                                invoiceParticle.Date);
+            var particle = await context.Particles.FirstOrDefaultAsync(x => x.Code == invoiceParticle.Code  && x.Date == invoiceParticle.Date);
            
             Mapper.Map(invoiceParticle, particle);
             
@@ -97,13 +88,11 @@ namespace Business.Services
 
         }
 
-        public async Task<ParticleDTO> GetCancel(string itemPartlRecr)
+        public async Task<ParticleDTO> GetCancel(decimal cancelCode)
         {
             var context = GetContext();
-            var psxetiko = await context.Psxetika.FirstOrDefaultAsync(x => x.PARTL_RECR.Equals(itemPartlRecr));
-            if (psxetiko?.PSX_PARTL_RECR == null) return null;
-
-            var particle = await context.Particles.FirstOrDefaultAsync(x => x.PARTL_RECR.Equals(psxetiko.PSX_PARTL_RECR));
+            
+            var particle = await context.Particles.FirstOrDefaultAsync(x => x.Code == cancelCode);
             return Mapper.Map<ParticleDTO>(particle);
         }
 
@@ -114,17 +103,16 @@ namespace Business.Services
             var particleDTO= Mapper.Map<ParticleDTO>(particle);
 
 
-            var ptyppar = await context.Ptyppars.AsNoTracking().FirstOrDefaultAsync(x => x.PTYPPAR_RECR.Equals(particleDTO.PTYPPAR_RECR));
-            var ptypparDTO = Mapper.Map<PtypparDTO>(ptyppar);
+            var ptyppar = await context.InvoiceTypes.AsNoTracking().FirstOrDefaultAsync(x => x.Code.Equals(particleDTO.InvoiceType));
+            var ptypparDTO = Mapper.Map<InvoiceTypeDTO>(ptyppar);
             particleDTO.Ptyppar = ptypparDTO;
 
-            var client = await context.Clients.AsNoTracking().FirstOrDefaultAsync(x => x.ClientId.Equals(particleDTO.ClientId));
+            var client = await context.Clients.AsNoTracking().FirstOrDefaultAsync(x => x.Code.Equals(particleDTO.ClientCode));
             if (client != null)
             {
-                var city = await context.Cities.AsNoTracking().FirstOrDefaultAsync(x => x.CityId.Equals(client.CLIENT_CITY_ID));
-                var cityDTO = Mapper.Map<CityDTO>(city);
+                
                 var clientDTO = Mapper.Map<ClientDTO>(client);
-                clientDTO.City = cityDTO;
+                
                 particleDTO.Client = clientDTO;
             }
 
@@ -135,7 +123,7 @@ namespace Business.Services
         public async Task<ParticleDTO> GetParticleByRec0(long? invoiceUid)
         {
             var context = GetContext();
-            var particle = await context.Particles.FirstOrDefaultAsync(x => x.Rec0 == invoiceUid);
+            var particle = await context.Particles.FirstOrDefaultAsync(x => x.Code == invoiceUid);
             var particleDTO = Mapper.Map<ParticleDTO>(particle);
             var fullParticle = await Get(particleDTO);
             return fullParticle;
@@ -144,8 +132,13 @@ namespace Business.Services
         public async Task<List<string>> GetTypes()
         {
             var context = GetContext();
-            var types = await context.Ptyppars.Select(x => x.TYPOS_XARAKTHR).Where(x => x != null).Distinct().OrderBy(x => x).ToListAsync();
+            var types = await context.InvoiceTypes.Select(x => x.TYPOS_XARAKTHR).Where(x => x != null).Distinct().OrderBy(x => x).ToListAsync();
             return types;
+        }
+
+        public Task<ParticleDTO> GetCancel(decimal? cancelledBy)
+        {
+            throw new NotImplementedException();
         }
     }
 

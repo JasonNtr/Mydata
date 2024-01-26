@@ -1,4 +1,5 @@
-﻿using Domain.Model;
+﻿using Domain.DTO;
+using Domain.Model;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Database
@@ -141,15 +142,16 @@ namespace Infrastructure.Database
                 .HasForeignKey<MyDataIncomeClassification>(p => p.MyDataInvoiceDetailsId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.Entity<Particle>().HasKey(c => new { c.Company, c.Branch, c.Year, c.CTYPKIN_CODE, c.WTYPKIN_CODE, c.PTYPPAR_CODE, c.Series, c.CUSTPROM_CODE, c.ClientId, c.Number, c.Date });
-            builder.Entity<Pmove>().HasKey(c => new { c.Company, c.Branch, c.Year, c.CTYPKIN_CODE, c.WTYPKIN_CODE, c.PTYPPAR_CODE, c.Series, c.CUSTPROM_CODE, c.ClientId, c.Number, c.Date, c.ConstructionCode, c.PMS_REC0 });
-            builder.Entity<Item>().HasKey(c => new { c.UNITS_CODE, c.WITEMKAT_CODE, c.ITEM_CODE });
-            builder.Entity<Client>().HasKey(c => new { c.CompanyCode, c.BranchCode, c.Year, c.CustomPromCode, c.ClientId });
-            builder.Entity<FPA>().HasKey(c => c.Percentage);
-            builder.Entity<Ptyppar>().HasNoKey();
-            builder.Entity<Branch>().HasNoKey();
+            builder.Entity<Ship>().HasKey(c => c.Code);
+            builder.Entity<Particle>().HasKey(c => c.Code);
+            builder.Entity<PMove>().HasKey(c => c.Code);
+            builder.Entity<Item>().HasKey(c => c.ITEM_CODE);
+            builder.Entity<Client>().HasKey(c => c.Code);
+            builder.Entity<Fpa>().HasKey(c => c.Percentage);
+            builder.Entity<Company>().HasKey(c => c.Code);
+            builder.Entity<InvoiceType>().HasKey(c => c.Code);
             builder.Entity<TaxInvoice>().HasKey(c => new { c.TaxCode, c.PtyparCode, c.Module });
-            builder.Entity<Psxetika>().HasKey(c => new { c.COMPANY_CODE, c.BRANCH_CODE, c.YEAR_YEAR, c.CTYPKIN_CODE, c.WTYPKIN_CODE, c.PTYPPAR_CODE, c.PSEIRA_SEIRA, c.CUSTPROM_CODE, c.CLIENT_ID, c.PARTL_HMNIA, c.PSX_PARTL_RECR });
+
         }
 
         private void SeedData(ModelBuilder builder)
@@ -278,6 +280,7 @@ namespace Infrastructure.Database
 
         public DbSet<MyDataInvoice> MyDataInvoices { get; set; }
         public DbSet<TaxInvoice> TaxInvoices { get; set; }
+       
         public DbSet<MyDataResponse> MyDataResponses { get; set; }
         public DbSet<MyDataTransmittedDocInvoice> MyDataTransmittedDocInvoices { get; set; }
         public DbSet<MyDataCancelationResponse> MyDataCancellationResponses { get; set; }
@@ -288,13 +291,13 @@ namespace Infrastructure.Database
         public DbSet<Company> Companies { get; set; }
         public DbSet<Particle> Particles { get; set; }
         public DbSet<Client> Clients { get; set; }
-        public DbSet<Ptyppar> Ptyppars { get; set; }
-        public DbSet<Psxetika> Psxetika { get; set; }
-        public DbSet<Pmove> Pmoves { get; set; }
+        
+        public DbSet<PMove> Pmoves { get; set; }
         public DbSet<Item> Item { get; set; }
-        public DbSet<FPA> FPA { get; set; }
-        public DbSet<Branch> Branches { get; set; }
-        public DbSet<City> Cities { get; set; }
+        public DbSet<Fpa> FPA { get; set; }
+        public DbSet<InvoiceType> InvoiceTypes { get; set; }
+        public DbSet<Ship> Ships { get; set; }
+       
 
         public DbSet<MyDataIncomeError> MyDataIncomeErrors { get; set; }
         public DbSet<MyDataInvoiceHeaderType> MyDataInvoiceHeaderTypes { get; set; }

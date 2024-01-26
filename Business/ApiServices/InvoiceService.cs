@@ -296,12 +296,12 @@ namespace Business.ApiServices
         private async Task<MyDataInvoiceDTO> ConvertParticleToMyDataInvoice(ParticleDTO particleToBeCancelled)
         {
             var taxInvoiceRepo = new TaxInvoiceRepo(_connectionString);
-            var typeCode = await taxInvoiceRepo.GetTaxCode(particleToBeCancelled.Ptyppar?.Code);
+            var typeCode = await taxInvoiceRepo.GetTaxCode(particleToBeCancelled.Ptyppar?.Code.ToString());
             var myDataInvoice = new MyDataInvoiceDTO();
-            myDataInvoice.Uid = (long?)particleToBeCancelled.Rec0;
+            myDataInvoice.Uid = (long?)particleToBeCancelled.Code;
             myDataInvoice.InvoiceNumber = (long?)particleToBeCancelled.Number;
             myDataInvoice.InvoiceDate = particleToBeCancelled.Date;
-            myDataInvoice.VAT = particleToBeCancelled.Client?.VatNumber.Trim();
+            myDataInvoice.VAT = particleToBeCancelled.Client?.Vat.Trim();
             myDataInvoice.InvoiceTypeCode = (int)typeCode;
             myDataInvoice.Particle = particleToBeCancelled;
 

@@ -1,21 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domain.Model
 {
-    [Table("MAINCOMP")]
-
-    public class Client
+    [Table("SUBCOMP")]
+    public class Ship
     {
         [Column("Code")]
         public decimal Code { get; set; }
         [Column("NAME")]
         public string Name { get; set; }
-         [Column("SUM_PCT_TPCL")]
+        [Column("SUM_PCT_TPCL")]
         public decimal? SUM_PCT_TPCL { get; set; }
 
         [Column("VAT")]
@@ -25,9 +19,9 @@ namespace Domain.Model
 
         public string CountryCodeISO { get; set; }
         [Column("COUNTRY")]
-        public string Country{ get; set; }
-        
-        [Column("AREA")]
-        public string City{ get; set; }
+        public string Country { get; set; }
+
+        [Column("MAINCOMP")]
+        public decimal Client { get; set; }
     }
 }

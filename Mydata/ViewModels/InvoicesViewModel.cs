@@ -3,6 +3,7 @@ using Business.Brokers;
 using Business.Services;
 using Domain.AADE;
 using Domain.DTO;
+using Domain.Model;
 using Microsoft.Extensions.Options;
 using Mydata.Helpers;
 using Mydata.UiModels;
@@ -160,11 +161,11 @@ namespace Mydata.ViewModels
             var invoices = new List<ParticleDTO>();
             foreach (var particle in _listOfIParticles)
             {
-                var exist = _retries.Any(x => x.ParticleRec0 == particle.Rec0);
+                var exist = _retries.Any(x => x.ParticleNo == particle.Code);
                 if (!exist) invoices.Add(particle);
                 else
                 {
-                    var retry = _retries.FirstOrDefault(x => x.ParticleRec0 == particle.Rec0);
+                    var retry = _retries.FirstOrDefault(x => x.ParticleNo == particle.Code);
                     if (retry != null)
                     {
                         var timespan = DateTime.UtcNow.Subtract(retry.LastTryDate);
@@ -177,10 +178,10 @@ namespace Mydata.ViewModels
 
             foreach (var invoice in invoices)
             {
-                var exist = _retries.Any(x => x.ParticleRec0 == invoice.Rec0);
+                var exist = _retries.Any(x => x.ParticleNo == invoice.Code);
                 if (exist)
                 {
-                    var retry = _retries.FirstOrDefault(x => x.ParticleRec0 == invoice.Rec0);
+                    var retry = _retries.FirstOrDefault(x => x.ParticleNo == invoice.Code);
                     if (retry != null)
                     {
                         retry.Retries++;
@@ -192,7 +193,7 @@ namespace Mydata.ViewModels
                     var retry = new ParticleRetries
                     {
                         Retries = 1,
-                        ParticleRec0 = invoice.Rec0,
+                        ParticleNo = invoice.Code,
                         LastTryDate = DateTime.UtcNow
                     };
                     _retries.Add(retry);
@@ -210,14 +211,14 @@ namespace Mydata.ViewModels
                 var guid = Guid.NewGuid();
                 invoice.DataGridId = guid;
 
-                particle.Rec0 = invoice.Rec0;
+                particle.Rec0 = invoice.Code;
                 particle.DataGridId = guid;
                 particle.Date = invoice.Date.ToShortDateString();
-                particle.Branch = invoice.Branch + " " + invoice.BranchDTO.CityName;
-                particle.Series = invoice.Series;
+                particle.Branch = "Branch";
+                particle.Series = invoice.Ptyppar.Series;
                 particle.Client = invoice.Client.Name;
                 particle.PtyParDescription = invoice.Ptyppar.Code + " - " + invoice.Ptyppar.Description;
-                particle.Amount = invoice.Amount.ToString("c");
+                particle.Amount = ((decimal)invoice.Amount).ToString("c");
                 particle.Number = invoice.Number;
 
                 Particles.Add(particle);
@@ -226,25 +227,26 @@ namespace Mydata.ViewModels
             ParticleNo = "(" + count + ")";
         }
 
-        private string CreateInvoiceDocXml(List<ParticleDTO> particlesDTO)
+        private string CreateInvoiceDocXml(List<ParticleDTO> particlesDTO,CompanyDTO company)
         {
+
             var doc = new InvoicesDoc();
             var list = new List<InvoicesDocInvoice>();
             _postsPerUnit = new List<string>();
             foreach (var particleDTO in particlesDTO)
             {
                 var invoice = new InvoicesDocInvoice();
-                var type = decimal.Parse(particleDTO.Ptyppar.EID_PARAST, CultureInfo.InvariantCulture);
+                var type = decimal.Parse(particleDTO.Ptyppar.EidParast, CultureInfo.InvariantCulture);
                 var issuer = new InvoicesDocInvoiceIssuer
                 {
-                    vatNumber = particleDTO.BranchDTO?.VatNumber.Trim(),
+                    vatNumber = company.Vat.Trim(),
                     country = "GR",
                     branch = 0
                 };
                 var issuerPartAddress = new InvoicesDocInvoiceIssuerAddress
                 {
-                    postalCode = particleDTO.BranchDTO?.ZipCode,
-                    city = particleDTO.BranchDTO?.CityName
+                    postalCode = company.ZipCode,
+                    city = company.CIty
                 };
                 issuer.address = issuerPartAddress;
                 invoice.issuer = issuer;
@@ -252,20 +254,29 @@ namespace Mydata.ViewModels
                 {
                     var counterPart = new InvoicesDocInvoiceCounterpart
                     {
-                        vatNumber = particleDTO.Client?.VatNumber?.Trim(),
-                        country = particleDTO.Client?.CountryCodeISO,
+                        vatNumber = particleDTO.Client?.Vat?.Trim(),
+                        country = particleDTO.Client?.Ship.CountryCodeISO,
                         branch = 0
                     };
-                    particleDTO.Client.CountryCodeISO = null;
-                    if (!(bool)particleDTO.Client?.CountryCodeISO.IsNullOrWhiteSpace() && (bool)!particleDTO.Client?.CountryCodeISO.Equals("GR"))
+
+
+                    if (String.IsNullOrEmpty(counterPart.vatNumber)) counterPart.vatNumber = particleDTO.Client?.Vat?.Trim();
+                    if (String.IsNullOrEmpty(counterPart.country)) counterPart.country = particleDTO.Client?.CountryCodeISO;
+
+
+                    //particleDTO.Client.CountryCodeISO = null;
+                    if (!(bool)particleDTO.Client?.CountryCodeISO.IsNullOrWhiteSpace() && (bool)!particleDTO.Client?.Ship.CountryCodeISO.Equals("GR"))
                     {
-                        counterPart.name = particleDTO.Client?.Name;
+                        counterPart.name = particleDTO.Client?.Ship.Name;
                     };
                     var counterPartAddress = new InvoicesDocInvoiceCounterpartAddress
                     {
-                        postalCode = particleDTO.Client?.CLIENT_ZIPCODE ?? "",
-                        city = particleDTO.Client?.City.Name
+                        postalCode = particleDTO.Client?.Ship.ZipCode ?? "",
+                        city = particleDTO.Client?.City
                     };
+
+                    if (String.IsNullOrEmpty(counterPartAddress.postalCode)) counterPartAddress.postalCode = particleDTO.Client?.ZipCode ?? "";
+
 
                     counterPart.address = counterPartAddress;
                     invoice.counterpart = counterPart;
@@ -274,7 +285,7 @@ namespace Mydata.ViewModels
                 var paymentMethod = new InvoicesDocInvoicePaymentMethodDetails
                 {
                     type = (int)particleDTO.Paymentmethod,
-                    amount = particleDTO.Amount
+                    amount = (decimal)particleDTO.Amount
                 };
                 if (paymentMethod.type == 0) paymentMethod.type = 5;
                 var paymentMethods = new List<InvoicesDocInvoicePaymentMethodDetails>
@@ -283,11 +294,11 @@ namespace Mydata.ViewModels
                 };
                 invoice.paymentMethods = paymentMethods.ToArray();
 
-                var bExeiApallaghFPA = particleDTO.Ptyppar.APALLAGH_FPA;
+                var bExeiApallaghFPA = particleDTO.Ptyppar.VatExemption;
 
                 var header = new InvoicesDocInvoiceInvoiceHeader
                 {
-                    series = particleDTO.Series,
+                    series = particleDTO.Ptyppar.Series,
                     aa = particleDTO.Number.ToString(CultureInfo.InvariantCulture),
                     issueDate = particleDTO.Date,
                     invoiceType = type,
@@ -316,8 +327,8 @@ namespace Mydata.ViewModels
                     var incomeClassification = new InvoicesDocInvoiceInvoiceDetailsIncomeClassification
                     {
                         classificationType = particleDTO.Ptyppar.TYPOS_XARAKTHR,
-                        classificationCategory = item.Item.KATHG_XARAKTHR,
-                        amount = item.PMS_AMAFTDISC
+                        classificationCategory = item.ItemDTO.Category,
+                        amount = (decimal)item.PMS_AMAFTDISC
                     };
 
                     if (!incomeClassificationSummary.Any(x =>
@@ -344,9 +355,9 @@ namespace Mydata.ViewModels
                     {
                         lineNumber = (uint)i,
                         netValue = (decimal)rounded,
-                        vatCategory = (int)item.Item.FPA.FpaCategory,
-                        vatAmount = item.PMS_VATAM,
-                        stampDutyAmount = item.POSO_XARTOSH,
+                        vatCategory = (int)item.ItemDTO.FPA.Category,
+                        vatAmount = (decimal)item.PMS_VATAM,
+                        stampDutyAmount = (decimal)item.POSO_XARTOSH,
                         incomeClassification = incomeClassifications.ToArray(),
                         withheldAmount = item.POSO_PARAKRAT,
                         deductionsAmount = 0
@@ -357,7 +368,7 @@ namespace Mydata.ViewModels
                          
                         detail.vatCategory = 7;
                         detail.vatAmount = 0;
-                        detail.vatExemptionCategory = (byte?)category;
+                        detail.vatExemptionCategory = (byte)category;
                     }
 
                     netAmount += rounded;
@@ -450,22 +461,24 @@ namespace Mydata.ViewModels
 
             foreach (var item in validInvoices)
             {
-                var typeCode = await taxInvoiceRepo.GetTaxCode(item.Ptyppar?.Code);
+                var typeCode = await taxInvoiceRepo.GetTaxCode(item.Ptyppar?.Code.ToString());
                 if (typeCode != null)
                 {
                     var myDataInvoice = new MyDataInvoiceDTO
                     {
-                        Uid = (long?)item.Rec0,
+                        Uid = (long?)item.Code,
                         InvoiceNumber = (long?)item.Number,
                         InvoiceDate = item.Date,
-                        VAT = item.Client?.VatNumber?.Trim(),
+                        VAT = item.Client?.Vat?.Trim(),
                         InvoiceTypeCode = (int)typeCode,
                         Particle = item
                     };
                     postTransferModel.MyDataInvoices.Add(myDataInvoice);
                 }
             }
-            var postXml = CreateInvoiceDocXml(validInvoices);
+            var companyrepo = new CompanyRepo(_connectionString);
+            var company = await companyrepo.Get();
+            var postXml = CreateInvoiceDocXml(validInvoices, company);
 
             postTransferModel.Xml = postXml;
             postTransferModel.XmlPerInvoice = _postsPerUnit;
@@ -478,11 +491,11 @@ namespace Mydata.ViewModels
 
             foreach (var item in cancelInvoices)
             {
-                var particleToBeCancelled = await particleRepo.GetCancel(item.PARTL_RECR);
+                var particleToBeCancelled = await particleRepo.GetCancel(item.CancelledBy);
                 if (particleToBeCancelled.Mark == null) break;
                 var myDataInvoice = new MyDataCancelInvoiceDTO
                 {
-                    Uid = (long?)item.Rec0,
+                    Uid = (long?)item.Code,
                     ParticleToBeCancelledMark = long.Parse(particleToBeCancelled.Mark),
                     Particle = item
                 };
@@ -508,13 +521,13 @@ namespace Mydata.ViewModels
                 var responses = new List<MyDataResponseDTO>();
                 var errors = new List<MyDataErrorDTO>();
 
-                var typeCode = await taxInvoiceRepo.GetTaxCode(item.Ptyppar?.Code);
+                var typeCode = await taxInvoiceRepo.GetTaxCode(item.Ptyppar?.Code.ToString());
                 var myDataInvoice = new MyDataInvoiceDTO
                 {
-                    Uid = (long?)item.Rec0,
+                    Uid = (long?)item.Code,
                     InvoiceNumber = (long?)item.Number,
                     InvoiceDate = item.Date,
-                    VAT = item.Client?.VatNumber?.Trim()
+                    VAT = item.Client?.Vat?.Trim()
                 };
                 if (typeCode != null) myDataInvoice.InvoiceTypeCode = (int)typeCode;
                 myDataInvoice.Particle = item;
@@ -533,15 +546,15 @@ namespace Mydata.ViewModels
                 };
 
                 var message = string.Empty;
-                var isValid = Business.Helpers.VatValidator.Validate(item.Client?.VatNumber?.Trim());
+                var isValid = Business.Helpers.VatValidator.Validate(item.Client?.Vat?.Trim());
                 if (!isValid)
-                    message = "Invalid Greek VAT number: " + item.Client?.VatNumber?.Trim();
+                    message = "Invalid Greek VAT number: " + item.Client?.Vat?.Trim();
 
                 foreach (var pMove in item.Pmoves)
                 {
-                    var hasCategory = pMove.Item.KATHG_XARAKTHR != null;
+                    var hasCategory = pMove.ItemDTO.Category != null;
                     if (!hasCategory)
-                        message = "Enter correct classification Category for: " + pMove.Item.ITEM_DESCR + " Code: " + pMove.Item.ITEM_CODE;
+                        message = "Enter correct classification Category for: " + pMove.ItemDTO.ITEM_DESCR + " Code: " + pMove.ItemDTO.Code;
                 }
                 if (typeCode == null)
                 {
@@ -566,16 +579,16 @@ namespace Mydata.ViewModels
             var list = new List<ParticleDTO>();
             foreach (var particleDTO in postInvoices)
             {
-                var type = decimal.Parse(particleDTO.Ptyppar.EID_PARAST, CultureInfo.InvariantCulture);
+                var type = decimal.Parse(particleDTO.Ptyppar.EidParast, CultureInfo.InvariantCulture);
                 var isValid = true;
-                if (!(bool)particleDTO.Client?.CountryCodeISO.IsNullOrWhiteSpace() && (bool)!particleDTO.Client?.CountryCodeISO.Equals("GR") && type is < 11 or > 12)
+                if (!(bool)particleDTO.Client?.CountryCodeISO.IsNullOrWhiteSpace() && (bool)particleDTO.Client?.CountryCodeISO.Equals("GR") && type is < 11 or > 12)
                 {
-                    isValid = Business.Helpers.VatValidator.Validate(particleDTO.Client?.VatNumber?.Trim());
+                    isValid = Business.Helpers.VatValidator.Validate(particleDTO.Client?.Vat?.Trim());
                 }
                 var hasCategory = true;
                 foreach (var item in particleDTO.Pmoves)
                 {
-                    hasCategory = item.Item.KATHG_XARAKTHR != null;
+                    hasCategory = item.ItemDTO.Category != null;
                 }
 
                 if (isValid && hasCategory)

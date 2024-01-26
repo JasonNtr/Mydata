@@ -59,7 +59,6 @@
 
             <syncfusion:TabItemExt x:Name="InvoiceTab" Header="Πωλήσεις" CloseButtonState="Collapsed"   Width="250" Height="30" 
                            CanClose="False"/>
-            <syncfusion:TabItemExt x:Name="ExpensesTab" Header="Αγορές"  Width="250" Height="30"/>
         </syncfusion:TabControlExt>
 
     </StackPanel>

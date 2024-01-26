@@ -24,7 +24,7 @@ namespace Mydata
             var expensesTab = new ExpensesUserControl(appSettings, conenctionString.Value.Default);
 
             this.InvoiceTab.Content = invoiceTab;
-            this.ExpensesTab.Content = expensesTab;
+          
             GetCompany(conenctionString.Value.Default);
         }
 
