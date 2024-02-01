@@ -43,6 +43,7 @@
         private string[] receptionEmailsField;
 
         private string statusCodeField;
+        private string qrUrlField;
 
         /// <remarks/>
         public int index
@@ -110,6 +111,11 @@
             set { this.statusCodeField = value; }
         }
 
+        public string qrUrl
+        {
+            get { return this.qrUrlField; }
+            set { this.qrUrlField = value; }
+        }
 
         [System.Xml.Serialization.XmlArrayItemAttribute("error", IsNullable = false)]
         public ResponseDocResponseError[] errors

@@ -12,8 +12,12 @@ namespace Domain.Model
         public string? EidParast { get; set; }
 
         [Column("APALLAGH_FPA")]
+        
       
         public decimal? VatExemption { get; set; }
+
+        [Column("PISTOTIKO")]
+        public decimal? Pistotiko { get; set; }
 
         [Column("ENHM_MYDATA")]
        

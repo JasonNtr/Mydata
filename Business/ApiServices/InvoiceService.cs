@@ -69,6 +69,8 @@ namespace Business.ApiServices
                 if (mydataresponse[i].statusCode.Equals("Success"))
                 {
                     invoice.Particle.Mark = mydataresponse[i].invoiceMark.ToString();
+                    invoice.Particle.QrCode = mydataresponse[i].qrUrl.ToString();
+                    invoice.Particle.AadeUid = mydataresponse[i].invoiceUid.ToString();
                     result = await particleRepo.Update(invoice.Particle);
                 }
                 i++;

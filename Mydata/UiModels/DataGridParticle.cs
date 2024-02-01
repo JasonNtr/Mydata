@@ -9,6 +9,7 @@ namespace Mydata.UiModels
         public string Branch { get; set; }
         public decimal Number { get; set; }
         public string Series { get; set; }
+        public string Code { get; set; }
         public string Client { get; set; }
         public string PtyParDescription { get; set; }
         public string Amount { get; set; }

@@ -19,11 +19,14 @@ namespace Domain.DTO
         public decimal Total { get; set; }
         public string? CancelMark { get; set; }
         public decimal? Amount { get; set; }
+        public string QrCode { get; set; }
+        public string AadeUid { get; set; }
 
         public string Currency { get; set; }
         public decimal? CancelledBy { get; set; }
         public decimal? CanceledParticle { get; set; }
-
+        public decimal? CancelInvoiceCode { get; set; }
+     
         public Guid DataGridId { get; set; }
         public string? Mark { get; set; }
         public string? Closed { get; set; }

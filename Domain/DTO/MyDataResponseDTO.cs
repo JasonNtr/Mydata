@@ -13,6 +13,8 @@ namespace Domain.DTO
         public virtual string invoiceUid { get; set; }
         public virtual long? invoiceMark { get; set; }
         public virtual long? cancellationMark { get; set; }
+        public virtual string qrUrl { get; set; }
+
         public virtual string authenticationCode { get; set; }
         [XmlElement]
         public virtual List<MyDataErrorDTO> errors { get; set; } = new List<MyDataErrorDTO>();

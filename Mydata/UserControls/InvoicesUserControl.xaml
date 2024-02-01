@@ -252,12 +252,12 @@
                                   AutoGenerateColumns="False" SelectionMode="Multiple" HorizontalAlignment="Left" SelectionUnit="Row" NavigationMode="Row"
                                RowSelectionBrush="	#42C0FB" SelectionChanged="SfGrid2_OnSelectionChanged">
             <syncfusion:SfDataGrid.Columns>
-                <syncfusion:GridTextColumn MappingName="Date" HeaderText="Ημερομηνία" Width="150" TextAlignment="Center" AllowFiltering="True"/>
-                <syncfusion:GridTextColumn MappingName="Branch" Width="200" HeaderText="Υποκατάστημα" TextAlignment="Center" AllowFiltering="True"/>
+                <syncfusion:GridTextColumn MappingName="Date" HeaderText="Ημερομηνία" Width="200" TextAlignment="Center" AllowFiltering="True"/>
+                <syncfusion:GridTextColumn MappingName="Code" Width="100" HeaderText="UID" TextAlignment="Center" AllowFiltering="True"/>
                 <syncfusion:GridTextColumn MappingName="Series"  HeaderText="Σειρά" Width="100" TextAlignment="Center" AllowFiltering="True"/>
                 <syncfusion:GridTextColumn MappingName="Number"  HeaderText="Αριθμός" Width="100" TextAlignment="Center" AllowFiltering="True"/>
                 <syncfusion:GridTextColumn MappingName="Client" HeaderText="Πελάτης" Width="350" TextAlignment="Center" AllowFiltering="True"/>
-                <syncfusion:GridTextColumn MappingName="PtyParDescription" HeaderText="Παραστατικό" Width="250" TextAlignment="Center" AllowFiltering="True"/>
+                <syncfusion:GridTextColumn MappingName="PtyParDescription" HeaderText="Παραστατικό" Width="300" TextAlignment="Center" AllowFiltering="True"/>
                 <syncfusion:GridTextColumn MappingName="Amount"  HeaderText="Ποσό"   TextAlignment="Center"/>
                  
                

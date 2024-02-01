@@ -60,19 +60,24 @@ namespace Business.Services
             {
                 var exists = await context.MyDataInvoices.AnyAsync(x =>
                     x.InvoiceDate == invoice.InvoiceDate && x.Uid == invoice.Uid &&
-                    x.InvoiceNumber == invoice.InvoiceNumber && x.VAT.Equals(invoice.VAT));
+                    x.InvoiceNumber == invoice.InvoiceNumber && x.InvoiceTypeCode.Equals(invoice.InvoiceTypeCode));
 
                 if (exists)
                 {
                     var myInvoice = await context.MyDataInvoices.FirstOrDefaultAsync(x =>
                         x.InvoiceDate == invoice.InvoiceDate && x.Uid == invoice.Uid &&
-                        x.InvoiceNumber == invoice.InvoiceNumber && x.VAT.Equals(invoice.VAT));
+                        x.InvoiceNumber == invoice.InvoiceNumber && x.InvoiceTypeCode.Equals(invoice.InvoiceTypeCode));
 
                     foreach (var response in invoice.MyDataResponses)
                     {
                         response.MyDataInvoiceId = myInvoice.Id;
                     }
 
+                    if (myInvoice.VAT != invoice.VAT)
+                    {
+                        myInvoice.VAT = invoice.VAT;
+                        context.MyDataInvoices.Update(myInvoice);
+                    }
                     await context.AddRangeAsync(invoice.MyDataResponses);
                 }
                 else

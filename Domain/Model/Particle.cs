@@ -18,12 +18,16 @@ namespace Domain.Model
         [Column("CODE")]
      
         public decimal Code { get; set; }
+         
+       
 
         [Column("CANCELLED_BY_CODE")]
         public decimal? CancelledBy { get; set; }
 
         [Column("CANCELLING_INVOICE_CODE")]
         public decimal? CanceledParticle { get; set; }
+        [Column("CANCELLING_INVOICE_CODE")]
+        public decimal? CancelInvoiceCode { get; set; }
         [Column("PARTL_PAYAM")]
         public decimal? Amount { get; set; }
 
@@ -38,9 +42,14 @@ namespace Domain.Model
         public decimal Total { get; set; }
 
         [Column("CURRENCY")]
+       
         public string Currency { get; set; }
 
-
+        
+        [Column("QRCSTRING")]
+        public string QrCode { get; set; }
+        [Column("AADE_UID")]
+        public string AadeUid { get; set; }
         [Column("SUBCOMP")]
         public decimal ShipCode { get; set; }
 

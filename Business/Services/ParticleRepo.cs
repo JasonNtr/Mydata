@@ -136,10 +136,15 @@ namespace Business.Services
             return types;
         }
 
-        public Task<ParticleDTO> GetCancel(decimal? cancelledBy)
+        public async Task<ParticleDTO> GetCancel(decimal? cancelledBy)
         {
-            throw new NotImplementedException();
+            var context = GetContext();
+            var particle = await context.Particles.FirstOrDefaultAsync(x => x.Code == cancelledBy);
+            var particleDTO = Mapper.Map<ParticleDTO>(particle);
+             
+            return particleDTO;
         }
     }
+    
 
 }

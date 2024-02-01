@@ -13,6 +13,7 @@ namespace Domain.Model
         public virtual int? index { get; set; }
         public virtual string statusCode { get; set; }
         public virtual string invoiceUid { get; set; }
+        public virtual string qrUrl { get; set; }
         public virtual long? invoiceMark { get; set; }
         public virtual string authenticationCode { get; set; }
         public virtual ICollection<MyDataError> Errors { get; set; } = new List<MyDataError>();
