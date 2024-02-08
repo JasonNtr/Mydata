@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 using System.Timers;
 using System.Windows.Input;
 using System.Xml.Serialization;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.ListView;
 
 namespace Mydata.ViewModels
 {
@@ -216,7 +217,7 @@ namespace Mydata.ViewModels
                 particle.Date = invoice.Date.ToShortDateString();
                 particle.Branch = "Branch";
                 particle.Series = invoice.Ptyppar.Series;
-                particle.Client = invoice.Client.Name;
+                particle.Client = invoice.Client.Ship.Name;
                 particle.PtyParDescription = invoice.Ptyppar.Code + " - " + invoice.Ptyppar.Description;
                 particle.Amount = ((decimal)invoice.Amount).ToString("c");
                 particle.Number = invoice.Number;
@@ -306,7 +307,7 @@ namespace Mydata.ViewModels
                     currency = "EUR"
                 };
 
-                if(particleDTO.Ptyppar.Pistotiko == 1 && (particleDTO.Ptyppar.EidParast == "5.1" || particleDTO.Ptyppar.EidParast == "5.2"))
+                if(particleDTO.Ptyppar.Pistotiko == 1 && (particleDTO.Ptyppar.EidParast == "5.1") )
                 {
                     var particleRepo = new ParticleRepo(_connectionString);
                     long parsedNumber;
@@ -338,8 +339,15 @@ namespace Mydata.ViewModels
                 decimal? stampDutyAmount = 0;
                 decimal? grossAmount = 0;
 
+                decimal sumDeduction = 0;
                 foreach (var item in particleDTO.Pmoves)
                 {
+                    if (item.PMS_AMAFTDISC is not null && item.PMS_AMAFTDISC < 0)
+                    {
+                        sumDeduction = (decimal)(sumDeduction + item.PMS_AMAFTDISC);
+                        break;
+                    }
+
                     var incomeClassifications = new List<InvoicesDocInvoiceInvoiceDetailsIncomeClassification>();
                     var incomeClassification = new InvoicesDocInvoiceInvoiceDetailsIncomeClassification
                     {
@@ -414,9 +422,25 @@ namespace Mydata.ViewModels
                     totalGrossValue = (decimal)grossAmount,
                     incomeClassification = incomeClassificationSummary.ToArray()
                 };
+
                 if (bExeiApallaghFPA == 1)
                 {
                     invoicesDocInvoiceInvoiceSummary.totalVatAmount = 0;
+                }
+
+                if(sumDeduction < 0)
+                {
+                    invoicesDocInvoiceInvoiceSummary.totalNetValue = invoicesDocInvoiceInvoiceSummary.totalNetValue + sumDeduction;
+                    invoicesDocInvoiceInvoiceSummary.totalGrossValue = invoicesDocInvoiceInvoiceSummary.totalGrossValue + sumDeduction;
+
+                    var randomPmove = invoice.invoiceDetails.FirstOrDefault(x=>x.netValue > (-1 * sumDeduction));
+                    var randomClassification = randomPmove.incomeClassification.FirstOrDefault();
+                    var sumClassification = invoicesDocInvoiceInvoiceSummary.incomeClassification.FirstOrDefault();
+
+                    randomPmove.netValue = randomPmove.netValue + sumDeduction;
+                    randomClassification.amount = randomClassification.amount + sumDeduction;
+                    sumClassification.amount = sumClassification.amount + sumDeduction;
+                   
                 }
 
                     invoice.invoiceSummary = invoicesDocInvoiceInvoiceSummary;
