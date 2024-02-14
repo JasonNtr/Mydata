@@ -1,4 +1,5 @@
-﻿using Domain.DTO;
+﻿using Domain.AADE;
+using Domain.DTO;
 using Domain.Model;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -33,6 +34,7 @@ namespace Business.Services
             var context = GetContext();
             var newFromDate = fromDate.Date;
             var newToDate = toDate.AddDays(1).Date;
+             
             var list =
                 await context.MyDataInvoices
                     .AsNoTracking()
@@ -60,22 +62,25 @@ namespace Business.Services
             {
                 var exists = await context.MyDataInvoices.AnyAsync(x =>
                     x.InvoiceDate == invoice.InvoiceDate && x.Uid == invoice.Uid &&
-                    x.InvoiceNumber == invoice.InvoiceNumber && x.InvoiceTypeCode.Equals(invoice.InvoiceTypeCode));
+                    x.InvoiceNumber == invoice.InvoiceNumber );
 
                 if (exists)
                 {
                     var myInvoice = await context.MyDataInvoices.FirstOrDefaultAsync(x =>
                         x.InvoiceDate == invoice.InvoiceDate && x.Uid == invoice.Uid &&
-                        x.InvoiceNumber == invoice.InvoiceNumber && x.InvoiceTypeCode.Equals(invoice.InvoiceTypeCode));
+                        x.InvoiceNumber == invoice.InvoiceNumber );
 
+                    
+                     
                     foreach (var response in invoice.MyDataResponses)
                     {
                         response.MyDataInvoiceId = myInvoice.Id;
                     }
 
-                    if (myInvoice.VAT != invoice.VAT)
+                    if (myInvoice.VAT != invoice.VAT || myInvoice.InvoiceTypeCode != invoice.InvoiceTypeCode)
                     {
                         myInvoice.VAT = invoice.VAT;
+                        myInvoice.InvoiceTypeCode = invoice.InvoiceTypeCode;
                         context.MyDataInvoices.Update(myInvoice);
                     }
                     await context.AddRangeAsync(invoice.MyDataResponses);
@@ -162,6 +167,14 @@ namespace Business.Services
             context.MyDataResponses.Add(response);
             var result = await context.SaveChangesAsync();
             return result > 0;
+        }
+
+        public async Task<MyDataInvoiceTypeDTO> GetEmptyInvoiceType()
+        {
+            var context = GetContext();
+            var invoiceType = await context.InvoiceTypes.FirstOrDefaultAsync(x=>x.Code == 666);
+            var invoiceTypeDTO = Mapper.Map<MyDataInvoiceTypeDTO>(invoiceType);
+            return invoiceTypeDTO;
         }
 
 

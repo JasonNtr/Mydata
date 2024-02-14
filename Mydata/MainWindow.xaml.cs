@@ -32,7 +32,7 @@ namespace Mydata
         {
             var companyrepo = new CompanyRepo(connectionString);
             var company = await companyrepo.Get();
-            VersionLabel.Content = "Betolink MyData Connector v1.01" +" " + company?.Name;
+            VersionLabel.Content = "Betolink MyData Connector v1.02" +" " + company?.Name;
 
         }
 
