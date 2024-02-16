@@ -129,7 +129,7 @@ namespace Business.Services
 
             var myInvoice = await context.MyDataInvoices.FirstOrDefaultAsync(x =>
                 x.InvoiceDate == myDataInvoice.InvoiceDate && x.Uid == myDataInvoice.Uid &&
-                x.InvoiceNumber == myDataInvoice.InvoiceNumber && x.VAT.Equals(myDataInvoice.VAT));
+                x.InvoiceNumber == myDataInvoice.InvoiceNumber);
             myInvoice.CancellationMark = long.Parse(particleMark);
             context.Update(myInvoice);
             var result = await context.SaveChangesAsync();
@@ -148,10 +148,14 @@ namespace Business.Services
                     x.InvoiceDate == invoice.InvoiceDate && x.Uid == invoice.Uid &&
                     x.InvoiceNumber == invoice.InvoiceNumber && x.VAT.Equals(invoice.VAT));
 
-                foreach (var response in invoice.MyDataCancellationResponses)
+                if (myInvoice is not null)
                 {
-                    response.MyDataInvoiceId = myInvoice.Id;
+                    foreach (var response in invoice.MyDataCancellationResponses)
+                    {
+                        response.MyDataInvoiceId = myInvoice.Id;
+                    }
                 }
+               
 
                 await context.AddRangeAsync(invoice.MyDataCancellationResponses);
             }

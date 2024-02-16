@@ -398,6 +398,11 @@ namespace Mydata.ViewModels
                         detail.vatAmount = 0;
                         detail.vatExemptionCategory = (byte)category;
                     }
+                    if(header.invoiceType == (decimal)5.2 && incomeClassification.classificationCategory == "category1_95")
+                    {
+                        detail.vatAmount = paymentMethod.amount;
+                        item.PMS_VATAM = paymentMethod.amount;
+                    }
 
                     netAmount += rounded;
                     vatAmount += item.PMS_VATAM;
