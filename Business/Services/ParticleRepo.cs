@@ -102,7 +102,7 @@ namespace Business.Services
             var particle = await context.Particles.FirstOrDefaultAsync(x => x.Mark.Equals(invoiceCancellationMark.ToString()));
             var particleDTO= Mapper.Map<ParticleDTO>(particle);
 
-
+            if (particle is null) return null;
             var ptyppar = await context.InvoiceTypes.AsNoTracking().FirstOrDefaultAsync(x => x.Code.Equals(particleDTO.InvoiceType));
             var ptypparDTO = Mapper.Map<InvoiceTypeDTO>(ptyppar);
             particleDTO.Ptyppar = ptypparDTO;

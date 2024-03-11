@@ -303,7 +303,7 @@ namespace Business.ApiServices
             myDataInvoice.Uid = (long?)particleToBeCancelled.Code;
             myDataInvoice.InvoiceNumber = (long?)particleToBeCancelled.Number;
             myDataInvoice.InvoiceDate = particleToBeCancelled.Date;
-            myDataInvoice.VAT = particleToBeCancelled.Client?.Vat.Trim();
+            myDataInvoice.VAT = particleToBeCancelled.Client?.Ship?.Vat.Trim();
             myDataInvoice.InvoiceTypeCode = (int)typeCode;
             myDataInvoice.Particle = particleToBeCancelled;
 

@@ -394,6 +394,9 @@ namespace Mydata.ViewModels
                     }
                     incomeClassifications.Add(incomeClassification);
                     var rounded = Math.Round((decimal)item.Net2, 2);
+
+                    if (item.POSO_XARTOSH is null) item.POSO_XARTOSH = 0;
+                    if (item.PMS_VATAM is null) item.PMS_VATAM = 0;
                     var detail = new InvoicesDocInvoiceInvoiceDetails
                     {
                         lineNumber = (uint)i,
@@ -412,6 +415,11 @@ namespace Mydata.ViewModels
                         detail.vatCategory = 7;
                         detail.vatAmount = 0;
                         detail.vatExemptionCategory = (byte)category;
+                    }
+                    if(header.invoiceType == (decimal)5.2 && incomeClassification.classificationCategory == "category1_95")
+                    {
+                        detail.vatAmount = paymentMethod.amount;
+                        item.PMS_VATAM = paymentMethod.amount;
                     }
 
                     netAmount += rounded;
@@ -570,6 +578,10 @@ namespace Mydata.ViewModels
                     };
                     postTransferModel.MyDataInvoices.Add(myDataInvoice);
                 }
+                else
+                {
+                    _errorParticles.Add(item);
+                }
             }
            
             var companyrepo = new CompanyRepo(_connectionString);
@@ -608,7 +620,7 @@ namespace Mydata.ViewModels
         private async Task InsertErrorInvoices()
         {
             if (_errorParticles.Count == 0) return;
-
+            var invoiceRepo = new InvoiceRepo(_connectionString);
             var taxInvoiceRepo = new TaxInvoiceRepo(_connectionString);
             var invoices = new List<MyDataInvoiceDTO>();
 
@@ -659,6 +671,27 @@ namespace Mydata.ViewModels
                 if (typeCode == null)
                 {
                     message = "Fix parforol for Code:" + item.Ptyppar?.Code;
+
+
+                    var emptyInvoiceType = await invoiceRepo.GetEmptyInvoiceType();
+                    if(emptyInvoiceType == null)
+                    {
+                        var myDataInvoiceType = new MyDataInvoiceTypeDTO
+                        {
+                            Code = 666,
+                            Description = "Empty",
+                            ShortTitle = string.Empty,
+                            Title = "Empty",
+                            sign = '+'
+                        };
+                        myDataInvoice.InvoiceType = myDataInvoiceType;
+                    }
+                    else
+                    {
+                       
+                        myDataInvoice.InvoiceType = emptyInvoiceType;
+                    }
+                    
                 }
                 error.message = message;
 
@@ -669,7 +702,7 @@ namespace Mydata.ViewModels
                 myDataInvoice.MyDataResponses = responses.ToArray();
                 invoices.Add(myDataInvoice);
             }
-            var invoiceRepo = new InvoiceRepo(_connectionString);
+            
             var result = await invoiceRepo.InsertOrUpdateRangeForPost(invoices);
         }
 
