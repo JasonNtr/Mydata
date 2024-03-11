@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domain.DTO
 {
@@ -26,7 +27,10 @@ namespace Domain.DTO
         public decimal? CancelledBy { get; set; }
         public decimal? CanceledParticle { get; set; }
         public decimal? CancelInvoiceCode { get; set; }
-     
+        public decimal VatAmount { get; set; }
+
+        
+        public decimal VatPercentage { get; set; }
         public Guid DataGridId { get; set; }
         public string? Mark { get; set; }
         public string? Closed { get; set; }

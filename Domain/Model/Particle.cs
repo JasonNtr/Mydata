@@ -51,7 +51,13 @@ namespace Domain.Model
         [Column("AADE_UID")]
         public string AadeUid { get; set; }
         [Column("SUBCOMP")]
+     
         public decimal ShipCode { get; set; }
+        [Column("VAT_AMOUNT")]
+        public decimal VatAmount { get; set; }
+
+        [Column("VAT_PERCENTAGE")]
+        public decimal VatPercentage{ get; set; }
 
         [Column("MAINCOMP")]
         public decimal ClientCode { get; set; }

@@ -340,8 +340,26 @@ namespace Mydata.ViewModels
                 decimal? grossAmount = 0;
 
                 decimal sumDeduction = 0;
+
+                var numberOfMoves = particleDTO.Pmoves.Count;
+                var totalVatAmount = particleDTO.VatAmount;
+
+                
+                if (numberOfMoves == 1) particleDTO.Pmoves.FirstOrDefault().PMS_VATAM = totalVatAmount;
+                else
+                {
+                    var baseVatAmount = Math.Floor(totalVatAmount / numberOfMoves);
+                    var remainder = totalVatAmount % numberOfMoves;
+                    for(int z=0; z< numberOfMoves; z++)
+                    {
+                        if (z > 0) remainder = 0;
+                        particleDTO.Pmoves[z].PMS_VATAM = baseVatAmount + remainder;
+                    }
+                }
+
                 foreach (var item in particleDTO.Pmoves)
                 {
+
                     if (item.PMS_AMAFTDISC is not null && item.PMS_AMAFTDISC < 0)
                     {
                         sumDeduction = (decimal)(sumDeduction + item.PMS_AMAFTDISC);
@@ -413,7 +431,7 @@ namespace Mydata.ViewModels
                 var invoicesDocInvoiceInvoiceSummary = new InvoicesDocInvoiceInvoiceSummary
                 {
                     totalNetValue = (decimal)netAmount,
-                    totalVatAmount = (decimal)vatAmount,
+                    totalVatAmount = particleDTO.VatAmount,
                     totalWithheldAmount = (decimal)withheldAmount,
                     totalFeesAmount = 0,
                     totalStampDutyAmount = (long)stampDutyAmount,
@@ -456,6 +474,37 @@ namespace Mydata.ViewModels
             var xml = stringWriter.ToString();
 
             return xml;
+        }
+
+        public ParticleDTO DistributeVat(ParticleDTO particleDTO)
+        {
+            List<decimal> vatAmountsPerMove = new List<decimal>();
+            var numberOfMoves = particleDTO.Pmoves.Count;
+            var totalVatAmount = particleDTO.VatAmount;
+            if (numberOfMoves <= 0)
+            {
+                throw new ArgumentException("Number of moves must be greater than 0", nameof(particleDTO.Pmoves));
+            }
+
+            decimal baseVatAmount = Math.Floor(totalVatAmount / numberOfMoves);
+            decimal remainder = totalVatAmount % numberOfMoves;
+
+            foreach(var pmove in particleDTO.Pmoves)
+            {
+                // Add base VAT amount to each move
+                decimal vatAmount = baseVatAmount;
+
+                // Distribute the remainder among the first few moves
+                if (remainder > 0)
+                {
+                    vatAmount += 1;
+                    remainder -= 1;
+                }
+
+                pmove.PMS_VATAM = vatAmount;
+            }
+
+            return particleDTO;
         }
 
         private void AddToPostXmlPerUnit(InvoicesDocInvoice invoice)
