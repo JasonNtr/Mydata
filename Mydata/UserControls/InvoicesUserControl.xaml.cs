@@ -173,5 +173,15 @@ namespace Mydata
         {
             var item = (MyDataInvoiceDTO)sfGrid.SelectedItem;
         }
+
+        private void ExportJson_Click(object sender, RoutedEventArgs e)
+        {
+            _viewmodel.ExportJson();
+        }
+
+        private void ExportXml_Click(object sender, RoutedEventArgs e)
+        {
+            _viewmodel.ExportXml();
+        }
     }
 }

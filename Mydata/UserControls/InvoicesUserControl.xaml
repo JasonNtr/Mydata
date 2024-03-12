@@ -251,6 +251,16 @@
                                HeaderStyle="{StaticResource headerStyle}" RowHeight="35" Margin="0,0,0,20"
                                   AutoGenerateColumns="False" SelectionMode="Multiple" HorizontalAlignment="Left" SelectionUnit="Row" NavigationMode="Row"
                                RowSelectionBrush="	#42C0FB" SelectionChanged="SfGrid2_OnSelectionChanged">
+
+            <syncfusion:SfDataGrid.RecordContextMenu>
+                <ContextMenu>
+                    <MenuItem x:Name="ExportJson" Header="Export Json" 
+                                    Click="ExportJson_Click"/>
+                    <MenuItem x:Name="ExportXml" Header="Export Xml" 
+                                  Click="ExportXml_Click"/>
+                </ContextMenu>
+            </syncfusion:SfDataGrid.RecordContextMenu>
+        
             <syncfusion:SfDataGrid.Columns>
                 <syncfusion:GridTextColumn MappingName="Date" HeaderText="Ημερομηνία" Width="200" TextAlignment="Center" AllowFiltering="True"/>
                 <syncfusion:GridTextColumn MappingName="Code" Width="100" HeaderText="UID" TextAlignment="Center" AllowFiltering="True"/>

@@ -5,6 +5,7 @@ using Domain.AADE;
 using Domain.DTO;
 using Domain.Model;
 using Microsoft.Extensions.Options;
+using Microsoft.Win32;
 using Mydata.Helpers;
 using Mydata.UiModels;
 using Syncfusion.Windows.Shared;
@@ -12,7 +13,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
+using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Timers;
 using System.Windows.Input;
@@ -312,7 +315,6 @@ namespace Mydata.ViewModels
                     var particleRepo = new ParticleRepo(_connectionString);
                     long parsedNumber;
                     var cancelparticlee = await particleRepo.GetParticleByRec0((long?)particleDTO.CanceledParticle);
-                    // Try to parse the string into a long
                     bool success = long.TryParse(cancelparticlee.Mark, out parsedNumber);
 
                     if (success)
@@ -416,7 +418,8 @@ namespace Mydata.ViewModels
                         detail.vatAmount = 0;
                         detail.vatExemptionCategory = (byte)category;
                     }
-                    if(header.invoiceType == (decimal)5.2 && incomeClassification.classificationCategory == "category1_95")
+
+                    if(header.invoiceType == (decimal)5.2 && incomeClassification.classificationCategory == "category1_95") //pistotiko fpa
                     {
                         detail.vatAmount = paymentMethod.amount;
                         item.PMS_VATAM = paymentMethod.amount;
@@ -793,6 +796,71 @@ namespace Mydata.ViewModels
                 xml = stringWriter.ToString();
             }
             await invoiceService.PostIncomeClassification(xml);
+        }
+
+        public async void ExportJson()
+        {
+            var particleIds = SelectedParticles.Select(x => x.DataGridId).ToList();
+
+            var invoices = _listOfIParticles.Where(x => particleIds.Contains(x.DataGridId)).ToList();
+            var postInvoices = invoices.Where(x => x.Ptyppar.IsForCancellation is null or "0").ToList();
+            var cancelInvoices = invoices.Where(x => x.Ptyppar.IsForCancellation is "1").ToList();
+            var taxInvoiceRepo = new TaxInvoiceRepo(_connectionString);
+            var particleRepo = new ParticleRepo(_connectionString);
+            var postTransferModel = new MyDataInvoiceTransferModel();
+            var cancelTransferModel = new MyDataInvoiceTransferModel();
+
+            var validInvoices = RemoveInvalidParticles(postInvoices);
+
+
+            var json = JsonSerializer.Serialize(validInvoices);
+
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.FileName = "Invoices" + DateTime.Now.ToLongDateString(); // Default file name
+            saveFileDialog.DefaultExt = ".json"; // Default file extension
+
+
+            // Show save file dialog
+            bool? result = saveFileDialog.ShowDialog();
+            if (result == true)
+            {
+                // Save document
+                string filename = saveFileDialog.FileName;
+                await File.WriteAllTextAsync(filename, json);
+            }
+        }
+        public async void ExportXml()
+        {
+            var particleIds = SelectedParticles.Select(x => x.DataGridId).ToList();
+
+            var invoices = _listOfIParticles.Where(x => particleIds.Contains(x.DataGridId)).ToList();
+            var postInvoices = invoices.Where(x => x.Ptyppar.IsForCancellation is null or "0").ToList();
+            var cancelInvoices = invoices.Where(x => x.Ptyppar.IsForCancellation is "1").ToList();
+            var taxInvoiceRepo = new TaxInvoiceRepo(_connectionString);
+            var particleRepo = new ParticleRepo(_connectionString);
+            var postTransferModel = new MyDataInvoiceTransferModel();
+            var cancelTransferModel = new MyDataInvoiceTransferModel();
+
+            var validInvoices = RemoveInvalidParticles(postInvoices);
+
+            var companyrepo = new CompanyRepo(_connectionString);
+            var company = await companyrepo.Get();
+
+            var postXml = await CreateInvoiceDocXml(validInvoices, company);
+
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.FileName = "Invoices" + DateTime.Now.ToLongDateString(); // Default file name
+            saveFileDialog.DefaultExt = ".xml"; // Default file extension
+
+
+            // Show save file dialog
+            bool? result = saveFileDialog.ShowDialog();
+            if (result == true)
+            {
+                // Save document
+                string filename = saveFileDialog.FileName;
+                await File.WriteAllTextAsync(filename, postXml);
+            }
         }
 
         public void Dispose()
