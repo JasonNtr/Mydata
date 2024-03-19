@@ -365,7 +365,8 @@ namespace Mydata.ViewModels
                     if (item.PMS_AMAFTDISC is not null && item.PMS_AMAFTDISC < 0)
                     {
                         sumDeduction = (decimal)(sumDeduction + item.PMS_AMAFTDISC);
-                        break;
+                        continue;
+                        //break;
                     }
 
                     var incomeClassifications = new List<InvoicesDocInvoiceInvoiceDetailsIncomeClassification>();
