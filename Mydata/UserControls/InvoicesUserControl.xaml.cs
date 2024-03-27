@@ -28,10 +28,11 @@ namespace Mydata
        
         private InvoicesViewModel _viewmodel;
 
-    
-         
+        private MyDataInvoiceDTO _selectedInvoice;
 
-        
+
+
+
         private int _rowHeight = 30;
 
         public InvoicesUserControl(IOptions<AppSettings> appSettings, string conenctionString)
@@ -148,6 +149,8 @@ namespace Mydata
         private void SfGrid_OnSelectionChanged(object sender, GridSelectionChangedEventArgs e)
         {
             var item = (MyDataInvoiceDTO)sfGrid.SelectedItem;
+            _selectedInvoice = item;
+
             var particles = (ObservableCollection<DataGridParticle>)sfGrid2.ItemsSource;
             var particle = particles.FirstOrDefault(x => x.Rec0 == item.Uid);
             var rowindex = this.sfGrid2.ResolveToRowIndex(particle);
@@ -182,6 +185,14 @@ namespace Mydata
         private void ExportXml_Click(object sender, RoutedEventArgs e)
         {
             _viewmodel.ExportXml();
+        }
+
+        private void ExportXmlInvoice_Click(object sender, RoutedEventArgs e)
+        {
+            if (_selectedInvoice is not null && !string.IsNullOrEmpty(_selectedInvoice.StoredXml))
+            {
+                _viewmodel.ExportXml(_selectedInvoice.StoredXml);
+            }
         }
     }
 }

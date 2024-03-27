@@ -232,7 +232,7 @@ namespace Mydata.ViewModels
             ParticleNo = "(" + count + ")";
         }
 
-        private async Task<string> CreateInvoiceDocXml(List<ParticleDTO> particlesDTO,CompanyDTO company)
+        private async Task<string> CreateInvoiceDocXml(List<ParticleDTO> particlesDTO,CompanyDTO company, MyDataInvoiceTransferModel transferModel)
         {
             var doc = new InvoicesDoc();
             var list = new List<InvoicesDocInvoice>();
@@ -476,6 +476,16 @@ namespace Mydata.ViewModels
                     invoice.invoiceSummary = invoicesDocInvoiceInvoiceSummary;
                 list.Add(invoice);
                 AddToPostXmlPerUnit(invoice);
+
+                if (transferModel is not null)
+                {
+                    var myDataInvoice = transferModel.MyDataInvoices.FirstOrDefault(x => x.Uid == particleDTO.Code && x.InvoiceNumber == particleDTO.Number);
+                    using var stringWriter2 = new System.IO.StringWriter();
+                    var serializer2 = new XmlSerializer(doc.GetType());
+                    serializer2.Serialize(stringWriter2, doc);
+                    var particleXml = stringWriter2.ToString();
+                    myDataInvoice.StoredXml = particleXml;
+                }
             }
 
             doc.invoice = list.ToArray();
@@ -590,7 +600,7 @@ namespace Mydata.ViewModels
            
             var companyrepo = new CompanyRepo(_connectionString);
             var company = await companyrepo.Get();
-            var postXml = await CreateInvoiceDocXml(validInvoices, company);
+            var postXml = await CreateInvoiceDocXml(validInvoices, company, postTransferModel);
 
             postTransferModel.Xml = postXml;
             postTransferModel.XmlPerInvoice = _postsPerUnit;
@@ -830,6 +840,24 @@ namespace Mydata.ViewModels
                 await File.WriteAllTextAsync(filename, json);
             }
         }
+
+        public async void ExportXml(string xml)
+        {
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.FileName = "Invoices" + DateTime.Now.ToLongDateString(); // Default file name
+            saveFileDialog.DefaultExt = ".xml"; // Default file extension
+
+
+            // Show save file dialog
+            bool? result = saveFileDialog.ShowDialog();
+            if (result == true)
+            {
+                // Save document
+                string filename = saveFileDialog.FileName;
+                await File.WriteAllTextAsync(filename, xml);
+            }
+        }
+
         public async void ExportXml()
         {
             var particleIds = SelectedParticles.Select(x => x.DataGridId).ToList();
@@ -847,7 +875,7 @@ namespace Mydata.ViewModels
             var companyrepo = new CompanyRepo(_connectionString);
             var company = await companyrepo.Get();
 
-            var postXml = await CreateInvoiceDocXml(validInvoices, company);
+            var postXml = await CreateInvoiceDocXml(validInvoices, company,null);
 
             SaveFileDialog saveFileDialog = new SaveFileDialog();
             saveFileDialog.FileName = "Invoices" + DateTime.Now.ToLongDateString(); // Default file name

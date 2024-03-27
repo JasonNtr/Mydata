@@ -83,6 +83,10 @@ namespace Business.Services
                         myInvoice.InvoiceTypeCode = invoice.InvoiceTypeCode;
                         context.MyDataInvoices.Update(myInvoice);
                     }
+
+                    myInvoice.StoredXml = invoice.StoredXml;
+                    context.Update(myInvoice);
+
                     await context.AddRangeAsync(invoice.MyDataResponses);
                 }
                 else
