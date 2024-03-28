@@ -481,8 +481,14 @@ namespace Mydata.ViewModels
                 {
                     var myDataInvoice = transferModel.MyDataInvoices.FirstOrDefault(x => x.Uid == particleDTO.Code && x.InvoiceNumber == particleDTO.Number);
                     using var stringWriter2 = new System.IO.StringWriter();
-                    var serializer2 = new XmlSerializer(doc.GetType());
-                    serializer2.Serialize(stringWriter2, doc);
+                    var soloDoc = new InvoicesDoc();
+                    var soloList = new List<InvoicesDocInvoice>
+                    {
+                        invoice
+                    };
+                    soloDoc.invoice = soloList.ToArray();
+                    var serializer2 = new XmlSerializer(soloDoc.GetType());
+                    serializer2.Serialize(stringWriter2, soloDoc);
                     var particleXml = stringWriter2.ToString();
                     myDataInvoice.StoredXml = particleXml;
                 }
