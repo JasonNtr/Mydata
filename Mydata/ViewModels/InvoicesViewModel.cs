@@ -473,7 +473,7 @@ namespace Mydata.ViewModels
                    
                 }
 
-                    invoice.invoiceSummary = invoicesDocInvoiceInvoiceSummary;
+                invoice.invoiceSummary = invoicesDocInvoiceInvoiceSummary;
                 list.Add(invoice);
                 AddToPostXmlPerUnit(invoice);
 

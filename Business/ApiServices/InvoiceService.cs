@@ -45,7 +45,7 @@ namespace Business.ApiServices
             client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", ocpApimSubscriptionKey);
             HttpResponseMessage httpResponseMessage;
 
-            // Request body
+            
             byte[] byteData = Encoding.UTF8.GetBytes(transferModel.Xml);
             using (var content = new ByteArrayContent(byteData))
             {
