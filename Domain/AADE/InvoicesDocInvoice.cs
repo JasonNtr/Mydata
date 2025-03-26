@@ -83,7 +83,7 @@ namespace Domain.AADE
             }
         }
 
-        [XmlIgnore]
+       
         public byte transmissionFailure
         {
             get
@@ -94,6 +94,11 @@ namespace Domain.AADE
             {
                 this.transmissionFailureField = value;
             }
+        }
+
+        public bool ShouldSerializetransmissionFailure()
+        {
+            return transmissionFailure > 0;
         }
 
         /// <remarks/>

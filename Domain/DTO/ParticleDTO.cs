@@ -35,7 +35,33 @@ namespace Domain.DTO
         public string? Mark { get; set; }
         public string? Closed { get; set; }
 
+        public string? Time { get; set; }
+
+        public string? VehiculeNumber { get; set; }
+        public int? MovePurpose { get; set; }
+
+        public string? LoadingStreet { get; set; }
+
+        public string? LoadingNumber { get; set; }
+
+        public string? LoadingPostalCode { get; set; }
+
+        public string? LoadingCity { get; set; }
+
+        public string? DeliveryStreet { get; set; }
+
+        public string? DeliveryNumber { get; set; }
+
+        public string? DeliveryPostalCode { get; set; }
+        public decimal SKOPDIAK { get; set; }
+        public DateTime? DispatchDate { get; set; }
+        public string? DeliveryCity { get; set; }
+      
+        public decimal? TransmissionFailure { get; set; }
+        public virtual MovePurposeDTO MovePurposeDTO { get; set; }
+
         public virtual InvoiceTypeDTO Ptyppar { get; set; }
+        public virtual ItemDTO ItemDTO { get; set; }
 
         public virtual List<PMoveDTO> Pmoves { get; set; }
         public virtual ClientDTO Client { get; set; }

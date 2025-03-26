@@ -74,5 +74,34 @@ namespace Domain.Model
         [Column("PARTL_EKLEISE")]
         public string? Closed { get; set; }
 
+        [Column("DispatchTime")]
+        public string? Time { get; set; }
+
+
+        [Column("DispatchDate")]
+        public DateTime? DispatchDate { get; set; }
+
+        public string? VehiculeNumber { get; set; }
+        public int? MovePurpose { get; set; }
+
+        public string? LoadingStreet { get; set; }
+
+        public string? LoadingNumber { get; set; }
+
+        public string? LoadingPostalCode { get; set; }
+
+        public string? LoadingCity { get; set; }
+
+        public string? DeliveryStreet { get; set; }
+
+        public string? DeliveryNumber { get; set; }
+
+        public string? DeliveryPostalCode { get; set; }
+     
+        public string? DeliveryCity { get; set; }
+        public decimal SKOPDIAK { get; set; }
+
+        [Column("EPILOGH_EKKREM")]
+        public decimal? TransmissionFailure { get; set; }
     }
 }

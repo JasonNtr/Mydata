@@ -18,8 +18,10 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Timers;
+using System.Windows.Documents;
 using System.Windows.Input;
 using System.Xml.Serialization;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.ListView;
 
 namespace Mydata.ViewModels
@@ -239,258 +241,15 @@ namespace Mydata.ViewModels
             _postsPerUnit = new List<string>();
             foreach (var particleDTO in particlesDTO)
             {
-
-                var invoice = new InvoicesDocInvoice();
-                var type = decimal.Parse(particleDTO.Ptyppar.EidParast, CultureInfo.InvariantCulture);
-                var issuer = new InvoicesDocInvoiceIssuer
+                if (particleDTO.Ptyppar.EidParast == "9.3")
                 {
-                    vatNumber = company.Vat.Trim(),
-                    country = "GR",
-                    branch = 0
-                };
-                var issuerPartAddress = new InvoicesDocInvoiceIssuerAddress
-                {
-                    postalCode = company.ZipCode,
-                    city = company.CIty
-                };
-                issuer.address = issuerPartAddress;
-                invoice.issuer = issuer;
-                if (type is < 11 or > 12)
-                {
-                    var counterPart = new InvoicesDocInvoiceCounterpart
-                    {
-                        vatNumber = particleDTO.Client?.Ship.Vat?.Trim(),
-                        country = particleDTO.Client?.Ship.CountryCodeISO,
-                        branch = 0
-                    };
-
-
-                    if (String.IsNullOrEmpty(counterPart.vatNumber)) counterPart.vatNumber = particleDTO.Client?.Vat?.Trim();
-                    if (String.IsNullOrEmpty(counterPart.country)) counterPart.country = particleDTO.Client?.CountryCodeISO;
-
-
-                    //particleDTO.Client.CountryCodeISO = null;
-                    if (!(bool)particleDTO.Client?.CountryCodeISO.IsNullOrWhiteSpace() && (bool)!particleDTO.Client?.Ship.CountryCodeISO.Equals("GR"))
-                    {
-                        counterPart.name = particleDTO.Client?.Ship.Name;
-                    };
-                    var counterPartAddress = new InvoicesDocInvoiceCounterpartAddress
-                    {
-                        postalCode = particleDTO.Client?.Ship.ZipCode ?? "",
-                        city = particleDTO.Client?.City
-                    };
-
-                    if (String.IsNullOrEmpty(counterPartAddress.postalCode)) counterPartAddress.postalCode = particleDTO.Client?.ZipCode ?? "";
-
-
-                    counterPart.address = counterPartAddress;
-                    invoice.counterpart = counterPart;
+                    var invoice = await DoWorkForVoucher(particleDTO, company, transferModel);
+                    list.Add(invoice);
                 }
-
-                var paymentMethod = new InvoicesDocInvoicePaymentMethodDetails
-                {
-                    type = (int)particleDTO.Paymentmethod,
-                    amount = (decimal)particleDTO.Amount
-                };
-                if (paymentMethod.type == 0) paymentMethod.type = 5;
-                var paymentMethods = new List<InvoicesDocInvoicePaymentMethodDetails>
-                {
-                    paymentMethod
-                };
-                invoice.paymentMethods = paymentMethods.ToArray();
-
-                var bExeiApallaghFPA = particleDTO.Ptyppar.VatExemption;
-
-                var header = new InvoicesDocInvoiceInvoiceHeader
-                {
-                    series = particleDTO.Ptyppar.Series,
-                    aa = particleDTO.Number.ToString(CultureInfo.InvariantCulture),
-                    issueDate = particleDTO.Date,
-                    invoiceType = type,
-                    currency = "EUR"
-                };
-
-                if(particleDTO.Ptyppar.Pistotiko == 1 && (particleDTO.Ptyppar.EidParast == "5.1") )
-                {
-                    var particleRepo = new ParticleRepo(_connectionString);
-                    long parsedNumber;
-                    var cancelparticlee = await particleRepo.GetParticleByRec0((long?)particleDTO.CanceledParticle);
-                    bool success = long.TryParse(cancelparticlee.Mark, out parsedNumber);
-
-                    if (success)
-                    {
-                        long[] yourArray = new long[] { parsedNumber };
-                        header.correlatedInvoices = yourArray;
-                    }
-                    
-                }
-                if(bExeiApallaghFPA ==1) header.vatPaymentSuspension = true;
-                if (header.series.Equals(".") || header.series.Trim().Length == 0) header.series = "0";
-                invoice.invoiceHeader = header;
-
-                decimal totalWithheldAmount = 0;
-                decimal totalStampDutyAmount = 0;
-                var incomeClassificationSummary = new List<InvoicesDocInvoiceInvoiceSummaryIncomeClassification>();
-                var details = new List<InvoicesDocInvoiceInvoiceDetails>();
-                var i = 1;
-                if (particleDTO.Pmoves.Count == 0) continue;
-
-                decimal? netAmount = 0;
-                decimal? vatAmount = 0;
-                decimal? withheldAmount = 0;
-                decimal? stampDutyAmount = 0;
-                decimal? grossAmount = 0;
-
-                decimal sumDeduction = 0;
-
-                var numberOfMoves = particleDTO.Pmoves.Count;
-                var totalVatAmount = particleDTO.VatAmount;
-
-                
-                if (numberOfMoves == 1) particleDTO.Pmoves.FirstOrDefault().PMS_VATAM = totalVatAmount;
                 else
                 {
-                    var baseVatAmount = Math.Floor(totalVatAmount / numberOfMoves);
-                    var remainder = totalVatAmount % numberOfMoves;
-                    for(int z=0; z< numberOfMoves; z++)
-                    {
-                        if (z > 0) remainder = 0;
-                        particleDTO.Pmoves[z].PMS_VATAM = baseVatAmount + remainder;
-                    }
-                }
-
-                foreach (var item in particleDTO.Pmoves)
-                {
-
-                    if (item.PMS_AMAFTDISC is not null && item.PMS_AMAFTDISC < 0)
-                    {
-                        sumDeduction = (decimal)(sumDeduction + item.PMS_AMAFTDISC);
-                        continue;
-                        //break;
-                    }
-
-                    var incomeClassifications = new List<InvoicesDocInvoiceInvoiceDetailsIncomeClassification>();
-                    var incomeClassification = new InvoicesDocInvoiceInvoiceDetailsIncomeClassification
-                    {
-                        classificationType = particleDTO.Ptyppar.TYPOS_XARAKTHR,
-                        classificationCategory = item.ItemDTO.Category,
-                        amount = (decimal)item.PMS_AMAFTDISC
-                    };
-
-                    if (!incomeClassificationSummary.Any(x =>
-                            x.classificationType.Equals(incomeClassification.classificationType)
-                            && x.classificationCategory.Equals(incomeClassification.classificationCategory)))
-                    {
-                        incomeClassificationSummary.Add(new InvoicesDocInvoiceInvoiceSummaryIncomeClassification
-                        {
-                            classificationType = incomeClassification.classificationType,
-                            classificationCategory = incomeClassification.classificationCategory,
-                            amount = incomeClassification.amount,
-                        });
-                    }
-                    else
-                    {
-                        var sum = incomeClassificationSummary.FirstOrDefault((x =>
-                            x.classificationType.Equals(incomeClassification.classificationType)
-                            && x.classificationCategory.Equals(incomeClassification.classificationCategory)));
-                        if (sum != null) sum.amount += incomeClassification.amount;
-                    }
-                    incomeClassifications.Add(incomeClassification);
-                    var rounded = Math.Round((decimal)item.Net2, 2);
-
-                    if (item.POSO_XARTOSH is null) item.POSO_XARTOSH = 0;
-                    if (item.PMS_VATAM is null) item.PMS_VATAM = 0;
-                    var detail = new InvoicesDocInvoiceInvoiceDetails
-                    {
-                        lineNumber = (uint)i,
-                        netValue = (decimal)rounded,
-                        vatCategory = (int)item.ItemDTO.FPA.Category,
-                        vatAmount = (decimal)item.PMS_VATAM,
-                        stampDutyAmount = (decimal)item.POSO_XARTOSH,
-                        incomeClassification = incomeClassifications.ToArray(),
-                        withheldAmount = item.POSO_PARAKRAT,
-                        deductionsAmount = 0
-                    };
-                    if (bExeiApallaghFPA == 1)
-                    {
-                        var category = particleDTO.Ptyppar.EXAIRFPA;
-                         
-                        detail.vatCategory = 7;
-                        detail.vatAmount = 0;
-                        detail.vatExemptionCategory = (byte)category;
-                    }
-
-                    if(header.invoiceType == (decimal)5.2 && incomeClassification.classificationCategory == "category1_95") //pistotiko fpa
-                    {
-                        detail.vatAmount = paymentMethod.amount;
-                        item.PMS_VATAM = paymentMethod.amount;
-                    }
-
-                    netAmount += rounded;
-                    vatAmount += item.PMS_VATAM;
-                    withheldAmount += item.POSO_PARAKRAT;
-                    stampDutyAmount += item.POSO_XARTOSH;
-                    var grossRounded = Math.Round((decimal)item.CalculatedGross, 2, MidpointRounding.AwayFromZero);
-                    grossAmount += grossRounded;
-
-                    details.Add(detail);
-
-                    i++;
-                }
-
-                invoice.invoiceDetails = details.ToArray();
-
-                var invoicesDocInvoiceInvoiceSummary = new InvoicesDocInvoiceInvoiceSummary
-                {
-                    totalNetValue = (decimal)netAmount,
-                    totalVatAmount = particleDTO.VatAmount,
-                    totalWithheldAmount = (decimal)withheldAmount,
-                    totalFeesAmount = 0,
-                    totalStampDutyAmount = (long)stampDutyAmount,
-                    totalOtherTaxesAmount = 0,
-                    totalDeductionsAmount = 0,
-                    totalGrossValue = (decimal)grossAmount,
-                    incomeClassification = incomeClassificationSummary.ToArray()
-                };
-
-                if (bExeiApallaghFPA == 1)
-                {
-                    invoicesDocInvoiceInvoiceSummary.totalVatAmount = 0;
-                }
-
-                if(sumDeduction < 0)
-                {
-                    invoicesDocInvoiceInvoiceSummary.totalNetValue = invoicesDocInvoiceInvoiceSummary.totalNetValue + sumDeduction;
-                    invoicesDocInvoiceInvoiceSummary.totalGrossValue = invoicesDocInvoiceInvoiceSummary.totalGrossValue + sumDeduction;
-
-                    var randomPmove = invoice.invoiceDetails.FirstOrDefault(x=>x.netValue > (-1 * sumDeduction));
-                    var randomClassification = randomPmove.incomeClassification.FirstOrDefault();
-                    var sumClassification = invoicesDocInvoiceInvoiceSummary.incomeClassification.FirstOrDefault();
-
-                    randomPmove.netValue = randomPmove.netValue + sumDeduction;
-                    randomClassification.amount = randomClassification.amount + sumDeduction;
-                    sumClassification.amount = sumClassification.amount + sumDeduction;
-                   
-                }
-
-                invoice.invoiceSummary = invoicesDocInvoiceInvoiceSummary;
-                list.Add(invoice);
-                AddToPostXmlPerUnit(invoice);
-
-                if (transferModel is not null)
-                {
-                    var myDataInvoice = transferModel.MyDataInvoices.FirstOrDefault(x => x.Uid == particleDTO.Code && x.InvoiceNumber == particleDTO.Number);
-                    using var stringWriter2 = new System.IO.StringWriter();
-                    var soloDoc = new InvoicesDoc();
-                    var soloList = new List<InvoicesDocInvoice>
-                    {
-                        invoice
-                    };
-                    soloDoc.invoice = soloList.ToArray();
-                    var serializer2 = new XmlSerializer(soloDoc.GetType());
-                    serializer2.Serialize(stringWriter2, soloDoc);
-                    var particleXml = stringWriter2.ToString();
-                    myDataInvoice.StoredXml = particleXml;
+                    var invoice = await DoWorkForParticle(particleDTO, company, transferModel);
+                    list.Add(invoice);
                 }
             }
 
@@ -502,6 +261,529 @@ namespace Mydata.ViewModels
             var xml = stringWriter.ToString();
 
             return xml;
+        }
+
+        private async Task<InvoicesDocInvoice> DoWorkForVoucher(ParticleDTO particleDTO, CompanyDTO company, MyDataInvoiceTransferModel transferModel)
+        {
+            var invoice = new InvoicesDocInvoice();
+            if (particleDTO.TransmissionFailure == 1)
+            {
+                invoice.transmissionFailure = 3;
+            }
+            var type = decimal.Parse(particleDTO.Ptyppar.EidParast, CultureInfo.InvariantCulture);
+            var issuer = new InvoicesDocInvoiceIssuer
+            {
+                vatNumber = company.Vat.Trim(),
+                country = "GR",
+                branch = 0,
+                name = company.Name,
+            };
+            var issuerPartAddress = new InvoicesDocInvoiceIssuerAddress
+            {
+                postalCode = company.ZipCode,
+                city = company.CIty,
+                street = company.Address,
+                number = "0"
+            };
+
+            issuer.address = issuerPartAddress;
+            invoice.issuer = issuer;
+
+            var counterPart = new InvoicesDocInvoiceCounterpart
+            {
+                vatNumber = particleDTO.Client?.Vat?.Trim(),
+                country = particleDTO.Client?.CountryCodeISO,
+                branch = 0,
+                name = particleDTO.Client?.Name 
+            };
+
+            //if (!(bool)particleDTO.Client?.CountryCodeISO.IsNullOrWhiteSpace() && (bool)!particleDTO.Client?.Ship.CountryCodeISO.Equals("GR"))
+            //{
+            //    counterPart.name = particleDTO.Client?.Ship.Name;
+            //};
+
+            //if (String.IsNullOrEmpty(counterPart.vatNumber)) counterPart.vatNumber = particleDTO.Client?.Vat?.Trim();
+            //if (String.IsNullOrEmpty(counterPart.country)) counterPart.country = particleDTO.Client?.CountryCodeISO;
+
+
+            ////particleDTO.Client.CountryCodeISO = null;
+            //if (!(bool)particleDTO.Client?.CountryCodeISO.IsNullOrWhiteSpace() && (bool)!particleDTO.Client?.Ship.CountryCodeISO.Equals("GR"))
+            //{
+            //    counterPart.name = particleDTO.Client?.Ship.Name;
+            //};
+
+            var counterPartAddress = new InvoicesDocInvoiceCounterpartAddress
+            {
+                postalCode = particleDTO.Client?.ZipCode ?? "",
+                city = particleDTO.Client?.City,
+                street = particleDTO.Client.Address,
+                number = "0"
+            };
+
+            //if (String.IsNullOrEmpty(counterPartAddress.postalCode)) counterPartAddress.postalCode = particleDTO.Client?.ZipCode ?? "";
+
+
+            counterPart.address = counterPartAddress;
+            invoice.counterpart = counterPart;
+
+
+
+
+           
+            var issuerDate = particleDTO.DispatchDate;
+            if(issuerDate is null) issuerDate = particleDTO.Date;
+
+            var header = new InvoicesDocInvoiceInvoiceHeader
+            {
+                series = particleDTO.Ptyppar.Series,
+                aa = particleDTO.Number.ToString(CultureInfo.InvariantCulture),
+                issueDate = (DateTime)issuerDate,
+                invoiceType = type,
+                otherMovePurposeTitle = particleDTO.MovePurposeDTO.DESCRIPTION
+                //currency = "EUR"
+            };
+
+            if (particleDTO.Ptyppar.EidParast == "9.3")
+            {
+                var time = particleDTO.Time;
+                TimeSpan parsedTime = TimeSpan.Parse(time);
+                var okTime = particleDTO.Date.Add(parsedTime);
+                header.isVoucher = true;
+                header.dispatchDate = particleDTO.Date;
+                header.dispatchTime = okTime;
+                header.vehicleNumber = particleDTO.VehiculeNumber ?? string.Empty;
+                header.movePurpose = int.Parse(particleDTO.SKOPDIAK.ToString());
+                var otherDeliveryNoteHeader = new OtherDeliveryNoteHeaderType();
+                var loadingAddress = new Domain.AADE.AddressType
+                {
+                    street = particleDTO.LoadingStreet,
+                    number = particleDTO.LoadingNumber ?? "0",
+                    postalCode = particleDTO.LoadingPostalCode,
+                    city = particleDTO.LoadingCity
+                };
+                var deliveryAddress = new Domain.AADE.AddressType
+                {
+                    street = particleDTO.DeliveryStreet,
+                    number = particleDTO.DeliveryNumber ?? "0",
+                    postalCode = particleDTO.DeliveryPostalCode,
+                    city = particleDTO.DeliveryCity
+                };
+
+                otherDeliveryNoteHeader.loadingAddress = loadingAddress;
+                otherDeliveryNoteHeader.deliveryAddress = deliveryAddress;
+                header.otherDeliveryNoteHeader = otherDeliveryNoteHeader;
+            }
+
+            
+            if (header.series.Equals(".") || header.series.Trim().Length == 0) header.series = "0";
+            invoice.invoiceHeader = header;
+
+            var incomeClassificationSummary = new List<InvoicesDocInvoiceInvoiceSummaryIncomeClassification>();
+            var details = new List<InvoicesDocInvoiceInvoiceDetails>();
+            var i = 1;
+            if (particleDTO.Pmoves.Count == 0) return null;
+
+
+            foreach (var item in particleDTO.Pmoves)
+            {
+                var incomeClassifications = new List<InvoicesDocInvoiceInvoiceDetailsIncomeClassification>();
+                var incomeClassification = new InvoicesDocInvoiceInvoiceDetailsIncomeClassification
+                {
+                    classificationType = particleDTO.Ptyppar.TYPOS_XARAKTHR,
+                    classificationCategory = "category3",
+                    amount = 0
+                };
+
+                if (incomeClassificationSummary.Count == 0)
+                {
+                    incomeClassificationSummary.Add(new InvoicesDocInvoiceInvoiceSummaryIncomeClassification
+                    {
+                        classificationType = incomeClassification.classificationType,
+                        classificationCategory = incomeClassification.classificationCategory,
+                        amount = 0,
+                    });
+                }
+                
+
+                incomeClassifications.Add(incomeClassification);
+
+                var detail = new InvoicesDocInvoiceInvoiceDetails
+                {
+                    lineNumber = (uint)i,
+                    netValue = 0,
+                    vatCategory = 8,
+                    vatAmount = 0,
+                    stampDutyAmount = 0,
+                    incomeClassification = incomeClassifications.ToArray(),
+                    withheldAmount = 0,
+                    deductionsAmount = 0,
+                    itemDescr = item.ItemDTO.ITEM_DESCR,
+                    quantity = item.Quantity?.ToString("G", CultureInfo.InvariantCulture) ?? "0",
+                    measurementUnit = int.Parse(item.MeasurementUnit.CODE.ToString())
+                    //stampDutyPercentCategory = (int?)(item.StampDutyCategory?.Code)
+                };
+
+                if (item.MeasurementUnit.CODE == 7 && item.OtherMeasurementUnitQuantity is not null)
+                {
+                    detail.otherMeasurementUnitQuantity = (int)item.OtherMeasurementUnitQuantity;
+                    detail.otherMeasurementUnitTitle = item.MeasurementUnit.AME_UNIT_DESCR;
+                }
+
+
+                details.Add(detail);
+
+                i++;
+            }
+
+            invoice.invoiceDetails = details.ToArray();
+
+            var invoicesDocInvoiceInvoiceSummary = new InvoicesDocInvoiceInvoiceSummary
+            {
+                totalNetValue = 0,
+                totalVatAmount = 0,
+                totalWithheldAmount = 0,
+                totalFeesAmount = 0,
+                totalStampDutyAmount = 0,
+                totalOtherTaxesAmount = 0,
+                totalDeductionsAmount = 0,
+                totalGrossValue = 0,
+                incomeClassification = incomeClassificationSummary.ToArray()
+            };
+
+
+
+            invoice.invoiceSummary = invoicesDocInvoiceInvoiceSummary;
+
+            AddToPostXmlPerUnit(invoice);
+
+            if (transferModel is not null)
+            {
+                var myDataInvoice = transferModel.MyDataInvoices.FirstOrDefault(x => x.Uid == particleDTO.Code && x.InvoiceNumber == particleDTO.Number);
+                using var stringWriter2 = new System.IO.StringWriter();
+                var soloDoc = new InvoicesDoc();
+                var soloList = new List<InvoicesDocInvoice>
+                    {
+                        invoice
+                    };
+                soloDoc.invoice = soloList.ToArray();
+                var serializer2 = new XmlSerializer(soloDoc.GetType());
+                serializer2.Serialize(stringWriter2, soloDoc);
+                var particleXml = stringWriter2.ToString();
+                myDataInvoice.StoredXml = particleXml;
+            }
+
+            return invoice;
+        }
+
+        private async Task<InvoicesDocInvoice> DoWorkForParticle(ParticleDTO particleDTO, CompanyDTO company, MyDataInvoiceTransferModel transferModel)
+        {
+            var invoice = new InvoicesDocInvoice();
+            if (particleDTO.TransmissionFailure == 1)
+            {
+                invoice.transmissionFailure = 3;
+            }
+            var type = decimal.Parse(particleDTO.Ptyppar.EidParast, CultureInfo.InvariantCulture);
+            var issuer = new InvoicesDocInvoiceIssuer
+            {
+                vatNumber = company.Vat.Trim(),
+                country = "GR",
+                branch = 0
+            };
+            var issuerPartAddress = new InvoicesDocInvoiceIssuerAddress
+            {
+                postalCode = company.ZipCode,
+                city = company.CIty
+            };
+            if(issuer.country != "GR") issuer.address = issuerPartAddress;
+
+            invoice.issuer = issuer;
+            if (type is < 11 or > 12)
+            {
+                var counterPart = new InvoicesDocInvoiceCounterpart
+                {
+                    vatNumber = particleDTO.Client?.Ship.Vat?.Trim(),
+                    country = particleDTO.Client?.Ship.CountryCodeISO,
+                    branch = 0
+                };
+
+
+                if (String.IsNullOrEmpty(counterPart.vatNumber)) counterPart.vatNumber = particleDTO.Client?.Vat?.Trim();
+                if (String.IsNullOrEmpty(counterPart.country)) counterPart.country = particleDTO.Client?.CountryCodeISO;
+
+
+                //particleDTO.Client.CountryCodeISO = null;
+                if (!(bool)particleDTO.Client?.CountryCodeISO.IsNullOrWhiteSpace() && (bool)!particleDTO.Client?.Ship.CountryCodeISO.Equals("GR"))
+                {
+                    counterPart.name = particleDTO.Client?.Ship.Name;
+                };
+                var counterPartAddress = new InvoicesDocInvoiceCounterpartAddress
+                {
+                    postalCode = particleDTO.Client?.Ship.ZipCode ?? "",
+                    city = particleDTO.Client?.City
+                };
+
+                if (String.IsNullOrEmpty(counterPartAddress.postalCode)) counterPartAddress.postalCode = particleDTO.Client?.ZipCode ?? "";
+
+
+                counterPart.address = counterPartAddress;
+                invoice.counterpart = counterPart;
+            }
+
+            var paymentMethod = new InvoicesDocInvoicePaymentMethodDetails
+            {
+                type = (int)particleDTO.Paymentmethod,
+                amount = (decimal)particleDTO.Amount
+            };
+            if (paymentMethod.type == 0) paymentMethod.type = 5;
+            var paymentMethods = new List<InvoicesDocInvoicePaymentMethodDetails>
+                {
+                    paymentMethod
+                };
+            invoice.paymentMethods = paymentMethods.ToArray();
+
+            var bExeiApallaghFPA = particleDTO.Ptyppar.VatExemption;
+
+            var header = new InvoicesDocInvoiceInvoiceHeader
+            {
+                series = particleDTO.Ptyppar.Series,
+                aa = particleDTO.Number.ToString(CultureInfo.InvariantCulture),
+                issueDate = particleDTO.Date,
+                invoiceType = type,
+                currency = "EUR",
+                otherMovePurposeTitle = particleDTO.MovePurposeDTO.DESCRIPTION
+            };
+
+            if (particleDTO.Ptyppar.IsVoucher == 1 )
+            {
+                var time = particleDTO.Time;
+                TimeSpan parsedTime = TimeSpan.Parse(time);
+                var okTime = particleDTO.Date.Add(parsedTime);
+
+                header.isVoucher = true;
+                header.dispatchDate = particleDTO.Date;
+                header.dispatchTime = okTime;
+                header.vehicleNumber = particleDTO.VehiculeNumber ?? string.Empty;
+                header.movePurpose = int.Parse(particleDTO.SKOPDIAK.ToString());
+                var otherDeliveryNoteHeader = new OtherDeliveryNoteHeaderType();
+                var loadingAddress = new Domain.AADE.AddressType
+                {
+                    street = particleDTO.LoadingStreet,
+                    number = particleDTO.LoadingNumber ?? "0",
+                    postalCode = particleDTO.LoadingPostalCode,
+                    city = particleDTO.LoadingCity
+                };
+                var deliveryAddress = new Domain.AADE.AddressType
+                {
+                    street = particleDTO.DeliveryStreet,
+                    number = particleDTO.DeliveryNumber ?? "0",
+                    postalCode = particleDTO.DeliveryPostalCode,
+                    city = particleDTO.DeliveryCity
+                };
+
+                otherDeliveryNoteHeader.loadingAddress = loadingAddress;
+                otherDeliveryNoteHeader.deliveryAddress = deliveryAddress;
+                header.otherDeliveryNoteHeader = otherDeliveryNoteHeader;
+            }
+
+            if (particleDTO.Ptyppar.Pistotiko == 1 && (particleDTO.Ptyppar.EidParast == "5.1"))
+            {
+                var particleRepo = new ParticleRepo(_connectionString);
+                long parsedNumber;
+                var cancelparticlee = await particleRepo.GetParticleByRec0((long?)particleDTO.CanceledParticle);
+                bool success = long.TryParse(cancelparticlee?.Mark, out parsedNumber);
+
+                if (success)
+                {
+                    long[] yourArray = new long[] { parsedNumber };
+                    header.correlatedInvoices = yourArray;
+                }
+
+            }
+            if (bExeiApallaghFPA == 1) header.vatPaymentSuspension = true;
+            if (header.series.Equals(".") || header.series.Trim().Length == 0) header.series = "0";
+            invoice.invoiceHeader = header;
+
+            decimal totalWithheldAmount = 0;
+            decimal totalStampDutyAmount = 0;
+            var incomeClassificationSummary = new List<InvoicesDocInvoiceInvoiceSummaryIncomeClassification>();
+            var details = new List<InvoicesDocInvoiceInvoiceDetails>();
+            var i = 1;
+            if (particleDTO.Pmoves.Count == 0) return null;
+
+            decimal? netAmount = 0;
+            decimal? vatAmount = 0;
+            decimal? withheldAmount = 0;
+            decimal? stampDutyAmount = 0;
+            decimal? grossAmount = 0;
+
+            decimal sumDeduction = 0;
+
+            var numberOfMoves = particleDTO.Pmoves.Count;
+            var totalVatAmount = particleDTO.VatAmount;
+
+
+            if (numberOfMoves == 1) particleDTO.Pmoves.FirstOrDefault().PMS_VATAM = totalVatAmount;
+            else
+            {
+                var baseVatAmount = Math.Floor(totalVatAmount / numberOfMoves);
+                var remainder = totalVatAmount % numberOfMoves;
+                for (int z = 0; z < numberOfMoves; z++)
+                {
+                    if (z > 0) remainder = 0;
+                    particleDTO.Pmoves[z].PMS_VATAM = baseVatAmount + remainder;
+                }
+            }
+
+            foreach (var item in particleDTO.Pmoves)
+            {
+
+                if (item.PMS_AMAFTDISC is not null && item.PMS_AMAFTDISC < 0)
+                {
+                    sumDeduction = (decimal)(sumDeduction + item.PMS_AMAFTDISC);
+                    continue;
+                    //break;
+                }
+
+                var incomeClassifications = new List<InvoicesDocInvoiceInvoiceDetailsIncomeClassification>();
+                var incomeClassification = new InvoicesDocInvoiceInvoiceDetailsIncomeClassification
+                {
+                    classificationType = particleDTO.Ptyppar.TYPOS_XARAKTHR,
+                    //classificationCategory = item.ItemDTO.Category,
+                    amount = (decimal)item.PMS_AMAFTDISC
+                };
+                if (string.IsNullOrEmpty(item.ItemCategory))
+                {
+                    incomeClassification.classificationCategory = item.ItemDTO.Category;
+                }
+                else
+                {
+                    incomeClassification.classificationCategory = item.ItemCategory;
+                }
+
+                if (!incomeClassificationSummary.Any(x =>
+                        x.classificationType.Equals(incomeClassification.classificationType)
+                        && x.classificationCategory.Equals(incomeClassification.classificationCategory)))
+                {
+                    incomeClassificationSummary.Add(new InvoicesDocInvoiceInvoiceSummaryIncomeClassification
+                    {
+                        classificationType = incomeClassification.classificationType,
+                        classificationCategory = incomeClassification.classificationCategory,
+                        amount = incomeClassification.amount,
+                    });
+                }
+                else
+                {
+                    var sum = incomeClassificationSummary.FirstOrDefault((x =>
+                        x.classificationType.Equals(incomeClassification.classificationType)
+                        && x.classificationCategory.Equals(incomeClassification.classificationCategory)));
+                    if (sum != null) sum.amount += incomeClassification.amount;
+                }
+                incomeClassifications.Add(incomeClassification);
+                var rounded = Math.Round((decimal)item.Net2, 2);
+
+                if (item.POSO_XARTOSH is null) item.POSO_XARTOSH = 0;
+                if (item.PMS_VATAM is null) item.PMS_VATAM = 0;
+                var detail = new InvoicesDocInvoiceInvoiceDetails
+                {
+                    lineNumber = (uint)i,
+                    netValue = (decimal)rounded,
+                    vatCategory = (int)item.ItemDTO.FPA.Category,
+                    vatAmount = (decimal)item.PMS_VATAM,
+                    stampDutyAmount = (decimal)item.POSO_XARTOSH,
+                    incomeClassification = incomeClassifications.ToArray(),
+                    //withheldAmount = item.POSO_PARAKRAT,
+                    deductionsAmount = 0,
+                    stampDutyPercentCategory = (int?)(item.StampDutyCategory?.Code)
+                };
+                if (item.AADE_CODE_PARAK is not null)
+                {
+                    detail.withheldAmount = item.POSO_PARAKRAT;
+                    detail.withheldPercentCategory = byte.Parse(item.AADE_CODE_PARAK);
+
+                }
+
+                if (bExeiApallaghFPA == 1)
+                {
+                    var category = particleDTO.Ptyppar.EXAIRFPA;
+
+                    detail.vatCategory = 7;
+                    detail.vatAmount = 0;
+                    detail.vatExemptionCategory = (byte)category;
+                }
+
+                if (header.invoiceType == (decimal)5.2 && incomeClassification.classificationCategory == "category1_95") //pistotiko fpa
+                {
+                    detail.vatAmount = paymentMethod.amount;
+                    item.PMS_VATAM = paymentMethod.amount;
+                }
+
+                netAmount += rounded;
+                vatAmount += item.PMS_VATAM;
+                withheldAmount += item.POSO_PARAKRAT;
+                stampDutyAmount += item.POSO_XARTOSH;
+                var grossRounded = Math.Round((decimal)item.CalculatedGross, 2, MidpointRounding.AwayFromZero);
+                grossAmount += grossRounded;
+
+                details.Add(detail);
+
+                i++;
+            }
+
+            invoice.invoiceDetails = details.ToArray();
+
+            var invoicesDocInvoiceInvoiceSummary = new InvoicesDocInvoiceInvoiceSummary
+            {
+                totalNetValue = (decimal)netAmount,
+                totalVatAmount = particleDTO.VatAmount,
+                totalWithheldAmount = (decimal)withheldAmount,
+                totalFeesAmount = 0,
+                totalStampDutyAmount = (decimal)stampDutyAmount,
+                totalOtherTaxesAmount = 0,
+                totalDeductionsAmount = 0,
+                totalGrossValue = (decimal)grossAmount,
+                incomeClassification = incomeClassificationSummary.ToArray()
+            };
+
+            if (bExeiApallaghFPA == 1)
+            {
+                invoicesDocInvoiceInvoiceSummary.totalVatAmount = 0;
+            }
+
+            if (sumDeduction < 0)
+            {
+                invoicesDocInvoiceInvoiceSummary.totalNetValue = invoicesDocInvoiceInvoiceSummary.totalNetValue + sumDeduction;
+                invoicesDocInvoiceInvoiceSummary.totalGrossValue = invoicesDocInvoiceInvoiceSummary.totalGrossValue + sumDeduction;
+
+                var randomPmove = invoice.invoiceDetails.FirstOrDefault(x => x.netValue > (-1 * sumDeduction));
+                var randomClassification = randomPmove.incomeClassification.FirstOrDefault();
+                var sumClassification = invoicesDocInvoiceInvoiceSummary.incomeClassification.FirstOrDefault();
+
+                randomPmove.netValue = randomPmove.netValue + sumDeduction;
+                randomClassification.amount = randomClassification.amount + sumDeduction;
+                sumClassification.amount = sumClassification.amount + sumDeduction;
+            }
+
+            invoice.invoiceSummary = invoicesDocInvoiceInvoiceSummary;
+            
+            AddToPostXmlPerUnit(invoice);
+
+            if (transferModel is not null)
+            {
+                var myDataInvoice = transferModel.MyDataInvoices.FirstOrDefault(x => x.Uid == particleDTO.Code && x.InvoiceNumber == particleDTO.Number);
+                using var stringWriter2 = new System.IO.StringWriter();
+                var soloDoc = new InvoicesDoc();
+                var soloList = new List<InvoicesDocInvoice>
+                    {
+                        invoice
+                    };
+                soloDoc.invoice = soloList.ToArray();
+                var serializer2 = new XmlSerializer(soloDoc.GetType());
+                serializer2.Serialize(stringWriter2, soloDoc);
+                var particleXml = stringWriter2.ToString();
+                myDataInvoice.StoredXml = particleXml;
+            }
+
+            return invoice;
         }
 
         public ParticleDTO DistributeVat(ParticleDTO particleDTO)
@@ -594,6 +876,7 @@ namespace Mydata.ViewModels
                         InvoiceDate = item.Date,
                         VAT = vat,
                         InvoiceTypeCode = (int)typeCode,
+                        Series = item.Ptyppar.Series,
                         Particle = item
                     };
                     postTransferModel.MyDataInvoices.Add(myDataInvoice);

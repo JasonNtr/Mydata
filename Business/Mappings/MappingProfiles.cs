@@ -23,7 +23,9 @@ namespace Business.Mappings
 
             CreateMap<MyDataError, MyDataErrorDTO>().ReverseMap()
                 .ForMember(d => d.MyDataResponse, opt => opt.Ignore());
-            
+
+            CreateMap<MeasurementUnit, MeasurementUnitDTO>().ReverseMap();
+            CreateMap<MovePurpose, MovePurposeDTO>().ReverseMap();
 
             CreateMap<Company, CompanyDTO>().ReverseMap();
             CreateMap<MyDataEntity, MyDataEntityDTO>().ReverseMap();

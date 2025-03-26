@@ -12,6 +12,7 @@
         public string Series { get; set; }
         public decimal? EXAIRFPA { get; set; }
         public string IsForCancellation { get; set; }
+        public byte? IsVoucher { get; set; }
 
 
     }

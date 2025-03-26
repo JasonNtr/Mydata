@@ -19,7 +19,8 @@ namespace Domain.AADE
 
         private decimal quantityField;
 
-        
+        private int measurementUnitField;
+
 
         private byte invoiceDetailTypeField;
 
@@ -60,7 +61,9 @@ namespace Domain.AADE
         private InvoicesDocInvoiceInvoiceDetailsExpensesClassification[] expensesClassificationField;
 
         private decimal quantity15Field;
+        private int otherMeasurementUnitQuantityField;
 
+        private string otherMeasurementUnitTitleField;
         /// <remarks/>
         public uint lineNumber
         {
@@ -113,20 +116,39 @@ namespace Domain.AADE
             }
         }
 
-        [XmlIgnore]
-        [XmlElement(DataType = "decimal")]
         public string quantity
         {
             get
             {
-                return this.quantityField.ToString("c");
+                return this.quantityField.ToString("G", System.Globalization.CultureInfo.InvariantCulture); 
             }
             set
             {
-                this.quantityField = Convert.ToDecimal(value);
+                this.quantityField = Convert.ToDecimal(value, System.Globalization.CultureInfo.InvariantCulture); 
             }
         }
- 
+        public bool ShouldSerializequantity()
+        {
+            return quantityField > 0;
+        }
+
+        public int measurementUnit
+        {
+            get
+            {
+                return this.measurementUnitField;
+            }
+            set
+            {
+                this.measurementUnitField = value;
+            }
+        }
+
+        public bool ShouldSerializemeasurementUnit()
+        {
+            return measurementUnitField > 0;
+        }
+
 
         [XmlIgnore]
         public byte invoiceDetailType
@@ -196,7 +218,7 @@ namespace Domain.AADE
         public bool ShouldSerializevatExemptionCategory()
         {
             // Return false if vatExemptionCategory is null, preventing serialization
-            return vatExemptionCategory.HasValue;
+            return vatCategory == 7;
         }
 
         /// <remarks/>
@@ -225,7 +247,11 @@ namespace Domain.AADE
             }
         }
 
-        [XmlIgnore]
+        public bool ShouldSerializewithheldAmount()
+        {
+            return withheldPercentCategory > 0;
+        }
+
         public decimal withheldAmount
         {
             get
@@ -238,7 +264,10 @@ namespace Domain.AADE
             }
         }
 
-        [XmlIgnore]
+        public bool ShouldSerializewithheldPercentCategory()
+        {
+            return withheldPercentCategory > 0;
+        }
         public byte withheldPercentCategory
         {
             get
@@ -251,7 +280,7 @@ namespace Domain.AADE
             }
         }
 
-        [XmlIgnore]
+         
         public decimal stampDutyAmount
         {
             get { return this.stampDutyAmountField; }
@@ -263,7 +292,12 @@ namespace Domain.AADE
             }
         }
 
-        [XmlIgnore]
+        public bool ShouldSerializestampDutyAmount()
+        {
+            return stampDutyAmount > 0;
+        }
+
+      
         public int? stampDutyPercentCategory
         {
             get
@@ -274,6 +308,11 @@ namespace Domain.AADE
             {
                 this.stampDutyPercentCategoryField = value;
             }
+        }
+
+        public bool ShouldSerializestampDutyPercentCategory()
+        {
+            return stampDutyPercentCategory != null;
         }
 
         [XmlIgnore]
@@ -341,6 +380,11 @@ namespace Domain.AADE
             }
         }
 
+        public bool ShouldSerializedeductionsAmount()
+        {
+            return deductionsAmount > 0;
+        }
+
         /// <remarks/>
         public string lineComments
         {
@@ -392,6 +436,30 @@ namespace Domain.AADE
             set
             {
                 this.quantity15Field = value;
+            }
+        }
+
+        public int otherMeasurementUnitQuantity
+        {
+            get
+            {
+                return this.otherMeasurementUnitQuantityField;
+            }
+            set
+            {
+                this.otherMeasurementUnitQuantityField = value;
+            }
+        }
+
+        public string otherMeasurementUnitTitle
+        {
+            get
+            {
+                return this.otherMeasurementUnitTitleField;
+            }
+            set
+            {
+                this.otherMeasurementUnitTitleField = value;
             }
         }
     }

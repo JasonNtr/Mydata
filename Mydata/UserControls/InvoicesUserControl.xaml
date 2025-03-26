@@ -235,6 +235,7 @@
                 <syncfusion:GridTextColumn MappingName="ModifiedToString" HeaderText="Τελευταία τροποποίηση" TextAlignment="Center"/>
                 <syncfusion:GridTextColumn MappingName="Uid" Width="100" HeaderText="UID" TextAlignment="Center"/>
                 <syncfusion:GridTextColumn MappingName="InvoiceNumber"  HeaderText="ΑΡ. ΠΑΡ." Width="150" TextAlignment="Center"/>
+                <syncfusion:GridTextColumn MappingName="Series"  HeaderText="ΣΕΙΡΑ" Width="100" TextAlignment="Center"/>
                 <syncfusion:GridTextColumn MappingName="InvoiceDateToString" HeaderText="ΗΜ. ΠΑΡ." AllowFiltering="True" Width="150" TextAlignment="Center"/>
                 <syncfusion:GridTextColumn MappingName="InvoiceType.Title" HeaderText="ΠΑΡΑΣΤΑΤΙΚΟ" AllowFiltering="True" TextAlignment="Center"/>
                 <syncfusion:GridTextColumn MappingName="VAT"  HeaderText="ΑΦΜ ΠΕΛΑΤΗ"  TextAlignment="Center" AllowFiltering="True"/>

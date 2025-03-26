@@ -106,15 +106,23 @@ namespace Mydata
 
             foreach (var item in particleDTO.Pmoves)
             {
-                var type = (IncomeClassificationValueType)System.Enum.Parse(typeof(IncomeClassificationValueType), particleDTO.Ptyppar.TYPOS_XARAKTHR);
+                //var type = (IncomeClassificationValueType)System.Enum.Parse(typeof(IncomeClassificationValueType), particleDTO.Ptyppar.TYPOS_XARAKTHR);
                 var category = (IncomeClassificationCategoryType)System.Enum.Parse(typeof(IncomeClassificationCategoryType), item.ItemDTO.Category);
                 var incomeClassificationForEdit = new IncomeClassificationForEditInvoice
                 {
+                    ItemCode = item.Item,
                     ItemDescription = item.ItemDTO.ITEM_DESCR,
-                    CharacterizationType = type,
+                    //CharacterizationType = type,
                     CharacterizationCategory = category,
                     Amount = (decimal)item.PMS_AMAFTDISC
                 };
+
+                if (particleDTO.Ptyppar.EidParast != "9.3")
+                {
+                    var type = (IncomeClassificationValueType)System.Enum.Parse(typeof(IncomeClassificationValueType), particleDTO.Ptyppar.TYPOS_XARAKTHR);
+                    incomeClassificationForEdit.CharacterizationType = type;
+                }
+
                 _viewmodel.IncomeClassificationsForEdit.Add(incomeClassificationForEdit);
             }
 

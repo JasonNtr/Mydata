@@ -9,6 +9,7 @@
          public string Vat { get; set; }
         public string ZipCode { get; set; }
         public string CIty { get; set; }
+        public string Address { get; set; }
 
     }
 }

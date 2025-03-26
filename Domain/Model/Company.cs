@@ -21,5 +21,8 @@ namespace Domain.Model
         [Column("COMPANY_CITY")]
         public string CIty { get; set; }
 
+        [Column("COMPANY_ADDR")]
+        public string Address { get; set; }
+
     }
 }

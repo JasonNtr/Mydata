@@ -29,5 +29,8 @@ namespace Domain.Model
         
         [Column("AREA")]
         public string City{ get; set; }
+
+        [Column("ADDRESS")]
+        public string Address { get; set; }
     }
 }

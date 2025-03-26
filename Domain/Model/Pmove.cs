@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domain.Model
 {
@@ -34,5 +35,21 @@ namespace Domain.Model
         [Column("PMS_UNITPRICE")]
         public decimal? UnitPrice { get; set; }
 
+        [Column("POSOSTO_XARTOSH")]
+        public decimal? POSOSTO_XARTOSH { get; set; }
+
+        [Column("PMS_UNITCODE")]
+        public string MeasurementUnitCode { get; set; }
+
+        [Column("otherMeasurementUnitQuantity")]
+        public decimal? OtherMeasurementUnitQuantity { get; set; }
+
+        [Column("ItemCategory")]
+        [StringLength(20)]
+        public string ItemCategory { get; set; }
+
+        [Column("AADE_CODE_PARAK")]
+        [StringLength(20)]
+        public string AADE_CODE_PARAK { get; set; }
     }
 }

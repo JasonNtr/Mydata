@@ -151,6 +151,7 @@ namespace Infrastructure.Database
             builder.Entity<Company>().HasKey(c => c.Code);
             builder.Entity<InvoiceType>().HasKey(c => c.Code);
             builder.Entity<TaxInvoice>().HasKey(c => new { c.TaxCode, c.PtyparCode, c.Module });
+            builder.Entity<MovePurpose>().HasKey(c => c.CODE);
 
         }
 
@@ -297,7 +298,8 @@ namespace Infrastructure.Database
         public DbSet<Fpa> FPA { get; set; }
         public DbSet<InvoiceType> InvoiceTypes { get; set; }
         public DbSet<Ship> Ships { get; set; }
-       
+
+        public DbSet<MovePurpose> MovePurposes { get; set; }
 
         public DbSet<MyDataIncomeError> MyDataIncomeErrors { get; set; }
         public DbSet<MyDataInvoiceHeaderType> MyDataInvoiceHeaderTypes { get; set; }
@@ -316,6 +318,8 @@ namespace Infrastructure.Database
         public DbSet<MyDataError> MyDataErrors { get; set; }
         public DbSet<MyDataInvoiceType> MyDataInvoiceTypes { get; set; }
         public DbSet<MyDataCancelationError> MyDataCancellationErrors { get; set; }
+        public DbSet<StampDutyCategory> StampDutyCategories { get; set; }
+        public DbSet<MeasurementUnit> MeasurementUnits { get; set; }
 
         #endregion DbSets
     }

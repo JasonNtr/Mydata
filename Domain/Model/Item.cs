@@ -16,5 +16,7 @@ namespace Domain.Model
         [Column("FPA_POSOSTO")]
         public decimal Vat { get; set; }
 
+        [Column("UNITS_CODE")]
+        public decimal MeasurementUnitCode { get; set; }
     }
 }

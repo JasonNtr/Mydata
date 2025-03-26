@@ -21,7 +21,7 @@ namespace Mydata
             this.ShowInTaskbar = true;
 
             var invoiceTab = new InvoicesUserControl(appSettings, conenctionString.Value.Default);
-            var expensesTab = new ExpensesUserControl(appSettings, conenctionString.Value.Default);
+           
 
             this.InvoiceTab.Content = invoiceTab;
           
@@ -32,7 +32,7 @@ namespace Mydata
         {
             var companyrepo = new CompanyRepo(connectionString);
             var company = await companyrepo.Get();
-            VersionLabel.Content = "Betolink MyData Connector v1.07" +" " + company?.Name;
+            VersionLabel.Content = "Betolink MyData Connector v7.06" +" " + company?.Name;
 
         }
 

@@ -324,6 +324,7 @@
             category1_10,
 
             category1_95,
+            category3,
         }
     }
 }

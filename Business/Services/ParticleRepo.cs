@@ -24,7 +24,7 @@ namespace Business.Services
             
             var ptyppars = await context.InvoiceTypes.AsNoTracking().Where(x => x.UpdateMyData == 1).Select(x => x.Code).ToListAsync();
 
-            var particles = await context.Particles.AsNoTracking().Where(x=>x.Date > startDate.Date && x.Date < endDate
+            var particles = await context.Particles.AsNoTracking().Where(x=>x.Date > startDate.Date && x.Date < endDate 
                 && ptyppars.Contains(x.InvoiceType) && x.Mark == null && x.Closed.Equals("1")  && x.Number>0).ToListAsync();
 
             var particlesDTO = Mapper.Map<List<ParticleDTO>>(particles);
@@ -42,10 +42,14 @@ namespace Business.Services
         private async Task<ParticleDTO> Get(ParticleDTO particleDTO)
         {
             var context = GetContext();
-
+            
             var ptyppar = await context.InvoiceTypes.AsNoTracking().FirstOrDefaultAsync(x => x.Code.Equals(particleDTO.InvoiceType));
             var ptypparDTO = Mapper.Map<InvoiceTypeDTO>(ptyppar);
             particleDTO.Ptyppar = ptypparDTO;
+
+            var movePurpose = await context.MovePurposes.AsNoTracking().FirstOrDefaultAsync(x => x.CODE.Equals(particleDTO.SKOPDIAK));
+            var movePurposeDTO = Mapper.Map<MovePurposeDTO>(movePurpose);
+            particleDTO.MovePurposeDTO = movePurposeDTO;
 
             var client = await context.Clients.AsNoTracking().FirstOrDefaultAsync(x => x.Code.Equals(particleDTO.ClientCode));
             if (client != null)
@@ -58,7 +62,7 @@ namespace Business.Services
                 particleDTO.Client = clientDTO;
             }
             
-
+           
             var pmoves = await context.Pmoves.AsNoTracking().Where(x => x.Particle.Equals(particleDTO.Code)).ToListAsync();
             var pmovesDTO = Mapper.Map<List<PMoveDTO>>(pmoves);
 
@@ -68,10 +72,19 @@ namespace Business.Services
                 var itemDTO = Mapper.Map<ItemDTO>(item);
                 var fpa = await context.FPA.AsNoTracking().FirstOrDefaultAsync(x => x.Percentage.Equals(itemDTO.Vat));
                 var fpaDTO = Mapper.Map<FpaDTO>(fpa);
+                var stampDutyCategory = await context.StampDutyCategories.AsNoTracking().FirstOrDefaultAsync(x => x.StampDuty.Equals(pmove.POSOSTO_XARTOSH));
+                var stampDutyCategoryDTO = Mapper.Map<StampDutyCategoryDTO>(stampDutyCategory);
+                var measurementUnit = await context.MeasurementUnits.AsNoTracking().FirstOrDefaultAsync(x => x.AME_UNIT_CODE == itemDTO.MeasurementUnitCode.ToString());
+                var measurementUnitDTO = Mapper.Map<MeasurementUnitDTO>(measurementUnit);
+                 
                 itemDTO.FPA = fpaDTO;
                 pmove.ItemDTO = itemDTO;
+                pmove.StampDutyCategory = stampDutyCategoryDTO;
+                pmove.MeasurementUnit = measurementUnitDTO;
+
+
             }
-            
+
             particleDTO.Pmoves = pmovesDTO;
             return particleDTO;
         }

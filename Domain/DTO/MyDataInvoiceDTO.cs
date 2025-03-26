@@ -15,6 +15,8 @@ namespace Domain.DTO
                 return InvoiceDate.ToString("dd/MM/yyyy");
             }
         }
+        public virtual string Series { get; set; }
+
         public virtual long? InvoiceNumber { get; set; }
         public virtual long? CancellationMark { get; set; }
         public virtual string VAT { get; set; }

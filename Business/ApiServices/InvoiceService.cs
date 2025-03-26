@@ -47,36 +47,56 @@ namespace Business.ApiServices
 
             
             byte[] byteData = Encoding.UTF8.GetBytes(transferModel.Xml);
-            using (var content = new ByteArrayContent(byteData))
+            try
             {
-                content.Headers.ContentType = new MediaTypeHeaderValue("text/xml");
-                httpResponseMessage = await client.PostAsync(uri, content);
-            }
-            var httpresponsecontext = await httpResponseMessage.Content.ReadAsStringAsync();
+                using (var content = new ByteArrayContent(byteData))
+                {
+                    content.Headers.ContentType = new MediaTypeHeaderValue("text/xml");
+                    httpResponseMessage = await client.PostAsync(uri, content);
+                }
+                var httpresponsecontext = await httpResponseMessage.Content.ReadAsStringAsync();
 
-            var mydataresponse = ParseInvoiceResponseResult(httpresponsecontext);
+                var mydataresponse = ParseInvoiceResponseResult(httpresponsecontext);
 
-            if (mydataresponse.Count == 1 && transferModel.MyDataInvoices.Count > 1)
-            {
-                result = await PostActionPerIvoice(transferModel);
+                if (mydataresponse.Count == 1 && transferModel.MyDataInvoices.Count > 1)
+                {
+                    result = await PostActionPerIvoice(transferModel);
+                    return result;
+                }
+                var i = 0;
+                foreach (var invoice in transferModel.MyDataInvoices)
+                {
+                    mydataresponse[i].MyDataInvoiceId = invoice.Id;
+                    invoice.MyDataResponses.Add(mydataresponse[i]);
+                    if (mydataresponse[i].statusCode.Equals("Success"))
+                    {
+                        //invoice.Particle.TransmissionFailure = 0;
+                        invoice.Particle.Mark = mydataresponse[i].invoiceMark.ToString();
+                         invoice.Particle.AadeUid = mydataresponse[i].invoiceUid.ToString();
+                        invoice.Particle.QrCode = mydataresponse[i].qrUrl.ToString();
+                        invoice.Particle.AadeUid = mydataresponse[i].invoiceUid.ToString();
+                        result = await particleRepo.Update(invoice.Particle);
+                    }
+                    i++;
+                }
+                result = await invoiceRepo.InsertOrUpdateRangeForPost(transferModel.MyDataInvoices);
                 return result;
             }
-            var i = 0;
-            foreach (var invoice in transferModel.MyDataInvoices)
+            catch (HttpRequestException httpEx)
             {
-                mydataresponse[i].MyDataInvoiceId = invoice.Id;
-                invoice.MyDataResponses.Add(mydataresponse[i]);
-                if (mydataresponse[i].statusCode.Equals("Success"))
+                foreach (var invoice in transferModel.MyDataInvoices)
                 {
-                    invoice.Particle.Mark = mydataresponse[i].invoiceMark.ToString();
-                    invoice.Particle.QrCode = mydataresponse[i].qrUrl.ToString();
-                    invoice.Particle.AadeUid = mydataresponse[i].invoiceUid.ToString();
+                    invoice.Particle.TransmissionFailure = 1;
                     result = await particleRepo.Update(invoice.Particle);
                 }
-                i++;
             }
-            result = await invoiceRepo.InsertOrUpdateRangeForPost(transferModel.MyDataInvoices);
-            return result;
+            catch (Exception ex)
+            {
+                // Handle all other types of exceptions
+                Console.WriteLine($"An unexpected error occurred: {ex.Message}");
+                throw;
+            }
+            return false;
         }
 
         private async Task<bool> PostActionPerIvoice(MyDataInvoiceTransferModel transferModel)

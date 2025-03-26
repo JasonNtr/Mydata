@@ -8,6 +8,7 @@ namespace Domain.Model
     {
         [Column("CODE")]
         public decimal Code { get; set; }
+
         [Column("EID_PARAST")]
         public string? EidParast { get; set; }
 
@@ -37,6 +38,9 @@ namespace Domain.Model
         [Column("SUB")]
         [StringLength(20)]
         public string IsForCancellation { get; set; }
+
+        [Column("EINAI_DELTIO_APOSTOLHS")]
+        public byte? IsVoucher { get; set; }
 
     }
 }

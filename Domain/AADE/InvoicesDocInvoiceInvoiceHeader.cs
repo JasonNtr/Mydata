@@ -30,12 +30,16 @@ namespace Domain.AADE
         private long[] correlatedInvoicesField;
 
         private bool selfPricingField;
+        private System.DateTime dispatchDateField;
 
-         
+        private System.DateTime dispatchTimeField;
+
 
         private string vehicleNumberField;
+        private int movePurposeField;
 
-      
+        private string otherMovePurposeTitleField;
+
 
         private bool fuelInvoiceField;
 
@@ -43,7 +47,13 @@ namespace Domain.AADE
 
         private byte invoiceVariationTypeField;
 
+        private OtherDeliveryNoteHeaderType otherDeliveryNoteHeaderField;
+
+
         /// <remarks/>
+        /// 
+
+
         public string series
         {
             get
@@ -96,6 +106,8 @@ namespace Domain.AADE
             }
         }
 
+
+
         /// <remarks/>
         public bool vatPaymentSuspension
         {
@@ -108,6 +120,9 @@ namespace Domain.AADE
                 this.vatPaymentSuspensionField = value;
             }
         }
+
+
+
 
         /// <remarks/>
         public string currency
@@ -149,6 +164,71 @@ namespace Domain.AADE
             }
         }
 
+        [System.Xml.Serialization.XmlElementAttribute(DataType = "date")]
+        public System.DateTime dispatchDate
+        {
+            get
+            {
+                return this.dispatchDateField;
+            }
+            set
+            {
+                this.dispatchDateField = value;
+            }
+        }
+
+        public bool ShouldSerializedispatchDate()
+        {
+            return isVoucher;
+        }
+
+        [System.Xml.Serialization.XmlElementAttribute(DataType = "time")]
+        public System.DateTime dispatchTime
+        {
+            get
+            {
+                return this.dispatchTimeField;
+            }
+            set
+            {
+                this.dispatchTimeField = value;
+            }
+        }
+
+        public bool ShouldSerializedispatchTime()
+        {
+            return isVoucher;
+        }
+
+        public string vehicleNumber
+        {
+            get
+            {
+                return this.vehicleNumberField;
+            }
+            set
+            {
+                this.vehicleNumberField = value;
+            }
+        }
+
+        public int movePurpose
+        {
+            get
+            {
+                return this.movePurposeField;
+            }
+            set
+            {
+                this.movePurposeField = value;
+            }
+        }
+        public bool ShouldSerializemovePurpose()
+        {
+            return movePurposeField > 0;
+        }
+
+
         [XmlIgnore]
         public bool selfPricing
         {
@@ -162,22 +242,12 @@ namespace Domain.AADE
             }
         }
 
-        
+
 
         /// <remarks/>
-        public string vehicleNumber
-        {
-            get
-            {
-                return this.vehicleNumberField;
-            }
-            set
-            {
-                this.vehicleNumberField = value;
-            }
-        }
 
-     
+
+
 
         [XmlIgnore]
         public bool fuelInvoice
@@ -217,5 +287,33 @@ namespace Domain.AADE
                 this.invoiceVariationTypeField = value;
             }
         }
+
+        public OtherDeliveryNoteHeaderType otherDeliveryNoteHeader
+        {
+            get
+            {
+                return this.otherDeliveryNoteHeaderField;
+            }
+            set
+            {
+                this.otherDeliveryNoteHeaderField = value;
+            }
+        }
+
+        public string otherMovePurposeTitle
+        {
+            get
+            {
+                return this.otherMovePurposeTitleField;
+            }
+            set
+            {
+                this.otherMovePurposeTitleField = value;
+            }
+        }
+
+
+        [XmlIgnore]
+        public bool isVoucher { get; set; } = false;
     }
 }

@@ -78,7 +78,7 @@ namespace Domain.AADE
             }
         }
 
-        [XmlIgnore]
+        
         public InvoicesDocInvoiceIssuerAddress address
         {
             get
@@ -90,6 +90,12 @@ namespace Domain.AADE
                 this.addressField = value;
             }
         }
+
+        public bool ShouldSerializeaddress()
+        {
+            return !string.IsNullOrEmpty(addressField?.city);
+        }
+
 
         /// <remarks/>
         public string documentIdNo

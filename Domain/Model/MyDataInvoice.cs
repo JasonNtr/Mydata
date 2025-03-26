@@ -9,6 +9,8 @@ namespace Domain.Model
         public virtual DateTime InvoiceDate { get; set; }
         public virtual long? InvoiceNumber { get; set; }
         public virtual long? CancellationMark { get; set; }
+        public virtual string Series { get; set; }
+
         public virtual string VAT { get; set; }
         public virtual int InvoiceTypeCode { get; set; }
         public virtual MyDataInvoiceType InvoiceType { get; set; }

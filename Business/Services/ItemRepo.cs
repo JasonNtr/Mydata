@@ -14,7 +14,7 @@ namespace Business.Services
         public async Task<List<string>> GetCategories()
         {
             var context = GetContext();
-            var categories = await context.Item.Select(x => x.Category).Where(x=>x != null).Distinct().OrderBy(x=>x).ToListAsync();
+            var categories = await context.Pmoves.Select(x => x.ItemCategory).Where(x => x != null).Distinct().OrderBy(x => x).ToListAsync();
             return categories;
         }
     }
