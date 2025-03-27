@@ -2,9 +2,9 @@
 {
     public class ItemDTO
     {
-        public string Code { get; set; }
+        public string ITEM_CODE { get; set; }
 
-         public string Category { get; set; }
+        public string Category { get; set; }
 
         public string ITEM_DESCR { get; set; }
         public decimal Vat { get; set; }

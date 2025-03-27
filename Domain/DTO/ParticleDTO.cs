@@ -67,3 +67,6 @@ namespace Domain.DTO
         public virtual ClientDTO Client { get; set; }
     }
 }
+
+
+

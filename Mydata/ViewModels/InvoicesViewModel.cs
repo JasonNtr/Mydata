@@ -20,6 +20,7 @@ using System.Threading.Tasks;
 using System.Timers;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Xml.Linq;
 using System.Xml.Serialization;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.ListView;
@@ -417,6 +418,7 @@ namespace Mydata.ViewModels
                     incomeClassification = incomeClassifications.ToArray(),
                     withheldAmount = 0,
                     deductionsAmount = 0,
+                    itemCode = item.ItemDTO.ITEM_CODE,
                     itemDescr = item.ItemDTO.ITEM_DESCR,
                     quantity = item.Quantity?.ToString("G", CultureInfo.InvariantCulture) ?? "0",
                     measurementUnit = int.Parse(item.MeasurementUnit.CODE.ToString())
@@ -496,38 +498,68 @@ namespace Mydata.ViewModels
             };
             if(issuer.country != "GR") issuer.address = issuerPartAddress;
 
+            if(particleDTO.Ptyppar.IsVoucher == 1)
+            {
+                issuer.name = company.Name;
+                issuerPartAddress.street = company.Address;
+                issuerPartAddress.number = "0";
+                issuer.address = issuerPartAddress;
+            }
+
+
             invoice.issuer = issuer;
             if (type is < 11 or > 12)
             {
-                var counterPart = new InvoicesDocInvoiceCounterpart
+                if (particleDTO.Ptyppar.IsVoucher == 1)
                 {
-                    vatNumber = particleDTO.Client?.Ship.Vat?.Trim(),
-                    country = particleDTO.Client?.Ship.CountryCodeISO,
-                    branch = 0
-                };
-
-
-                if (String.IsNullOrEmpty(counterPart.vatNumber)) counterPart.vatNumber = particleDTO.Client?.Vat?.Trim();
-                if (String.IsNullOrEmpty(counterPart.country)) counterPart.country = particleDTO.Client?.CountryCodeISO;
-
-
-                //particleDTO.Client.CountryCodeISO = null;
-                if (!(bool)particleDTO.Client?.CountryCodeISO.IsNullOrWhiteSpace() && (bool)!particleDTO.Client?.Ship.CountryCodeISO.Equals("GR"))
+                    var counterPart1 = new InvoicesDocInvoiceCounterpart
+                    {
+                        vatNumber = particleDTO.Client?.Vat?.Trim(),
+                        country = particleDTO.Client?.CountryCodeISO,
+                        branch = 0,
+                        name = particleDTO.Client?.Name
+                    };
+                    var counterPartAddress1 = new InvoicesDocInvoiceCounterpartAddress
+                    {
+                        postalCode = particleDTO.Client?.ZipCode ?? "",
+                        city = particleDTO.Client?.City,
+                        street = particleDTO.Client.Address,
+                        number = "0"
+                    };
+                    counterPart1.address = counterPartAddress1;
+                    invoice.counterpart = counterPart1;
+                }
+                else
                 {
-                    counterPart.name = particleDTO.Client?.Ship.Name;
-                };
-                var counterPartAddress = new InvoicesDocInvoiceCounterpartAddress
-                {
-                    postalCode = particleDTO.Client?.Ship.ZipCode ?? "",
-                    city = particleDTO.Client?.City
-                };
+                    var counterPart = new InvoicesDocInvoiceCounterpart
+                    {
+                        vatNumber = particleDTO.Client?.Ship.Vat?.Trim(),
+                        country = particleDTO.Client?.Ship.CountryCodeISO,
+                        branch = 0
+                    };
 
-                if (String.IsNullOrEmpty(counterPartAddress.postalCode)) counterPartAddress.postalCode = particleDTO.Client?.ZipCode ?? "";
+                    if (String.IsNullOrEmpty(counterPart.vatNumber)) counterPart.vatNumber = particleDTO.Client?.Vat?.Trim();
+                    if (String.IsNullOrEmpty(counterPart.country)) counterPart.country = particleDTO.Client?.CountryCodeISO;
 
 
-                counterPart.address = counterPartAddress;
-                invoice.counterpart = counterPart;
+                    //particleDTO.Client.CountryCodeISO = null;
+                    if (!(bool)particleDTO.Client?.CountryCodeISO.IsNullOrWhiteSpace() && (bool)!particleDTO.Client?.Ship.CountryCodeISO.Equals("GR"))
+                    {
+                        counterPart.name = particleDTO.Client?.Ship.Name;
+                    };
+                    var counterPartAddress = new InvoicesDocInvoiceCounterpartAddress
+                    {
+                        postalCode = particleDTO.Client?.Ship.ZipCode ?? "",
+                        city = particleDTO.Client?.City
+                    };
+
+                    if (String.IsNullOrEmpty(counterPartAddress.postalCode)) counterPartAddress.postalCode = particleDTO.Client?.ZipCode ?? "";
+
+                    counterPart.address = counterPartAddress;
+                    invoice.counterpart = counterPart;
+                }
             }
+ 
 
             var paymentMethod = new InvoicesDocInvoicePaymentMethodDetails
             {
@@ -564,6 +596,8 @@ namespace Mydata.ViewModels
                 header.dispatchTime = okTime;
                 header.vehicleNumber = particleDTO.VehiculeNumber ?? string.Empty;
                 header.movePurpose = int.Parse(particleDTO.SKOPDIAK.ToString());
+                header.isDeliveryNoteSpecified = true;
+                header.isDeliveryNote = true;
                 var otherDeliveryNoteHeader = new OtherDeliveryNoteHeaderType();
                 var loadingAddress = new Domain.AADE.AddressType
                 {
@@ -691,10 +725,19 @@ namespace Mydata.ViewModels
                     vatAmount = (decimal)item.PMS_VATAM,
                     stampDutyAmount = (decimal)item.POSO_XARTOSH,
                     incomeClassification = incomeClassifications.ToArray(),
+                    itemDescr = item.ItemDTO.ITEM_DESCR,
+                    itemCode = item.ItemDTO.ITEM_CODE,
                     //withheldAmount = item.POSO_PARAKRAT,
                     deductionsAmount = 0,
                     stampDutyPercentCategory = (int?)(item.StampDutyCategory?.Code)
                 };
+
+                if (particleDTO.Ptyppar.IsVoucher == 1)
+                {
+                    detail.quantity = item.Quantity?.ToString("G", CultureInfo.InvariantCulture) ?? "0";
+                    detail.measurementUnit = int.Parse(item.MeasurementUnit.CODE.ToString());
+                }
+
                 if (item.AADE_CODE_PARAK is not null)
                 {
                     detail.withheldAmount = item.POSO_PARAKRAT;
@@ -969,7 +1012,7 @@ namespace Mydata.ViewModels
                 {
                     var hasCategory = pMove.ItemDTO.Category != null;
                     if (!hasCategory)
-                        message = "Enter correct classification Category for: " + pMove.ItemDTO.ITEM_DESCR + " Code: " + pMove.ItemDTO.Code;
+                        message = "Enter correct classification Category for: " + pMove.ItemDTO.ITEM_DESCR + " Code: " + pMove.ItemDTO.ITEM_CODE;
                 }
                 if (typeCode == null)
                 {

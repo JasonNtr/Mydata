@@ -12,6 +12,8 @@ namespace Domain.AADE
         private uint lineNumberField;
 
         private byte recTypeField;
+        private string itemCodeField;
+
 
         private string itemDescrField;
 
@@ -90,7 +92,18 @@ namespace Domain.AADE
             }
         }
 
-        /// <remarks/>
+        public string itemCode
+        {
+            get
+            {
+                return this.itemCodeField;
+            }
+            set
+            {
+                this.itemCodeField = value;
+            }
+        }
+
         public string itemDescr
         {
             get

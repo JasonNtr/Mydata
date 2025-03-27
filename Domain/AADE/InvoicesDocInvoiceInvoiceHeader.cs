@@ -49,6 +49,9 @@ namespace Domain.AADE
 
         private OtherDeliveryNoteHeaderType otherDeliveryNoteHeaderField;
 
+        private bool isDeliveryNoteField;
+
+        private bool isDeliveryNoteFieldSpecified;
 
         /// <remarks/>
         /// 
@@ -288,6 +291,8 @@ namespace Domain.AADE
             }
         }
 
+       
+
         public OtherDeliveryNoteHeaderType otherDeliveryNoteHeader
         {
             get
@@ -297,6 +302,32 @@ namespace Domain.AADE
             set
             {
                 this.otherDeliveryNoteHeaderField = value;
+            }
+        }
+
+        public bool isDeliveryNote
+        {
+            get
+            {
+                return this.isDeliveryNoteField;
+            }
+            set
+            {
+                this.isDeliveryNoteField = value;
+            }
+        }
+
+        [System.Xml.Serialization.XmlIgnoreAttribute()]
+
+        public bool isDeliveryNoteSpecified
+        {
+            get
+            {
+                return this.isDeliveryNoteFieldSpecified;
+            }
+            set
+            {
+                this.isDeliveryNoteFieldSpecified = value;
             }
         }
 
