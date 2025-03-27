@@ -51,6 +51,7 @@ namespace Business.Mappings
             CreateMap<InvoiceType, InvoiceTypeDTO>().ReverseMap();
             CreateMap<TaxInvoice, TaxInvoiceDTO>().ReverseMap();
             CreateMap<Ship, ShipDTO>().ReverseMap();
+            CreateMap<StampDutyCategory, StampDutyCategoryDTO>().ReverseMap();
             
             CreateMap<Item, ItemDTO>().ReverseMap();
             CreateMap<Fpa, FpaDTO>().ReverseMap();

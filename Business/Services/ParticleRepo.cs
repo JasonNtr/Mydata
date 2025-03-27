@@ -23,7 +23,7 @@ namespace Business.Services
 
             
             var ptyppars = await context.InvoiceTypes.AsNoTracking().Where(x => x.UpdateMyData == 1).Select(x => x.Code).ToListAsync();
-
+            
             var particles = await context.Particles.AsNoTracking().Where(x=>x.Date > startDate.Date && x.Date < endDate 
                 && ptyppars.Contains(x.InvoiceType) && x.Mark == null && x.Closed.Equals("1")  && x.Number>0).ToListAsync();
 

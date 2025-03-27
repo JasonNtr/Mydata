@@ -38,7 +38,7 @@ namespace Domain.DTO
         public string? Time { get; set; }
 
         public string? VehiculeNumber { get; set; }
-        public int? MovePurpose { get; set; }
+        public short? MovePurpose { get; set; }
 
         public string? LoadingStreet { get; set; }
 
@@ -53,11 +53,11 @@ namespace Domain.DTO
         public string? DeliveryNumber { get; set; }
 
         public string? DeliveryPostalCode { get; set; }
-        public decimal SKOPDIAK { get; set; }
+        public decimal? SKOPDIAK { get; set; }
         public DateTime? DispatchDate { get; set; }
         public string? DeliveryCity { get; set; }
       
-        public decimal? TransmissionFailure { get; set; }
+        public byte? TransmissionFailure { get; set; }
         public virtual MovePurposeDTO MovePurposeDTO { get; set; }
 
         public virtual InvoiceTypeDTO Ptyppar { get; set; }
