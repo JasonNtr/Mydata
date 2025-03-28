@@ -292,10 +292,10 @@ namespace Mydata.ViewModels
 
             var counterPart = new InvoicesDocInvoiceCounterpart
             {
-                vatNumber = particleDTO.Client?.Vat?.Trim(),
-                country = particleDTO.Client?.CountryCodeISO,
+                vatNumber = particleDTO.Client?.Ship.Vat?.Trim(),
+                country = particleDTO.Client?.Ship.CountryCodeISO,
                 branch = 0,
-                name = particleDTO.Client?.Name 
+                name = particleDTO.Client?.Ship.Name 
             };
 
             //if (!(bool)particleDTO.Client?.CountryCodeISO.IsNullOrWhiteSpace() && (bool)!particleDTO.Client?.Ship.CountryCodeISO.Equals("GR"))
@@ -315,9 +315,9 @@ namespace Mydata.ViewModels
 
             var counterPartAddress = new InvoicesDocInvoiceCounterpartAddress
             {
-                postalCode = particleDTO.Client?.ZipCode ?? "",
-                city = particleDTO.Client?.City,
-                street = particleDTO.Client.Address,
+                postalCode = particleDTO.Client?.Ship.ZipCode ?? "",
+                city = particleDTO.Client?.Ship.Area,
+                street = particleDTO.Client.Ship.Address,
                 number = "0"
             };
 
@@ -550,10 +550,11 @@ namespace Mydata.ViewModels
                     var counterPartAddress = new InvoicesDocInvoiceCounterpartAddress
                     {
                         postalCode = particleDTO.Client?.Ship.ZipCode ?? "",
-                        city = particleDTO.Client?.City
+                        city = particleDTO.Client?.Ship.Area
                     };
 
                     if (String.IsNullOrEmpty(counterPartAddress.postalCode)) counterPartAddress.postalCode = particleDTO.Client?.ZipCode ?? "";
+                    if (String.IsNullOrEmpty(counterPartAddress.city)) counterPartAddress.city = particleDTO.Client?.City ?? "";
 
                     counterPart.address = counterPartAddress;
                     invoice.counterpart = counterPart;

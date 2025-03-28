@@ -13,5 +13,8 @@
          public string Country { get; set; }
 
          public decimal Client { get; set; }
+        public string Address { get; set; }
+        public string Area { get; set; }
+
     }
 }

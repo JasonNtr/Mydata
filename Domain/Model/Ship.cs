@@ -23,5 +23,11 @@ namespace Domain.Model
 
         [Column("MAINCOMP")]
         public decimal Client { get; set; }
+
+        [Column("ADDRESS")]
+        public string Address { get; set; }
+
+        [Column("AREA")]
+        public string Area { get; set; }
     }
 }
