@@ -116,7 +116,7 @@ namespace Mydata
                     CharacterizationCategory = category,
                     Amount = (decimal)item.PMS_AMAFTDISC
                 };
-
+                
                 if (particleDTO.Ptyppar.EidParast != "9.3")
                 {
                     var type = (IncomeClassificationValueType)System.Enum.Parse(typeof(IncomeClassificationValueType), particleDTO.Ptyppar.TYPOS_XARAKTHR);

@@ -394,7 +394,7 @@ namespace Mydata.ViewModels
                     classificationCategory = "category3",
                     amount = 0
                 };
-
+                 
                 if (incomeClassificationSummary.Count == 0)
                 {
                     incomeClassificationSummary.Add(new InvoicesDocInvoiceInvoiceSummaryIncomeClassification
@@ -504,38 +504,40 @@ namespace Mydata.ViewModels
                 issuerPartAddress.street = company.Address;
                 issuerPartAddress.number = "0";
                 issuer.address = issuerPartAddress;
-            }
 
+                var counterPart1 = new InvoicesDocInvoiceCounterpart
+                {
+                    vatNumber = particleDTO.Client?.Ship.Vat?.Trim(),
+                    country = particleDTO.Client?.Ship.CountryCodeISO,
+                    branch = 0,
+                    name = particleDTO.Client?.Ship.Name
+                };
+                var counterPartAddress1 = new InvoicesDocInvoiceCounterpartAddress
+                {
+                    postalCode = particleDTO.Client?.Ship.ZipCode ?? "",
+                    city = particleDTO.Client?.Ship.Area,
+                    street = particleDTO.Client.Ship.Address,
+                    number = "0"
+                };
+                counterPart1.address = counterPartAddress1;
+                invoice.counterpart = counterPart1;
+            }
+            else if ((bool)particleDTO.Client?.Ship.CountryCodeISO.Equals("GR"))
+            {
+                issuer.address = issuerPartAddress;
+            };
 
             invoice.issuer = issuer;
             if (type is < 11 or > 12)
             {
-                if (particleDTO.Ptyppar.IsVoucher == 1)
-                {
-                    var counterPart1 = new InvoicesDocInvoiceCounterpart
-                    {
-                        vatNumber = particleDTO.Client?.Vat?.Trim(),
-                        country = particleDTO.Client?.CountryCodeISO,
-                        branch = 0,
-                        name = particleDTO.Client?.Name
-                    };
-                    var counterPartAddress1 = new InvoicesDocInvoiceCounterpartAddress
-                    {
-                        postalCode = particleDTO.Client?.ZipCode ?? "",
-                        city = particleDTO.Client?.City,
-                        street = particleDTO.Client.Address,
-                        number = "0"
-                    };
-                    counterPart1.address = counterPartAddress1;
-                    invoice.counterpart = counterPart1;
-                }
-                else
+                if (particleDTO.Ptyppar.IsVoucher != 1)
                 {
                     var counterPart = new InvoicesDocInvoiceCounterpart
                     {
                         vatNumber = particleDTO.Client?.Ship.Vat?.Trim(),
                         country = particleDTO.Client?.Ship.CountryCodeISO,
-                        branch = 0
+                        branch = 0,
+                        name = particleDTO.Client?.Ship.Name
                     };
 
                     if (String.IsNullOrEmpty(counterPart.vatNumber)) counterPart.vatNumber = particleDTO.Client?.Vat?.Trim();
@@ -543,9 +545,9 @@ namespace Mydata.ViewModels
 
 
                     //particleDTO.Client.CountryCodeISO = null;
-                    if (!(bool)particleDTO.Client?.CountryCodeISO.IsNullOrWhiteSpace() && (bool)!particleDTO.Client?.Ship.CountryCodeISO.Equals("GR"))
+                    if ((bool)particleDTO.Client?.Ship.CountryCodeISO.Equals("GR"))
                     {
-                        counterPart.name = particleDTO.Client?.Ship.Name;
+                        counterPart.name = null;
                     };
                     var counterPartAddress = new InvoicesDocInvoiceCounterpartAddress
                     {
@@ -726,15 +728,14 @@ namespace Mydata.ViewModels
                     vatAmount = (decimal)item.PMS_VATAM,
                     stampDutyAmount = (decimal)item.POSO_XARTOSH,
                     incomeClassification = incomeClassifications.ToArray(),
-                    itemDescr = item.ItemDTO.ITEM_DESCR,
-                    itemCode = item.ItemDTO.ITEM_CODE,
-                    //withheldAmount = item.POSO_PARAKRAT,
                     deductionsAmount = 0,
                     stampDutyPercentCategory = (int?)(item.StampDutyCategory?.Code)
                 };
 
                 if (particleDTO.Ptyppar.IsVoucher == 1)
                 {
+                    detail.itemDescr = item.ItemDTO.ITEM_DESCR;
+                    detail.itemCode = item.ItemDTO.ITEM_CODE;
                     detail.quantity = item.Quantity?.ToString("G", CultureInfo.InvariantCulture) ?? "0";
                     detail.measurementUnit = int.Parse(item.MeasurementUnit.CODE.ToString());
                 }
@@ -749,6 +750,7 @@ namespace Mydata.ViewModels
                 if (bExeiApallaghFPA == 1)
                 {
                     var category = particleDTO.Ptyppar.EXAIRFPA;
+
 
                     detail.vatCategory = 7;
                     detail.vatAmount = 0;

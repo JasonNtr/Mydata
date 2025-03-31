@@ -230,7 +230,6 @@ namespace Domain.AADE
 
         public bool ShouldSerializevatExemptionCategory()
         {
-            // Return false if vatExemptionCategory is null, preventing serialization
             return vatCategory == 7;
         }
 
