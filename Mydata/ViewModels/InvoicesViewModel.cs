@@ -524,10 +524,10 @@ namespace Mydata.ViewModels
                 counterPart1.address = counterPartAddress1;
                 invoice.counterpart = counterPart1;
             }
-            else if ((bool)particleDTO.Client?.Ship.CountryCodeISO.Equals("GR"))
-            {
-                issuer.address = issuerPartAddress;
-            };
+            //else if ((bool)particleDTO.Client?.Ship.CountryCodeISO.Equals("GR"))
+            //{
+            //    issuer.address = issuerPartAddress;
+            //};
 
             invoice.issuer = issuer;
             if (type is < 11 or > 12)

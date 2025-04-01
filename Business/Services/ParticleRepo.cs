@@ -72,7 +72,7 @@ namespace Business.Services
                 var itemDTO = Mapper.Map<ItemDTO>(item);
                 var fpa = await context.FPA.AsNoTracking().FirstOrDefaultAsync(x => x.Percentage.Equals(itemDTO.Vat));
                 var fpaDTO = Mapper.Map<FpaDTO>(fpa);
-                var stampDutyCategory = await context.StampDutyCategories.AsNoTracking().FirstOrDefaultAsync(x => x.StampDuty.Equals(pmove.POSOSTO_XARTOSH));
+                var stampDutyCategory = await context.StampDutyCategories.AsNoTracking().FirstOrDefaultAsync(x => x.Code == pmove.POSOSTO_XARTOSH);
                 var stampDutyCategoryDTO = Mapper.Map<StampDutyCategoryDTO>(stampDutyCategory);
                 var measurementUnit = await context.MeasurementUnits.AsNoTracking().FirstOrDefaultAsync(x => x.AME_UNIT_CODE == itemDTO.MeasurementUnitCode.ToString());
                 var measurementUnitDTO = Mapper.Map<MeasurementUnitDTO>(measurementUnit);

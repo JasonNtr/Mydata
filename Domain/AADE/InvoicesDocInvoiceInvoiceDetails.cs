@@ -324,7 +324,7 @@ namespace Domain.AADE
 
         public bool ShouldSerializestampDutyPercentCategory()
         {
-            return stampDutyPercentCategory != null;
+            return stampDutyPercentCategory != null && stampDutyPercentCategory>0;
         }
 
         [XmlIgnore]
