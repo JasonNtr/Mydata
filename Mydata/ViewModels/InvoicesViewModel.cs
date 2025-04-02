@@ -722,12 +722,15 @@ namespace Mydata.ViewModels
 
                 if (item.POSO_XARTOSH is null) item.POSO_XARTOSH = 0;
                 if (item.PMS_VATAM is null) item.PMS_VATAM = 0;
+
+                var vatam = decimal.Round((decimal)item.PMS_VATAM, 2);
+
                 var detail = new InvoicesDocInvoiceInvoiceDetails
                 {
                     lineNumber = (uint)i,
                     netValue = (decimal)rounded,
                     vatCategory = (int)item.ItemDTO.FPA.Category,
-                    vatAmount = (decimal)item.PMS_VATAM,
+                    vatAmount = vatam,
                     stampDutyAmount = (decimal)item.POSO_XARTOSH,
                     incomeClassification = incomeClassifications.ToArray(),
                     deductionsAmount = 0,
