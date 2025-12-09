@@ -57,6 +57,11 @@ namespace Domain.AADE
             }
         }
 
+        public bool ShouldSerializemark()
+        {
+            return false;
+        }
+
         /// <remarks/>
         public long cancelledByMark
         {
