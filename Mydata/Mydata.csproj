@@ -6,7 +6,7 @@
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
     <ApplicationIcon>Resources\TrayIcon.ico</ApplicationIcon>
-	  <Version>8.01</Version>
+	  <Version>8.02</Version>
   </PropertyGroup>
 
   <ItemGroup>
