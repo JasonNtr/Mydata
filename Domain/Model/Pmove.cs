@@ -51,5 +51,9 @@ namespace Domain.Model
         [Column("AADE_CODE_PARAK")]
         [StringLength(20)]
         public string AADE_CODE_PARAK { get; set; }
+
+        [Column("AADE_CODE_XARTO")]
+        [StringLength(20)]
+        public string StampDutyCode { get; set; }
     }
 }

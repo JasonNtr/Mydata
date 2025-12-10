@@ -33,7 +33,7 @@ namespace Domain.DTO
 
         public decimal? OtherMeasurementUnitQuantity { get; set; }
         public string ItemCategory { get; set; }
-
+        public string StampDutyCode { get; set; }
         public decimal? Net1
         {
             get
